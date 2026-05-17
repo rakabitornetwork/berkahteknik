@@ -16,8 +16,10 @@ return new class extends Migration
             $table->foreignId('vehicle_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete(); // Technician
             $table->string('status')->default('antri'); // antri, dikerjakan, selesai
-            $table->text('description');
-            $table->decimal('cost', 12, 2)->nullable();
+            $table->text('description');                // Keluhan pelanggan
+            $table->text('diagnosis')->nullable();       // Diagnosa teknisi
+            $table->decimal('service_fee', 12, 2)->default(0); // Biaya jasa
+            $table->string('payment_status')->default('belum_lunas'); // belum_lunas, lunas
             $table->timestamp('started_at')->nullable();
             $table->timestamp('completed_at')->nullable();
             $table->timestamps();

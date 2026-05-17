@@ -1,47 +1,74 @@
 import React from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '../../Layouts/AdminLayout';
 import MetricCard from '../../Components/MetricCard';
 import DataTable from '../../Components/DataTable';
 import StatusBadge from '../../Components/StatusBadge';
 
+const fmt = (n) => `Rp ${Number(n).toLocaleString('id-ID')}`;
+
 export default function Dashboard({ auth, stats, activeServices }) {
     const columns = [
-        { header: 'No. Antrian', accessor: 'id', cell: row => `#${row.id.toString().padStart(4, '0')}` },
-        { header: 'Pelanggan', accessor: 'customer_name' },
+        { header: '#', accessor: 'id', cell: r => <span style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>#{String(r.id).padStart(4, '0')}</span> },
+        { header: 'Pelanggan', accessor: 'customer_name', cell: r => <span style={{ fontWeight: 500 }}>{r.customer_name}</span> },
         { header: 'Kendaraan', accessor: 'vehicle' },
-        { header: 'Status', accessor: 'status', cell: row => <StatusBadge status={row.status} /> },
-        { header: 'Estimasi Biaya', accessor: 'cost', cell: row => row.cost ? `Rp ${Number(row.cost).toLocaleString('id-ID')}` : '-' },
+        { header: 'Status', accessor: 'status', cell: r => <StatusBadge status={r.status} /> },
         { header: 'Mekanik', accessor: 'technician' },
-    ];
-
-    // Dummy data for visual presentation if activeServices is empty
-    const data = activeServices?.length > 0 ? activeServices : [
-        { id: 1042, customer_name: 'Budi Santoso', vehicle: 'Toyota Avanza (B 1234 CD)', status: 'Dikerjakan', cost: 1500000, technician: 'Arif' },
-        { id: 1043, customer_name: 'Siti Aminah', vehicle: 'Honda Brio (D 5678 EF)', status: 'Antri', cost: null, technician: '-' },
-        { id: 1044, customer_name: 'Agus Wijaya', vehicle: 'Mitsubishi Xpander (F 9012 GH)', status: 'Selesai', cost: 850000, technician: 'Bambang' },
+        { header: 'Masuk', accessor: 'created_at', cell: r => <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{r.created_at}</span> },
+        { header: 'Aksi', accessor: 'id', cell: r => (
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <Link href={`/admin/services/${r.id}`} style={{ fontSize: '0.75rem', color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 500 }}>Detail</Link>
+                {r.status === 'antri' && (
+                    <button onClick={() => router.patch(`/admin/services/${r.id}/status`, { status: 'dikerjakan' })}
+                        style={{ fontSize: '0.75rem', color: 'var(--color-info)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}>
+                        Mulai →
+                    </button>
+                )}
+                {r.status === 'dikerjakan' && (
+                    <button onClick={() => router.patch(`/admin/services/${r.id}/status`, { status: 'selesai' })}
+                        style={{ fontSize: '0.75rem', color: 'var(--color-success)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}>
+                        Selesai ✓
+                    </button>
+                )}
+            </div>
+        )},
     ];
 
     return (
-        <AdminLayout user={auth?.user}>
-            <Head title="Admin Dashboard" />
+        <AdminLayout title="Dashboard Overview">
+            <Head title="Dashboard Admin" />
 
-            <div className="hd-grid hd-grid-cols-4" style={{ marginBottom: '2rem' }}>
-                <MetricCard title="Kendaraan Masuk Hari Ini" value={stats?.today_vehicles || 12} trend="+2 dari kemarin" icon="🚗" />
-                <MetricCard title="Sedang Dikerjakan" value={stats?.active_services || 5} icon="🔧" />
-                <MetricCard title="Selesai Hari Ini" value={stats?.completed_today || 8} icon="✅" />
-                <MetricCard title="Pendapatan (Estimasi)" value={`Rp ${((stats?.revenue || 4500000)/1000000).toFixed(1)}M`} trend="+15% bulan ini" icon="💰" />
+            {/* Metric Grid */}
+            <div className="hd-grid hd-grid-cols-4" style={{ marginBottom: '1rem' }}>
+                <MetricCard title="Kendaraan Masuk Hari Ini" value={stats.today_vehicles} icon="🚗" trend={`${stats.queue_services} antri`} />
+                <MetricCard title="Sedang Dikerjakan" value={stats.active_services} icon="🔧" />
+                <MetricCard title="Selesai Hari Ini" value={stats.completed_today} icon="✅" />
+                <MetricCard title="Pendapatan Hari Ini" value={fmt(stats.revenue_today)} icon="💰" trend={`Bulan ini: ${fmt(stats.revenue_month)}`} />
             </div>
 
-            <div className="glass-panel" style={{ padding: '1.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <h3 style={{ fontSize: '1.125rem', fontWeight: 600 }}>Daftar Servis Aktif</h3>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <input type="text" placeholder="Cari plat nomor..." className="form-input" style={{ width: '200px' }} />
-                        <button className="btn btn-outline">Filter</button>
+            <div className="hd-grid hd-grid-cols-4" style={{ marginBottom: '1.5rem' }}>
+                <MetricCard title="Total Pelanggan" value={stats.total_customers} icon="👤" />
+                <MetricCard title="Stok Menipis" value={stats.low_stock_parts} icon="⚠️"
+                    trend={stats.low_stock_parts > 0 ? 'Perlu restock!' : 'Stok aman'} />
+                <div className="glass-panel hover-lift" style={{ padding: '1.5rem', gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>Aksi Cepat</div>
+                        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                            <Link href="/admin/services/create" className="btn btn-primary" style={{ fontSize: '0.8rem', padding: '0.4rem 0.9rem' }}>+ Servis Baru</Link>
+                            <Link href="/admin/customers/create" className="btn btn-outline" style={{ fontSize: '0.8rem', padding: '0.4rem 0.9rem' }}>+ Pelanggan</Link>
+                            <Link href="/admin/spare-parts/create" className="btn btn-outline" style={{ fontSize: '0.8rem', padding: '0.4rem 0.9rem' }}>+ Spare Part</Link>
+                        </div>
                     </div>
                 </div>
-                <DataTable columns={columns} data={data} />
+            </div>
+
+            {/* Active Services Table */}
+            <div className="glass-panel" style={{ padding: '1.25rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h2 style={{ fontSize: '1rem', fontWeight: 600, margin: 0 }}>Antrian & Servis Aktif</h2>
+                    <Link href="/admin/services" style={{ fontSize: '0.8rem', color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 500 }}>Lihat Semua →</Link>
+                </div>
+                <DataTable columns={columns} data={activeServices} />
             </div>
         </AdminLayout>
     );
