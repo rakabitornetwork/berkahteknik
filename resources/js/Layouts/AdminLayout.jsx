@@ -6,6 +6,7 @@ const navItems = [
     { href: '/admin/services', label: 'Manajemen Servis', icon: '🔧' },
     { href: '/admin/customers', label: 'Pelanggan', icon: '👤' },
     { href: '/admin/spare-parts', label: 'Spare Part & Stok', icon: '📦' },
+    { href: '/admin/reports', label: 'Laporan', icon: '📊' },
 ];
 
 export default function AdminLayout({ children, title }) {

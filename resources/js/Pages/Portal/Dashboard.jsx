@@ -1,60 +1,152 @@
-import React from 'react';
-import { Head } from '@inertiajs/react';
+import React, { useState } from 'react';
+import { Head, Link } from '@inertiajs/react';
 import PortalLayout from '../../Layouts/PortalLayout';
 import StatusBadge from '../../Components/StatusBadge';
 
-export default function Dashboard({ auth, myServices }) {
-    // Dummy data
-    const services = myServices?.length > 0 ? myServices : [
-        { id: 1042, vehicle: 'Toyota Avanza (B 1234 CD)', status: 'Dikerjakan', description: 'Ganti Freon dan Kompresor AC', start_date: '17 Mei 2026', estimate: 'Rp 1.500.000' }
-    ];
+const fmt = (n) => `Rp ${Number(n || 0).toLocaleString('id-ID')}`;
+
+const statusSteps = ['antri', 'dikerjakan', 'selesai'];
+const statusLabel = { antri: 'Antri', dikerjakan: 'Dikerjakan', selesai: 'Selesai' };
+
+function ServiceTracker({ status }) {
+    const currentIdx = statusSteps.indexOf(status);
+    return (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 0, margin: '1rem 0' }}>
+            {statusSteps.map((s, i) => (
+                <React.Fragment key={s}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1 }}>
+                        <div style={{
+                            width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontWeight: 700, fontSize: '0.85rem', transition: 'all var(--transition-normal)',
+                            background: i <= currentIdx ? 'var(--color-primary)' : 'var(--color-border)',
+                            color: i <= currentIdx ? 'white' : 'var(--color-text-muted)',
+                            boxShadow: i === currentIdx ? 'var(--shadow-glow)' : 'none',
+                        }}>
+                            {i < currentIdx ? '✓' : i + 1}
+                        </div>
+                        <span style={{ fontSize: '0.75rem', marginTop: '0.375rem', fontWeight: i === currentIdx ? 600 : 400, color: i === currentIdx ? 'var(--color-primary)' : 'var(--color-text-muted)' }}>
+                            {statusLabel[s]}
+                        </span>
+                    </div>
+                    {i < statusSteps.length - 1 && (
+                        <div style={{ height: '2px', flex: 2, background: i < currentIdx ? 'var(--color-primary)' : 'var(--color-border)', transition: 'background var(--transition-normal)', marginBottom: '1.25rem' }} />
+                    )}
+                </React.Fragment>
+            ))}
+        </div>
+    );
+}
+
+export default function PortalDashboard({ customer, vehicles, activeService }) {
+    const [activeVehicle, setActiveVehicle] = useState(vehicles?.[0]?.id || null);
+
+    const selectedVehicle = vehicles?.find(v => v.id === activeVehicle);
 
     return (
-        <PortalLayout user={auth?.user}>
-            <Head title="Portal Pelanggan" />
+        <PortalLayout customer={customer}>
+            <Head title="Dashboard Pelanggan" />
 
-            <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-                <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-                    <h1 style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--color-primary-dark)', marginBottom: '1rem' }}>Selamat Datang, {auth?.user?.name || 'Pelanggan'}!</h1>
-                    <p style={{ color: 'var(--color-text-muted)', fontSize: '1.125rem' }}>Pantau status perbaikan AC mobil Anda secara real-time dari sini.</p>
+            {/* Welcome */}
+            <div style={{ marginBottom: '2rem' }}>
+                <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--color-primary-dark)' }}>
+                    Selamat datang, {customer?.name}! 👋
+                </h1>
+                <p style={{ color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
+                    Pantau status pengerjaan AC mobil Anda secara real-time.
+                </p>
+            </div>
+
+            {/* Active Service Banner */}
+            {activeService && (
+                <div className="glass-panel" style={{ padding: '1.25rem 1.5rem', marginBottom: '2rem', borderLeft: '4px solid var(--color-info)', borderRadius: 'var(--radius-lg)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                    <div>
+                        <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-info)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>Servis Aktif</div>
+                        <div style={{ fontWeight: 600 }}>{activeService.description}</div>
+                        <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginTop: '0.125rem' }}>Teknisi: {activeService.technician || 'Menunggu teknisi'}</div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                        <StatusBadge status={activeService.status} />
+                        <Link href={`/portal/services/${activeService.id}`} className="btn btn-primary" style={{ fontSize: '0.85rem' }}>Detail →</Link>
+                    </div>
                 </div>
+            )}
 
-                <h2 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '1.5rem' }}>Riwayat & Status Servis</h2>
+            {/* No vehicles */}
+            {vehicles?.length === 0 && (
+                <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center' }}>
+                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🚗</div>
+                    <h2 style={{ fontWeight: 600, marginBottom: '0.5rem' }}>Belum ada kendaraan</h2>
+                    <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Kunjungi bengkel kami dan kendaraan Anda akan didaftarkan secara otomatis.</p>
+                </div>
+            )}
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                    {services.map((service, idx) => (
-                        <div key={idx} className="glass-panel hover-lift" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)', paddingBottom: '1rem' }}>
-                                <div>
-                                    <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>{service.vehicle}</h3>
-                                    <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>No. Antrian: #{service.id.toString().padStart(4, '0')} &bull; Masuk: {service.start_date}</div>
-                                </div>
-                                <div style={{ textAlign: 'right' }}>
-                                    <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Status Saat Ini</div>
-                                    <StatusBadge status={service.status} />
-                                </div>
-                            </div>
-                            
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '0.5rem' }}>
-                                <div>
-                                    <div style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)' }}>Keluhan / Tindakan</div>
-                                    <div style={{ marginTop: '0.25rem' }}>{service.description}</div>
-                                </div>
-                                <div>
-                                    <div style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-muted)' }}>Estimasi Biaya</div>
-                                    <div style={{ marginTop: '0.25rem', fontWeight: 600, fontSize: '1.125rem' }}>{service.estimate}</div>
-                                </div>
-                            </div>
-                            
-                            {service.status === 'Selesai' && (
-                                <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px dashed var(--color-border)', textAlign: 'center' }}>
-                                    <button className="btn btn-primary" style={{ width: '100%' }}>Unduh Invoice/Garansi</button>
+            {/* Vehicle Tabs */}
+            {vehicles?.length > 0 && (
+                <>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
+                        {vehicles.map(v => (
+                            <button key={v.id} onClick={() => setActiveVehicle(v.id)}
+                                style={{
+                                    padding: '0.5rem 1rem', borderRadius: '9999px', border: '1px solid',
+                                    fontWeight: 500, cursor: 'pointer', fontSize: '0.85rem',
+                                    transition: 'all var(--transition-fast)',
+                                    borderColor: activeVehicle === v.id ? 'var(--color-primary)' : 'var(--color-border)',
+                                    background: activeVehicle === v.id ? 'var(--color-primary)' : 'white',
+                                    color: activeVehicle === v.id ? 'white' : 'var(--color-text-muted)',
+                                }}>
+                                {v.brand} {v.model} · {v.license_plate}
+                            </button>
+                        ))}
+                    </div>
+
+                    {selectedVehicle && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            {selectedVehicle.services?.length === 0 && (
+                                <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+                                    Belum ada riwayat servis untuk kendaraan ini.
                                 </div>
                             )}
+
+                            {selectedVehicle.services?.map(s => (
+                                <div key={s.id} className="glass-panel hover-lift" style={{ padding: '1.5rem', borderRadius: 'var(--radius-lg)' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem' }}>
+                                        <div>
+                                            <div style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>#{String(s.id).padStart(4, '0')} · {s.created_at}</div>
+                                            <div style={{ fontWeight: 600, fontSize: '1rem' }}>{s.description}</div>
+                                        </div>
+                                        <StatusBadge status={s.status} />
+                                    </div>
+
+                                    <ServiceTracker status={s.status} />
+
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)' }}>
+                                        <div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>TEKNISI</div>
+                                            <div style={{ fontWeight: 500, marginTop: '0.125rem' }}>{s.technician || '-'}</div>
+                                        </div>
+                                        <div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>TOTAL BIAYA</div>
+                                            <div style={{ fontWeight: 700, color: 'var(--color-primary-dark)', marginTop: '0.125rem', fontSize: '1.1rem' }}>{fmt(s.total)}</div>
+                                        </div>
+                                        <div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>PEMBAYARAN</div>
+                                            <div style={{ fontWeight: 600, marginTop: '0.125rem', color: s.payment_status === 'lunas' ? 'var(--color-success)' : 'var(--color-warning)' }}>
+                                                {s.payment_status === 'lunas' ? '✓ Lunas' : '⏳ Belum Lunas'}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div style={{ marginTop: '1rem', textAlign: 'right' }}>
+                                        <Link href={`/portal/services/${s.id}`} style={{ color: 'var(--color-primary)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: 500 }}>
+                                            Lihat Detail Lengkap →
+                                        </Link>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
-                    ))}
-                </div>
-            </div>
+                    )}
+                </>
+            )}
         </PortalLayout>
     );
 }

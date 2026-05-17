@@ -22,6 +22,7 @@ export default function CustomerShow({ customer }) {
                         </div>
                     </div>
                     <div style={{ display: 'flex', gap: '0.75rem' }}>
+                        <Link href={`/admin/vehicles/create?customer_id=${customer.id}`} className="btn btn-primary" style={{ fontSize: '0.85rem' }}>+ Tambah Kendaraan</Link>
                         <Link href={`/admin/customers/${customer.id}/edit`} className="btn btn-outline" style={{ fontSize: '0.85rem' }}>Edit Profil</Link>
                     </div>
                 </div>
