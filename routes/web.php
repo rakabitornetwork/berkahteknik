@@ -11,6 +11,7 @@ use App\Http\Controllers\VehicleController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\Portal\CustomerAuthController;
 use App\Http\Controllers\Portal\PortalDashboardController;
+use App\Http\Controllers\AdminProfileController;
 
 // ─── Redirect root ke portal ─────────────────────────────────────────────────
 Route::get('/', fn () => redirect('/portal'));
@@ -43,6 +44,11 @@ Route::prefix('admin')->middleware('auth')->name('admin.')->group(function () {
 
     // Laporan
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+
+    // Profil Admin
+    Route::get('/profile', [AdminProfileController::class, 'edit'])->name('profile.edit');
+    Route::post('/profile', [AdminProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [AdminProfileController::class, 'updatePassword'])->name('profile.password');
 
     // Pelanggan
     Route::resource('customers', CustomerController::class)->names([
@@ -87,4 +93,22 @@ Route::prefix('admin')->middleware('auth')->name('admin.')->group(function () {
         'destroy' => 'spare-parts.destroy',
     ]);
     Route::patch('spare-parts/{sparePart}/stock', [SparePartController::class, 'adjustStock'])->name('spare-parts.stock');
+
+    // Mekanik
+    Route::resource('mechanics', App\Http\Controllers\MechanicController::class)->except(['create', 'show', 'edit'])->names([
+        'index'   => 'mechanics.index',
+        'store'   => 'mechanics.store',
+        'update'  => 'mechanics.update',
+        'destroy' => 'mechanics.destroy',
+    ]);
+
+    // Penjualan Langsung (POS)
+    Route::patch('sales/{sale}/pay', [App\Http\Controllers\SaleController::class, 'pay'])->name('sales.pay');
+    Route::resource('sales', App\Http\Controllers\SaleController::class)->only(['index', 'create', 'store', 'show', 'destroy'])->names([
+        'index'   => 'sales.index',
+        'create'  => 'sales.create',
+        'store'   => 'sales.store',
+        'show'    => 'sales.show',
+        'destroy' => 'sales.destroy',
+    ]);
 });

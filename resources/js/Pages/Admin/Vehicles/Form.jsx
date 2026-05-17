@@ -1,6 +1,7 @@
 import React from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import AdminLayout from '../../../Layouts/AdminLayout';
+import { ArrowLeft } from 'lucide-react';
 
 export default function VehicleForm({ vehicle, customer, customers }) {
     const isEditing = !!vehicle;
@@ -31,7 +32,7 @@ export default function VehicleForm({ vehicle, customer, customers }) {
                 <div className="glass-panel" style={{ padding: '2rem' }}>
                     <div style={{ marginBottom: '1.5rem' }}>
                         <Link href={currentCustomer ? `/admin/customers/${currentCustomer.id}` : '/admin/customers'}
-                            style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', textDecoration: 'none' }}>← Kembali</Link>
+                            style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}><ArrowLeft size={14} /> Kembali</Link>
                         <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginTop: '0.5rem' }}>
                             {isEditing ? 'Edit Kendaraan' : 'Tambah Kendaraan Baru'}
                         </h2>

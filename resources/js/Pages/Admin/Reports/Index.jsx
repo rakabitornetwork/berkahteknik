@@ -5,6 +5,7 @@ import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     LineChart, Line, Legend
 } from 'recharts';
+import { Wallet, CheckCircle, Clock, Users } from 'lucide-react';
 
 const fmt = (n) => `Rp ${Number(n || 0).toLocaleString('id-ID')}`;
 
@@ -39,15 +40,15 @@ export default function ReportsIndex({ monthlyData, services, summary, filters, 
             {/* Summary Cards */}
             <div className="hd-grid hd-grid-cols-4" style={{ marginBottom: '1.5rem' }}>
                 {[
-                    { label: 'Total Pendapatan', value: fmt(summary.total_revenue), icon: '💰', sub: `${summary.total_services} servis selesai` },
-                    { label: 'Sudah Dibayar', value: summary.paid_services, icon: '✅', sub: 'servis lunas' },
-                    { label: 'Belum Dibayar', value: summary.unpaid_services, icon: '⏳', sub: 'servis belum lunas' },
-                    { label: 'Total Pelanggan', value: summary.total_customers, icon: '👤', sub: 'terdaftar' },
+                    { label: 'Total Pendapatan', value: fmt(summary.total_revenue), icon: <Wallet size={24} strokeWidth={1.5} />, sub: `${summary.total_services} servis selesai` },
+                    { label: 'Sudah Dibayar', value: summary.paid_services, icon: <CheckCircle size={24} strokeWidth={1.5} />, sub: 'servis lunas' },
+                    { label: 'Belum Dibayar', value: summary.unpaid_services, icon: <Clock size={24} strokeWidth={1.5} />, sub: 'servis belum lunas' },
+                    { label: 'Total Pelanggan', value: summary.total_customers, icon: <Users size={24} strokeWidth={1.5} />, sub: 'terdaftar' },
                 ].map((card, i) => (
                     <div key={i} className="glass-panel hover-lift" style={{ padding: '1.25rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                             <div>
-                                <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>{card.label}</div>
+                                <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>{card.label}</div>
                                 <div style={{ fontSize: '1.75rem', fontWeight: 700, lineHeight: 1 }}>{card.value}</div>
                                 <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.375rem' }}>{card.sub}</div>
                             </div>
@@ -89,7 +90,7 @@ export default function ReportsIndex({ monthlyData, services, summary, filters, 
             <div className="hd-grid chart-grid" style={{ marginBottom: '1.25rem' }}>
                 {/* Revenue Bar Chart */}
                 <div className="glass-panel" style={{ padding: '1.25rem' }}>
-                    <h3 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '1rem' }}>Pendapatan per Bulan ({year})</h3>
+                    <h3 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '1rem', color: 'var(--color-text-muted)' }}>Pendapatan per Bulan ({year})</h3>
                     <ResponsiveContainer width="100%" height={220}>
                         <BarChart data={monthlyData} margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
@@ -103,7 +104,7 @@ export default function ReportsIndex({ monthlyData, services, summary, filters, 
 
                 {/* Service Count Line Chart */}
                 <div className="glass-panel" style={{ padding: '1.25rem' }}>
-                    <h3 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '1rem' }}>Jumlah Servis per Bulan</h3>
+                    <h3 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '1rem', color: 'var(--color-text-muted)' }}>Jumlah Servis per Bulan</h3>
                     <ResponsiveContainer width="100%" height={220}>
                         <LineChart data={monthlyData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
@@ -118,9 +119,9 @@ export default function ReportsIndex({ monthlyData, services, summary, filters, 
 
             {/* Detail Table */}
             <div className="glass-panel" style={{ padding: '1.25rem' }}>
-                <h3 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '1rem' }}>
+                <h3 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '1rem', color: 'var(--color-text-muted)' }}>
                     Detail Servis Selesai {month ? `— ${MONTHS[month - 1]} ${year}` : `— ${year}`}
-                    <span style={{ marginLeft: '0.75rem', fontWeight: 400, color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>({services.length} transaksi)</span>
+                    <span style={{ marginLeft: '0.75rem', fontWeight: 400, color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>({services.length} transaksi)</span>
                 </h3>
 
                 <div style={{ overflowX: 'auto' }}>
@@ -149,10 +150,9 @@ export default function ReportsIndex({ monthlyData, services, summary, filters, 
                                     <td style={{ textAlign: 'right', fontSize: '0.8rem' }}>{fmt(s.parts_total)}</td>
                                     <td style={{ textAlign: 'right', fontWeight: 600 }}>{fmt(s.total)}</td>
                                     <td>
-                                        <span style={{ fontSize: '0.75rem', fontWeight: 600,
-                                            color: s.payment_status === 'lunas' ? 'var(--color-success)' : 'var(--color-warning)' }}>
-                                            {s.payment_status === 'lunas' ? '✓ Lunas' : '⏳ Belum'}
-                                        </span>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', fontWeight: 600, color: s.payment_status === 'lunas' ? 'var(--color-success)' : 'var(--color-warning)' }}>
+                                            {s.payment_status === 'lunas' ? <><CheckCircle size={14} strokeWidth={2.5} /> Lunas</> : <><Clock size={14} strokeWidth={2.5} /> Belum</>}
+                                        </div>
                                     </td>
                                     <td style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{s.completed_at}</td>
                                 </tr>

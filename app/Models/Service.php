@@ -8,7 +8,7 @@ class Service extends Model
 {
     protected $fillable = [
         'vehicle_id', 'user_id', 'status', 'description',
-        'diagnosis', 'service_fee', 'payment_status', 'started_at', 'completed_at'
+        'diagnosis', 'service_fee', 'payment_status', 'started_at', 'completed_at', 'is_bring_own_part', 'service_name'
     ];
 
     protected $casts = [

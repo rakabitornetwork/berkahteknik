@@ -1,5 +1,6 @@
 import React from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { Fan } from 'lucide-react';
 
 export default function PortalLogin() {
     const { data, setData, post, processing, errors } = useForm({
@@ -26,7 +27,7 @@ export default function PortalLogin() {
                     {/* Card */}
                     <div className="glass-panel" style={{ padding: '2.5rem', borderRadius: 'var(--radius-xl)' }}>
                         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-                            <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>❄️</div>
+                            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.75rem', color: '#fbbf24' }}><Fan size={48} strokeWidth={2} /></div>
                             <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-primary-dark)', marginBottom: '0.5rem' }}>Portal Pelanggan</h1>
                             <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Masuk untuk memantau status servis AC mobil Anda.</p>
                         </div>

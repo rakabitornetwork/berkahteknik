@@ -1,5 +1,6 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
+import { User } from 'lucide-react';
 
 export default function PortalLayout({ children, customer }) {
     return (
@@ -18,7 +19,7 @@ export default function PortalLayout({ children, customer }) {
                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                         {customer ? (
                             <>
-                                <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>👋 {customer.name}</span>
+                                <span style={{ fontSize: '0.875rem', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '0.375rem' }}><User size={16} /> {customer.name}</span>
                                 <Link href="/portal/logout" method="post" as="button"
                                     style={{ fontSize: '0.8rem', padding: '0.35rem 0.85rem', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-muted)', transition: 'all var(--transition-fast)' }}
                                     onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-danger)'; e.currentTarget.style.borderColor = 'var(--color-danger)'; }}

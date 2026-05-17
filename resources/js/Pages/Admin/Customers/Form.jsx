@@ -1,6 +1,7 @@
 import React from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import AdminLayout from '../../../Layouts/AdminLayout';
+import { ArrowLeft } from 'lucide-react';
 
 export default function CustomerForm({ customer }) {
     const isEditing = !!customer;
@@ -27,7 +28,7 @@ export default function CustomerForm({ customer }) {
             <div style={{ maxWidth: '600px' }}>
                 <div className="glass-panel" style={{ padding: '2rem' }}>
                     <div style={{ marginBottom: '1.5rem' }}>
-                        <Link href="/admin/customers" style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', textDecoration: 'none' }}>← Kembali ke Daftar</Link>
+                        <Link href="/admin/customers" style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}><ArrowLeft size={14} /> Kembali ke Daftar</Link>
                         <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginTop: '0.5rem' }}>{isEditing ? 'Edit Data Pelanggan' : 'Tambah Pelanggan Baru'}</h2>
                     </div>
 

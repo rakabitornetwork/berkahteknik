@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '../../../Layouts/AdminLayout';
 import StatusBadge from '../../../Components/StatusBadge';
+import { Eye, Edit } from 'lucide-react';
 
 const fmt = (n) => `Rp ${Number(n).toLocaleString('id-ID')}`;
 
@@ -58,7 +59,7 @@ export default function ServicesIndex({ services, filters }) {
                                 <th>#</th>
                                 <th>Pelanggan</th>
                                 <th>Kendaraan</th>
-                                <th>Keluhan</th>
+                                <th>Jasa Utama</th>
                                 <th>Mekanik</th>
                                 <th>Status</th>
                                 <th>Biaya Jasa</th>
@@ -72,7 +73,7 @@ export default function ServicesIndex({ services, filters }) {
                                     <td style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>#{String(s.id).padStart(4, '0')}</td>
                                     <td style={{ fontWeight: 500 }}>{s.vehicle?.customer?.name ?? '-'}</td>
                                     <td style={{ fontSize: '0.8rem' }}>{s.vehicle ? `${s.vehicle.brand} ${s.vehicle.model} (${s.vehicle.license_plate})` : '-'}</td>
-                                    <td style={{ maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{s.description}</td>
+                                    <td style={{ maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.8rem', color: 'var(--color-primary)' }}>{s.service_name}</td>
                                     <td style={{ fontSize: '0.8rem' }}>{s.technician?.name ?? '-'}</td>
                                     <td><StatusBadge status={s.status} /></td>
                                     <td style={{ fontSize: '0.8rem' }}>{fmt(s.service_fee)}</td>
@@ -86,9 +87,13 @@ export default function ServicesIndex({ services, filters }) {
                                         </span>
                                     </td>
                                     <td>
-                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                            <Link href={`/admin/services/${s.id}`} style={{ color: 'var(--color-primary)', fontSize: '0.8rem', textDecoration: 'none', fontWeight: 500 }}>Detail</Link>
-                                            <Link href={`/admin/services/${s.id}/edit`} style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', textDecoration: 'none' }}>Edit</Link>
+                                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                            <Link href={`/admin/services/${s.id}`} style={{ color: 'var(--color-primary)', textDecoration: 'none', display: 'flex' }} title="Detail">
+                                                <Eye size={18} />
+                                            </Link>
+                                            <Link href={`/admin/services/${s.id}/edit`} style={{ color: 'var(--color-text-muted)', textDecoration: 'none', display: 'flex' }} title="Edit">
+                                                <Edit size={18} />
+                                            </Link>
                                         </div>
                                     </td>
                                 </tr>

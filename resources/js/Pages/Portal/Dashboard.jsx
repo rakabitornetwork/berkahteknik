@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import PortalLayout from '../../Layouts/PortalLayout';
 import StatusBadge from '../../Components/StatusBadge';
+import { CheckCircle, Clock, Check, Car, ArrowRight } from 'lucide-react';
 
 const fmt = (n) => `Rp ${Number(n || 0).toLocaleString('id-ID')}`;
 
@@ -22,7 +23,7 @@ function ServiceTracker({ status }) {
                             color: i <= currentIdx ? 'white' : 'var(--color-text-muted)',
                             boxShadow: i === currentIdx ? 'var(--shadow-glow)' : 'none',
                         }}>
-                            {i < currentIdx ? '✓' : i + 1}
+                            {i < currentIdx ? <Check size={16} strokeWidth={2.5} /> : i + 1}
                         </div>
                         <span style={{ fontSize: '0.75rem', marginTop: '0.375rem', fontWeight: i === currentIdx ? 600 : 400, color: i === currentIdx ? 'var(--color-primary)' : 'var(--color-text-muted)' }}>
                             {statusLabel[s]}
@@ -49,7 +50,7 @@ export default function PortalDashboard({ customer, vehicles, activeService }) {
             {/* Welcome */}
             <div style={{ marginBottom: '2rem' }}>
                 <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--color-primary-dark)' }}>
-                    Selamat datang, {customer?.name}! 👋
+                    Selamat datang, {customer?.name}!
                 </h1>
                 <p style={{ color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
                     Pantau status pengerjaan AC mobil Anda secara real-time.
@@ -66,7 +67,7 @@ export default function PortalDashboard({ customer, vehicles, activeService }) {
                     </div>
                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                         <StatusBadge status={activeService.status} />
-                        <Link href={`/portal/services/${activeService.id}`} className="btn btn-primary" style={{ fontSize: '0.85rem' }}>Detail →</Link>
+                        <Link href={`/portal/services/${activeService.id}`} className="btn btn-primary" style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>Detail <ArrowRight size={14} /></Link>
                     </div>
                 </div>
             )}
@@ -74,7 +75,7 @@ export default function PortalDashboard({ customer, vehicles, activeService }) {
             {/* No vehicles */}
             {vehicles?.length === 0 && (
                 <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center' }}>
-                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🚗</div>
+                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem', color: 'var(--color-text-muted)' }}><Car size={48} strokeWidth={1.5} /></div>
                     <h2 style={{ fontWeight: 600, marginBottom: '0.5rem' }}>Belum ada kendaraan</h2>
                     <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Kunjungi bengkel kami dan kendaraan Anda akan didaftarkan secara otomatis.</p>
                 </div>
@@ -131,14 +132,16 @@ export default function PortalDashboard({ customer, vehicles, activeService }) {
                                         <div>
                                             <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>PEMBAYARAN</div>
                                             <div style={{ fontWeight: 600, marginTop: '0.125rem', color: s.payment_status === 'lunas' ? 'var(--color-success)' : 'var(--color-warning)' }}>
-                                                {s.payment_status === 'lunas' ? '✓ Lunas' : '⏳ Belum Lunas'}
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                                    {s.payment_status === 'lunas' ? <><CheckCircle size={14} strokeWidth={2.5} /> Lunas</> : <><Clock size={14} strokeWidth={2.5} /> Belum Lunas</>}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div style={{ marginTop: '1rem', textAlign: 'right' }}>
                                         <Link href={`/portal/services/${s.id}`} style={{ color: 'var(--color-primary)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: 500 }}>
-                                            Lihat Detail Lengkap →
+                                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', justifyContent: 'flex-end' }}>Lihat Detail Lengkap <ArrowRight size={14} /></span>
                                         </Link>
                                     </div>
                                 </div>

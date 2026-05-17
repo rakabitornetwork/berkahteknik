@@ -2,6 +2,7 @@ import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 import PortalLayout from '../../Layouts/PortalLayout';
 import StatusBadge from '../../Components/StatusBadge';
+import { CheckCircle, Clock, Check, Wrench, ArrowLeft } from 'lucide-react';
 
 const fmt = (n) => `Rp ${Number(n || 0).toLocaleString('id-ID')}`;
 
@@ -22,7 +23,7 @@ function Tracker({ status }) {
                             color: i <= currentIdx ? 'white' : 'var(--color-text-muted)',
                             boxShadow: i === currentIdx ? 'var(--shadow-glow)' : 'none',
                         }}>
-                            {i < currentIdx ? '✓' : i + 1}
+                            {i < currentIdx ? <Check size={16} strokeWidth={2.5} /> : i + 1}
                         </div>
                         <span style={{ fontSize: '0.8rem', marginTop: '0.5rem', fontWeight: i === currentIdx ? 600 : 400, color: i === currentIdx ? 'var(--color-primary)' : 'var(--color-text-muted)' }}>
                             {statusLabel[s]}
@@ -44,8 +45,8 @@ export default function PortalServiceDetail({ service, customer }) {
 
             <div style={{ maxWidth: '700px', margin: '0 auto' }}>
                 {/* Back */}
-                <Link href="/portal/dashboard" style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', textDecoration: 'none', display: 'inline-block', marginBottom: '1.5rem' }}>
-                    ← Kembali ke Dashboard
+                <Link href="/portal/dashboard" style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginBottom: '1.5rem' }}>
+                    <ArrowLeft size={14} /> Kembali ke Dashboard
                 </Link>
 
                 {/* Header */}
@@ -65,7 +66,7 @@ export default function PortalServiceDetail({ service, customer }) {
 
                     {service.status === 'selesai' && (
                         <div style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 'var(--radius-md)', padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <span style={{ fontSize: '1.25rem' }}>✅</span>
+                            <span style={{ display: 'flex', color: 'var(--color-success)' }}><CheckCircle size={24} strokeWidth={2} /></span>
                             <div>
                                 <div style={{ fontWeight: 600, color: 'var(--color-success)' }}>Servis Selesai</div>
                                 <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Kendaraan dapat diambil. Selesai pada: {service.completed_at}</div>
@@ -88,8 +89,8 @@ export default function PortalServiceDetail({ service, customer }) {
                         </div>
                     </div>
                     {service.technician && (
-                        <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-                            🔧 Dikerjakan oleh: <strong>{service.technician}</strong>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
+                            <Wrench size={16} strokeWidth={2} /> <span>Dikerjakan oleh: <strong>{service.technician}</strong></span>
                         </div>
                     )}
                 </div>
@@ -128,13 +129,14 @@ export default function PortalServiceDetail({ service, customer }) {
                             <span>Total</span>
                             <span>{fmt(service.total)}</span>
                         </div>
-                        <div style={{ marginTop: '0.75rem', textAlign: 'right' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', justifyContent: 'flex-end', marginTop: '0.75rem' }}>
                             <span style={{
                                 fontWeight: 600, fontSize: '0.875rem', padding: '0.25rem 0.75rem', borderRadius: '9999px',
                                 background: service.payment_status === 'lunas' ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.1)',
                                 color: service.payment_status === 'lunas' ? 'var(--color-success)' : 'var(--color-warning)',
+                                display: 'inline-flex', alignItems: 'center', gap: '0.375rem'
                             }}>
-                                {service.payment_status === 'lunas' ? '✓ Sudah Dibayar' : '⏳ Belum Dibayar'}
+                                {service.payment_status === 'lunas' ? <><CheckCircle size={14} strokeWidth={2.5} /> Sudah Dibayar</> : <><Clock size={14} strokeWidth={2.5} /> Belum Dibayar</>}
                             </span>
                         </div>
                     </div>

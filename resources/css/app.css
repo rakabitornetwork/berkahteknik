@@ -1,39 +1,40 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-    /* Deep Ocean Blue Color Palette */
-    --color-primary: #005b96;
-    --color-primary-dark: #003f6c;
-    --color-primary-light: #3385c6;
-    --color-primary-alpha: rgba(0, 91, 150, 0.1);
+    /* Dark Mode Premium Theme */
+    --color-primary: #3b82f6;
+    --color-primary-dark: #2563eb;
+    --color-primary-light: #60a5fa;
+    --color-primary-alpha: rgba(59, 130, 246, 0.15);
     
-    /* Neutral & Background */
-    --color-bg: #f8fafc;
-    --color-surface: #ffffff;
-    --color-surface-alpha: rgba(255, 255, 255, 0.7);
-    --color-border: #e2e8f0;
+    /* Background & Surfaces */
+    --color-bg: #09090b; /* Very dark background */
+    --color-surface: #18181b; /* Card background */
+    --color-surface-alpha: rgba(24, 24, 27, 0.7);
+    --color-border: #27272a;
+    --color-border-hover: #3f3f46;
     
     /* Text Colors */
-    --color-text-main: #1e293b;
-    --color-text-muted: #64748b;
+    --color-text-main: #f4f4f5;
+    --color-text-muted: #a1a1aa;
     
     /* Status Colors */
     --color-success: #10b981;
     --color-warning: #f59e0b;
     --color-danger: #ef4444;
-    --color-info: #3b82f6;
+    --color-info: #0ea5e9;
 
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    --shadow-glow: 0 0 15px rgba(0, 91, 150, 0.3);
+    /* Shadows (subtle for dark mode) */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+    --shadow-glow: 0 0 15px rgba(59, 130, 246, 0.2);
 
-    /* Radii */
-    --radius-sm: 0.25rem;
-    --radius-md: 0.5rem;
-    --radius-lg: 1rem;
-    --radius-xl: 1.5rem;
+    /* Radii (sharper for tech/premium feel) */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --radius-xl: 10px;
     
     /* Transitions */
     --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -46,6 +47,10 @@
     padding: 0;
 }
 
+html {
+    font-size: 14px; /* Global scale down for High-Density */
+}
+
 body {
     font-family: 'Inter', sans-serif;
     background-color: var(--color-bg);
@@ -55,20 +60,25 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
 /* Glassmorphism Utilities */
 .glass-panel {
     background: var(--color-surface-alpha);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     box-shadow: var(--shadow-md);
     border-radius: var(--radius-lg);
 }
 
 .glass-header {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: rgba(9, 9, 11, 0.85); /* Dark bg for header */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--color-border);
 }
 
@@ -97,7 +107,7 @@ body {
 @media (min-width: 1024px) {
     .hd-grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
     .hd-grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
-    .chart-grid { grid-template-columns: 2fr 1fr; }
+    .chart-grid { grid-template-columns: 1fr 1fr; }
 }
 
 /* Sidebar & Layout Responsive */
@@ -109,14 +119,14 @@ body {
 }
 
 .admin-sidebar {
-    width: 260px;
+    width: 220px;
     transition: all var(--transition-normal);
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
     background-color: #121212; /* Dark background matching screenshot */
     border-right: 1px solid #27272a;
-    padding: 0.75rem;
+    padding: 0 0.75rem;
     z-index: 40;
 }
 
@@ -125,13 +135,18 @@ body {
 }
 
 .admin-main-content {
-    flex: 1; 
-    display: flex; 
-    flex-direction: column; 
-    min-width: 0; 
-    padding: 0.75rem 0.75rem 0.75rem 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
     height: 100vh;
+    overflow: hidden;
+}
+
+.admin-main-content > main {
+    padding: 1rem;
     overflow-y: auto;
+    flex: 1;
 }
 
 @media (max-width: 768px) {
@@ -162,7 +177,7 @@ body {
 .hd-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.875rem; /* 14px for high density */
+    font-size: 0.875rem; /* Match sidebar font size */
 }
 
 .hd-table th, .hd-table td {
@@ -174,11 +189,14 @@ body {
 .hd-table th {
     font-weight: 600;
     color: var(--color-text-muted);
-    background-color: rgba(248, 250, 252, 0.5);
+    background-color: rgba(0, 0, 0, 0.2);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.75rem;
 }
 
 .hd-table tr:hover {
-    background-color: rgba(0, 91, 150, 0.02);
+    background-color: rgba(255, 255, 255, 0.02);
 }
 
 /* Dynamic Micro-animations */
@@ -235,6 +253,7 @@ body {
     cursor: pointer;
     transition: all var(--transition-fast);
     border: 1px solid transparent;
+    text-decoration: none;
 }
 
 .btn-primary {
@@ -262,24 +281,33 @@ body {
 /* Inputs */
 .form-input {
     width: 100%;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.875rem;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    color: var(--color-text-main);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
-    background-color: var(--color-surface);
+    background-color: rgba(0, 0, 0, 0.2);
     transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .form-input:focus {
     outline: none;
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(0, 91, 150, 0.1);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* Fix dropdown options readability in dark mode */
+option {
+    background-color: var(--color-surface);
+    color: var(--color-text-main);
 }
 
 .form-label {
     display: block;
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: 0.75rem;
+    font-weight: 600;
     margin-bottom: 0.25rem;
-    color: var(--color-text-main);
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }

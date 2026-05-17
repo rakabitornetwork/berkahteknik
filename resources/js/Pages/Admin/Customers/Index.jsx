@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '../../../Layouts/AdminLayout';
+import { Eye, Edit, Trash2 } from 'lucide-react';
 
 export default function CustomersIndex({ customers, filters }) {
     const [search, setSearch] = useState(filters?.search || '');
@@ -17,15 +18,15 @@ export default function CustomersIndex({ customers, filters }) {
             <div className="glass-panel" style={{ padding: '1.25rem' }}>
                 {/* Header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
-                    <h2 style={{ fontSize: '1rem', fontWeight: 600, margin: 0 }}>Daftar Pelanggan</h2>
+                    <h2 style={{ fontSize: '0.875rem', fontWeight: 600, margin: 0 }}>Daftar Pelanggan</h2>
                     <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', width: '100%', maxWidth: 'max-content' }}>
                         <form onSubmit={handleSearch} style={{ display: 'flex', gap: '0.5rem', flex: '1 1 auto', minWidth: '200px' }}>
                             <input value={search} onChange={e => setSearch(e.target.value)}
                                 type="text" placeholder="Cari nama / telepon..."
                                 className="form-input" style={{ width: '100%' }} />
-                            <button type="submit" className="btn btn-outline" style={{ fontSize: '0.8rem' }}>Cari</button>
+                            <button type="submit" className="btn btn-outline" style={{ fontSize: '0.875rem' }}>Cari</button>
                         </form>
-                        <Link href="/admin/customers/create" className="btn btn-primary" style={{ fontSize: '0.8rem', whiteSpace: 'nowrap', flex: '0 0 auto' }}>+ Tambah Pelanggan</Link>
+                        <Link href="/admin/customers/create" className="btn btn-primary" style={{ fontSize: '0.875rem', whiteSpace: 'nowrap', flex: '0 0 auto' }}>+ Tambah Pelanggan</Link>
                     </div>
                 </div>
 
@@ -45,7 +46,7 @@ export default function CustomersIndex({ customers, filters }) {
                         <tbody>
                             {customers.data?.length > 0 ? customers.data.map(c => (
                                 <tr key={c.id}>
-                                    <td style={{ color: 'var(--color-text-muted)', fontFamily: 'monospace', fontSize: '0.8rem' }}>#{c.id}</td>
+                                    <td style={{ color: 'var(--color-text-muted)', fontFamily: 'monospace', fontSize: '0.875rem' }}>#{c.id}</td>
                                     <td style={{ fontWeight: 500 }}>{c.name}</td>
                                     <td>{c.phone}</td>
                                     <td style={{ color: 'var(--color-text-muted)', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.address || '-'}</td>
@@ -55,11 +56,17 @@ export default function CustomersIndex({ customers, filters }) {
                                         </span>
                                     </td>
                                     <td>
-                                        <div style={{ display: 'flex', gap: '0.75rem' }}>
-                                            <Link href={`/admin/customers/${c.id}`} style={{ color: 'var(--color-primary)', fontSize: '0.8rem', textDecoration: 'none', fontWeight: 500 }}>Detail</Link>
-                                            <Link href={`/admin/customers/${c.id}/edit`} style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', textDecoration: 'none' }}>Edit</Link>
+                                        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                                            <Link href={`/admin/customers/${c.id}`} style={{ color: 'var(--color-primary)', textDecoration: 'none', display: 'flex' }} title="Detail">
+                                                <Eye size={18} />
+                                            </Link>
+                                            <Link href={`/admin/customers/${c.id}/edit`} style={{ color: 'var(--color-text-muted)', textDecoration: 'none', display: 'flex' }} title="Edit">
+                                                <Edit size={18} />
+                                            </Link>
                                             <button onClick={() => { if (confirm('Hapus pelanggan ini?')) router.delete(`/admin/customers/${c.id}`) }}
-                                                style={{ color: 'var(--color-danger)', fontSize: '0.8rem', background: 'none', border: 'none', cursor: 'pointer' }}>Hapus</button>
+                                                style={{ color: 'var(--color-danger)', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', padding: 0 }} title="Hapus">
+                                                <Trash2 size={18} />
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use App\Models\Service;
+use App\Models\Sale;
 use App\Models\SparePart;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -23,12 +24,13 @@ class AdminDashboardController extends Controller
             'completed_today'  => Service::where('status', 'selesai')->whereDate('completed_at', $today)->count(),
             'total_customers'  => Customer::count(),
             'low_stock_parts'  => SparePart::whereColumn('stock', '<=', 'min_stock')->count(),
-            'revenue_today'    => Service::where('status', 'selesai')
-                ->whereDate('completed_at', $today)->get()
-                ->sum(fn ($s) => $s->service_fee),
-            'revenue_month'    => Service::where('status', 'selesai')
-                ->whereMonth('completed_at', $today->month)->get()
-                ->sum(fn ($s) => $s->service_fee),
+            'revenue_today'    => 
+                Service::with('spareParts')->where('status', 'selesai')->whereDate('completed_at', $today)->get()->sum(fn ($s) => $s->total_cost) +
+                Sale::where('payment_status', 'lunas')->whereDate('created_at', $today)->sum('total_amount'),
+            'revenue_month'    => 
+                Service::with('spareParts')->where('status', 'selesai')->whereMonth('completed_at', $today->month)->get()->sum(fn ($s) => $s->total_cost) +
+                Sale::where('payment_status', 'lunas')->whereMonth('created_at', $today->month)->sum('total_amount'),
+            'piutang'          => Sale::where('payment_status', 'belum_lunas')->get()->sum(fn($s) => $s->total_amount - $s->amount_paid),
         ];
 
         $activeServices = Service::with(['vehicle.customer', 'technician'])

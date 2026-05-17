@@ -2,6 +2,7 @@ import React from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '../../../Layouts/AdminLayout';
 import StatusBadge from '../../../Components/StatusBadge';
+import { CheckCircle, Clock, Check, Wrench, CreditCard, ArrowLeft } from 'lucide-react';
 
 const fmt = (n) => `Rp ${Number(n).toLocaleString('id-ID')}`;
 
@@ -18,7 +19,7 @@ export default function ServiceShow({ service }) {
                 <div className="glass-panel" style={{ padding: '1.5rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
                         <div>
-                            <Link href="/admin/services" style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', textDecoration: 'none' }}>← Kembali ke Daftar</Link>
+                            <Link href="/admin/services" style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}><ArrowLeft size={14} /> Kembali ke Daftar</Link>
                             <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginTop: '0.5rem' }}>
                                 Servis #{String(service.id).padStart(4, '0')}
                             </h2>
@@ -52,8 +53,8 @@ export default function ServiceShow({ service }) {
                         <InfoRow label="Mulai" value={service.started_at ? new Date(service.started_at).toLocaleString('id-ID') : '-'} />
                         <InfoRow label="Selesai" value={service.completed_at ? new Date(service.completed_at).toLocaleString('id-ID') : '-'} />
                         <InfoRow label="Pembayaran" value={
-                            <span style={{ fontWeight: 600, color: service.payment_status === 'lunas' ? 'var(--color-success)' : 'var(--color-warning)' }}>
-                                {service.payment_status === 'lunas' ? '✓ Lunas' : '⏳ Belum Lunas'}
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', fontWeight: 600, color: service.payment_status === 'lunas' ? 'var(--color-success)' : 'var(--color-warning)' }}>
+                                {service.payment_status === 'lunas' ? <><CheckCircle size={14} strokeWidth={2.5}/> Lunas</> : <><Clock size={14} strokeWidth={2.5}/> Belum Lunas</>}
                             </span>
                         } />
                     </div>
@@ -68,7 +69,8 @@ export default function ServiceShow({ service }) {
                             <div style={{ fontSize: '0.9rem', lineHeight: 1.6 }}>{service.description}</div>
                         </div>
                         <div>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem', fontWeight: 500 }}>DIAGNOSA TEKNISI</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem', fontWeight: 500 }}>JENIS JASA & DIAGNOSA</div>
+                            <div style={{ fontSize: '0.9rem', lineHeight: 1.6, fontWeight: 600, color: 'var(--color-primary)', marginBottom: '0.5rem' }}>{service.service_name}</div>
                             <div style={{ fontSize: '0.9rem', lineHeight: 1.6 }}>{service.diagnosis || <span style={{ color: 'var(--color-text-muted)', fontStyle: 'italic' }}>Belum ada diagnosa</span>}</div>
                         </div>
                     </div>
@@ -76,7 +78,14 @@ export default function ServiceShow({ service }) {
 
                 {/* Spare Parts & Invoice */}
                 <div className="glass-panel" style={{ padding: '1.25rem' }}>
-                    <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-primary)', marginBottom: '1rem' }}>Spare Part & Rincian Biaya</h3>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem' }}>
+                        <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-primary)', margin: 0 }}>Spare Part & Rincian Biaya</h3>
+                        {(service.is_bring_own_part === 1 || service.is_bring_own_part === true) && (
+                            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-info)', background: 'rgba(14, 165, 233, 0.1)', padding: '0.25rem 0.5rem', borderRadius: '4px', border: '1px solid rgba(14, 165, 233, 0.3)' }}>
+                                [Catatan Resmi: Pelanggan Menggunakan Spare Part Bawaan Sendiri]
+                            </span>
+                        )}
+                    </div>
                     <table className="hd-table" style={{ marginBottom: '1rem' }}>
                         <thead>
                             <tr>
@@ -112,20 +121,20 @@ export default function ServiceShow({ service }) {
                     <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '1rem', borderTop: '1px dashed var(--color-border)', flexWrap: 'wrap' }}>
                         {service.status === 'antri' && (
                             <button onClick={() => router.patch(`/admin/services/${service.id}/status`, { status: 'dikerjakan' })}
-                                className="btn btn-primary" style={{ fontSize: '0.85rem' }}>
-                                🔧 Mulai Pengerjaan
+                                className="btn btn-primary" style={{ fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '0.375rem' }}>
+                                <Wrench size={16} /> Mulai Pengerjaan
                             </button>
                         )}
                         {service.status === 'dikerjakan' && (
                             <button onClick={() => router.patch(`/admin/services/${service.id}/status`, { status: 'selesai' })}
-                                className="btn btn-primary" style={{ fontSize: '0.85rem', background: 'var(--color-success)' }}>
-                                ✓ Tandai Selesai
+                                className="btn btn-primary" style={{ fontSize: '0.85rem', background: 'var(--color-success)', display: 'inline-flex', alignItems: 'center', gap: '0.375rem' }}>
+                                <Check size={16} /> Tandai Selesai
                             </button>
                         )}
                         {service.payment_status === 'belum_lunas' && service.status === 'selesai' && (
                             <button onClick={() => router.put(`/admin/services/${service.id}`, { ...service, payment_status: 'lunas', status: 'selesai' })}
-                                className="btn btn-outline" style={{ fontSize: '0.85rem', borderColor: 'var(--color-success)', color: 'var(--color-success)' }}>
-                                💳 Tandai Lunas
+                                className="btn btn-outline" style={{ fontSize: '0.85rem', borderColor: 'var(--color-success)', color: 'var(--color-success)', display: 'inline-flex', alignItems: 'center', gap: '0.375rem' }}>
+                                <CreditCard size={16} /> Tandai Lunas
                             </button>
                         )}
                         <button onClick={() => { if (confirm('Hapus servis ini?')) router.delete(`/admin/services/${service.id}`) }}

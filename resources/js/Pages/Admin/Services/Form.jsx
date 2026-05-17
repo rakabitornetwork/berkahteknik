@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import AdminLayout from '../../../Layouts/AdminLayout';
+import { ArrowLeft } from 'lucide-react';
 
 export default function ServiceForm({ service, customers, technicians, spareParts }) {
     const isEditing = !!service;
@@ -17,8 +18,10 @@ export default function ServiceForm({ service, customers, technicians, sparePart
     const { data, setData, post, put, processing, errors } = useForm({
         vehicle_id:   service?.vehicle_id || '',
         user_id:      service?.user_id || '',
+        service_name: service?.service_name || '',
         description:  service?.description || '',
         diagnosis:    service?.diagnosis || '',
+        is_bring_own_part: service?.is_bring_own_part === 1 || service?.is_bring_own_part === true,
         service_fee:  service?.service_fee || 0,
         status:       service?.status || 'antri',
         payment_status: service?.payment_status || 'belum_lunas',
@@ -69,7 +72,7 @@ export default function ServiceForm({ service, customers, technicians, sparePart
             <div style={{ maxWidth: '750px' }}>
                 <div className="glass-panel" style={{ padding: '2rem' }}>
                     <div style={{ marginBottom: '1.5rem' }}>
-                        <Link href="/admin/services" style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', textDecoration: 'none' }}>← Kembali</Link>
+                        <Link href="/admin/services" style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}><ArrowLeft size={14} /> Kembali</Link>
                         <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginTop: '0.5rem' }}>{isEditing ? 'Edit Data Servis' : 'Input Servis Baru'}</h2>
                     </div>
 
@@ -102,11 +105,27 @@ export default function ServiceForm({ service, customers, technicians, sparePart
                         <Section title="Informasi Servis">
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                 <div>
+                                    <label className="form-label">Jenis Jasa <span style={{ color: 'var(--color-danger)' }}>*</span></label>
+                                    <input type="text" className="form-input" value={data.service_name} onChange={e => setData('service_name', e.target.value)} 
+                                        placeholder="Contoh: Pemasangan Kompresor Baru" required />
+                                    {errors.service_name && <div style={{ color: 'var(--color-danger)', fontSize: '0.75rem', marginTop: '0.25rem' }}>{errors.service_name}</div>}
+                                </div>
+                                <div>
                                     <label className="form-label">Keluhan Pelanggan <span style={{ color: 'var(--color-danger)' }}>*</span></label>
                                     <textarea value={data.description} onChange={e => setData('description', e.target.value)}
                                         className="form-input" rows={2} placeholder="Jelaskan keluhan pelanggan..." />
                                     {errors.description && <div style={{ color: 'var(--color-danger)', fontSize: '0.75rem', marginTop: '0.25rem' }}>{errors.description}</div>}
                                 </div>
+                                
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                                    <input 
+                                        type="checkbox" 
+                                        checked={data.is_bring_own_part} 
+                                        onChange={e => setData('is_bring_own_part', e.target.checked)}
+                                        style={{ width: '16px', height: '16px', accentColor: 'var(--color-primary)' }}
+                                    />
+                                    <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>Pelanggan Membawa Spare Part Sendiri</span>
+                                </label>
                                 {isEditing && (
                                     <div>
                                         <label className="form-label">Diagnosa Teknisi</label>

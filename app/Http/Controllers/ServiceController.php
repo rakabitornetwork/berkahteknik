@@ -34,7 +34,7 @@ class ServiceController extends Controller
     {
         return Inertia::render('Admin/Services/Form', [
             'customers'   => Customer::with('vehicles')->get(),
-            'technicians' => User::all(['id', 'name']),
+            'technicians' => User::where('role', 'mechanic')->get(['id', 'name']),
             'spareParts'  => SparePart::where('stock', '>', 0)->get(),
         ]);
     }
@@ -44,7 +44,9 @@ class ServiceController extends Controller
         $validated = $request->validate([
             'vehicle_id'   => 'required|exists:vehicles,id',
             'user_id'      => 'nullable|exists:users,id',
+            'service_name' => 'required|string|max:255',
             'description'  => 'required|string',
+            'is_bring_own_part' => 'boolean',
             'service_fee'  => 'nullable|numeric|min:0',
             'parts'        => 'nullable|array',
             'parts.*.spare_part_id' => 'exists:spare_parts,id',
@@ -54,7 +56,9 @@ class ServiceController extends Controller
         $service = Service::create([
             'vehicle_id'  => $validated['vehicle_id'],
             'user_id'     => $validated['user_id'] ?? null,
+            'service_name'=> $validated['service_name'],
             'description' => $validated['description'],
+            'is_bring_own_part' => $validated['is_bring_own_part'] ?? false,
             'service_fee' => $validated['service_fee'] ?? 0,
             'status'      => 'antri',
         ]);
@@ -91,7 +95,7 @@ class ServiceController extends Controller
         return Inertia::render('Admin/Services/Form', [
             'service'     => $service,
             'customers'   => Customer::with('vehicles')->get(),
-            'technicians' => User::all(['id', 'name']),
+            'technicians' => User::where('role', 'mechanic')->get(['id', 'name']),
             'spareParts'  => SparePart::all(),
         ]);
     }
@@ -101,8 +105,10 @@ class ServiceController extends Controller
         $validated = $request->validate([
             'user_id'        => 'nullable|exists:users,id',
             'status'         => 'required|in:antri,dikerjakan,selesai',
+            'service_name'   => 'required|string|max:255',
             'description'    => 'required|string',
             'diagnosis'      => 'nullable|string',
+            'is_bring_own_part' => 'boolean',
             'service_fee'    => 'nullable|numeric|min:0',
             'payment_status' => 'nullable|in:belum_lunas,lunas',
         ]);
