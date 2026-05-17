@@ -27,25 +27,27 @@ export default function ServicesIndex({ services, filters }) {
             <div className="glass-panel" style={{ padding: '1.25rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
                     <h2 style={{ fontSize: '1rem', fontWeight: 600, margin: 0 }}>Daftar Servis AC</h2>
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', flex: '1 1 auto', justifyContent: 'flex-end' }}>
                         {/* Status Tabs */}
-                        {statuses.map(s => (
-                            <button key={s.value} onClick={() => { setStatus(s.value); applyFilter({ status: s.value }); }}
-                                style={{
-                                    padding: '0.35rem 0.75rem', fontSize: '0.8rem', borderRadius: '9999px',
-                                    border: '1px solid', cursor: 'pointer', transition: 'all var(--transition-fast)',
-                                    borderColor: status === s.value ? 'var(--color-primary)' : 'var(--color-border)',
-                                    background: status === s.value ? 'var(--color-primary)' : 'transparent',
-                                    color: status === s.value ? 'white' : 'var(--color-text-muted)',
-                                }}>
-                                {s.label}
-                            </button>
-                        ))}
+                        <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                            {statuses.map(s => (
+                                <button key={s.value} onClick={() => { setStatus(s.value); applyFilter({ status: s.value }); }}
+                                    style={{
+                                        padding: '0.35rem 0.65rem', fontSize: '0.75rem', borderRadius: '9999px',
+                                        border: '1px solid', cursor: 'pointer', transition: 'all var(--transition-fast)',
+                                        borderColor: status === s.value ? 'var(--color-primary)' : 'var(--color-border)',
+                                        background: status === s.value ? 'var(--color-primary)' : 'transparent',
+                                        color: status === s.value ? 'white' : 'var(--color-text-muted)',
+                                    }}>
+                                    {s.label}
+                                </button>
+                            ))}
+                        </div>
                         <input value={search} onChange={e => setSearch(e.target.value)}
                             onKeyDown={e => e.key === 'Enter' && applyFilter({})}
                             type="text" placeholder="Cari plat / pelanggan..."
-                            className="form-input" style={{ width: '200px' }} />
-                        <Link href="/admin/services/create" className="btn btn-primary" style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>+ Input Servis</Link>
+                            className="form-input" style={{ width: '100%', maxWidth: '200px', flex: '1 1 auto', minWidth: '150px' }} />
+                        <Link href="/admin/services/create" className="btn btn-primary" style={{ fontSize: '0.8rem', whiteSpace: 'nowrap', flex: '0 0 auto' }}>+ Input Servis</Link>
                     </div>
                 </div>
 

@@ -19,14 +19,14 @@ export default function SparePartsIndex({ spareParts, filters }) {
             <div className="glass-panel" style={{ padding: '1.25rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
                     <h2 style={{ fontSize: '1rem', fontWeight: 600, margin: 0 }}>Katalog Spare Part AC</h2>
-                    <div style={{ display: 'flex', gap: '0.75rem' }}>
-                        <form onSubmit={handleSearch} style={{ display: 'flex', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', width: '100%', maxWidth: 'max-content' }}>
+                        <form onSubmit={handleSearch} style={{ display: 'flex', gap: '0.5rem', flex: '1 1 auto', minWidth: '200px' }}>
                             <input value={search} onChange={e => setSearch(e.target.value)}
                                 type="text" placeholder="Cari nama / kode..."
-                                className="form-input" style={{ width: '200px' }} />
+                                className="form-input" style={{ width: '100%' }} />
                             <button type="submit" className="btn btn-outline" style={{ fontSize: '0.8rem' }}>Cari</button>
                         </form>
-                        <Link href="/admin/spare-parts/create" className="btn btn-primary" style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>+ Tambah Part</Link>
+                        <Link href="/admin/spare-parts/create" className="btn btn-primary" style={{ fontSize: '0.8rem', whiteSpace: 'nowrap', flex: '0 0 auto' }}>+ Tambah Part</Link>
                     </div>
                 </div>
 

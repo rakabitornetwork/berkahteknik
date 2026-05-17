@@ -86,7 +86,7 @@ export default function ReportsIndex({ monthlyData, services, summary, filters, 
             </div>
 
             {/* Charts */}
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
+            <div className="hd-grid chart-grid" style={{ marginBottom: '1.25rem' }}>
                 {/* Revenue Bar Chart */}
                 <div className="glass-panel" style={{ padding: '1.25rem' }}>
                     <h3 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '1rem' }}>Pendapatan per Bulan ({year})</h3>

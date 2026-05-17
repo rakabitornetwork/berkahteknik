@@ -18,14 +18,14 @@ export default function CustomersIndex({ customers, filters }) {
                 {/* Header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
                     <h2 style={{ fontSize: '1rem', fontWeight: 600, margin: 0 }}>Daftar Pelanggan</h2>
-                    <div style={{ display: 'flex', gap: '0.75rem' }}>
-                        <form onSubmit={handleSearch} style={{ display: 'flex', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', width: '100%', maxWidth: 'max-content' }}>
+                        <form onSubmit={handleSearch} style={{ display: 'flex', gap: '0.5rem', flex: '1 1 auto', minWidth: '200px' }}>
                             <input value={search} onChange={e => setSearch(e.target.value)}
                                 type="text" placeholder="Cari nama / telepon..."
-                                className="form-input" style={{ width: '220px' }} />
+                                className="form-input" style={{ width: '100%' }} />
                             <button type="submit" className="btn btn-outline" style={{ fontSize: '0.8rem' }}>Cari</button>
                         </form>
-                        <Link href="/admin/customers/create" className="btn btn-primary" style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>+ Tambah Pelanggan</Link>
+                        <Link href="/admin/customers/create" className="btn btn-primary" style={{ fontSize: '0.8rem', whiteSpace: 'nowrap', flex: '0 0 auto' }}>+ Tambah Pelanggan</Link>
                     </div>
                 </div>
 
