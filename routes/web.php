@@ -14,9 +14,15 @@ use App\Http\Controllers\Portal\PortalDashboardController;
 use App\Http\Controllers\AdminProfileController;
 use App\Http\Controllers\WorkOrderController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\Public\LandingController;
+use App\Http\Controllers\Public\PublicPostController;
+use App\Http\Controllers\CmsPostController;
+use App\Http\Controllers\LandingSettingController;
 
-// ─── Redirect root ke portal ─────────────────────────────────────────────────
-Route::get('/', fn () => redirect('/portal'));
+// ─── Halaman publik (landing & konten) ───────────────────────────────────────
+Route::get('/', [LandingController::class, 'index'])->name('home');
+Route::get('/konten', [PublicPostController::class, 'index'])->name('posts.index');
+Route::get('/konten/{slug}', [PublicPostController::class, 'show'])->name('posts.show');
 
 // ─── Portal Pelanggan: Auth ───────────────────────────────────────────────────
 Route::prefix('portal')->name('portal.')->group(function () {
@@ -50,6 +56,13 @@ Route::prefix('admin')->middleware('auth')->name('admin.')->group(function () {
     // Pengaturan Aplikasi
     Route::get('/settings', [SettingController::class, 'edit'])->name('settings.edit');
     Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
+
+    // CMS Konten Situs
+    Route::prefix('cms')->name('cms.')->group(function () {
+        Route::get('/landing', [LandingSettingController::class, 'edit'])->name('landing.edit');
+        Route::put('/landing', [LandingSettingController::class, 'update'])->name('landing.update');
+        Route::resource('posts', CmsPostController::class)->except(['show'])->parameters(['posts' => 'post']);
+    });
 
     // Profil Admin
     Route::get('/profile', [AdminProfileController::class, 'edit'])->name('profile.edit');

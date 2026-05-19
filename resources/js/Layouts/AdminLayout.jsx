@@ -12,6 +12,7 @@ import {
     ShoppingCart,
     FileText,
     Settings,
+    Globe,
 } from 'lucide-react';
 import CompanyBranding from '../Components/CompanyBranding';
 import AppFooter from '../Components/AppFooter';
@@ -25,6 +26,7 @@ const navItems = [
     { href: '/admin/spare-parts', label: 'Spare Part & Stok', icon: Package },
     { href: '/admin/mechanics', label: 'Data Mekanik', icon: Users },
     { href: '/admin/reports', label: 'Laporan', icon: BarChart3 },
+    { href: '/admin/cms/posts', label: 'Konten Situs', icon: Globe },
     { href: '/admin/settings', label: 'Pengaturan Aplikasi', icon: Settings },
 ];
 

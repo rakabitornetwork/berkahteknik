@@ -709,3 +709,22 @@ option {
     line-height: 1.45;
     white-space: pre-line;
 }
+
+/* Landing page publik */
+.public-nav-toggle {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .public-nav-desktop {
+        display: none !important;
+    }
+
+    .public-nav-toggle {
+        display: block;
+    }
+
+    .landing-hero-inner {
+        grid-template-columns: 1fr !important;
+    }
+}
