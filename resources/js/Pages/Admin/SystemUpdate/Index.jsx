@@ -95,7 +95,6 @@ export default function SystemUpdateIndex({ status, config }) {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
                         <Stat label="Versi saat ini" value={status.current_tag ? `v${status.current_tag.replace(/^v/, '')}` : status.current_version} highlight={!status.is_on_target_version} />
                         <Stat label="Versi target" value={`v${targetTag.replace(/^v/, '')}`} />
-                        <Stat label="Status" value={status.is_on_target_version ? `Sudah v${targetTag.replace(/^v/, '')}` : 'Perlu update'} highlight={needsUpdate} />
                         {!status.target_tag_exists && (
                             <Stat label="Tag di GitHub" value="Belum ada" highlight />
                         )}
