@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import './print.css';
 
 :root {
     /* Dark Mode Premium Theme */
@@ -310,4 +311,401 @@ option {
     color: var(--color-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
+}
+
+/* List page toolbar (mobile-friendly) */
+.list-panel {
+    padding: 1.25rem;
+}
+
+.list-page-toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.list-page-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.filter-pills {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.35rem;
+    width: 100%;
+}
+
+.filter-pill {
+    padding: 0.45rem 0.65rem;
+    font-size: 0.75rem;
+    border-radius: 9999px;
+    border: 1px solid var(--color-border);
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    text-align: center;
+    white-space: nowrap;
+}
+
+.filter-pill.is-active {
+    border-color: var(--color-primary);
+    background: var(--color-primary);
+    color: white;
+}
+
+.toolbar-search-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: stretch;
+    width: 100%;
+}
+
+.toolbar-search-input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    min-height: 2.5rem;
+}
+
+.toolbar-action-btn {
+    flex-shrink: 0;
+    min-height: 2.5rem;
+    font-size: 0.875rem;
+    padding: 0 1rem;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pagination-nav {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 1.25rem;
+}
+
+.pagination-btn {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.8rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.pagination-btn.is-active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+}
+
+.pagination-btn.is-disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.list-empty-state {
+    padding: 3rem 1.5rem;
+    text-align: center;
+    color: var(--color-text-muted);
+}
+
+@media (min-width: 640px) {
+    .filter-pills {
+        display: flex;
+        flex-wrap: wrap;
+        width: auto;
+    }
+
+    .filter-pill {
+        flex: 0 0 auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .toolbar-search-row {
+        flex-direction: column;
+    }
+
+    .toolbar-action-btn {
+        width: 100%;
+    }
+
+    .list-panel {
+        padding: 1rem;
+    }
+}
+
+/* POS / transaksi penjualan — lebar kartu konsisten di mobile */
+.pos-form-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+}
+
+.pos-form-main,
+.pos-form-sidebar {
+    width: 100%;
+    min-width: 0;
+}
+
+.pos-form-main .glass-panel,
+.pos-form-sidebar .glass-panel {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.pos-form-sidebar .glass-panel {
+    position: static;
+    top: auto;
+}
+
+@media (min-width: 1024px) {
+    .pos-form-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+        align-items: start;
+    }
+
+    .pos-form-sidebar .glass-panel {
+        position: sticky;
+        top: 1rem;
+    }
+}
+
+/* Pencarian spare part — transaksi baru */
+.pos-add-item-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.pos-part-search-wrap {
+    position: relative;
+    width: 100%;
+}
+
+.pos-part-search-field {
+    position: relative;
+}
+
+.pos-part-search-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-muted);
+    pointer-events: none;
+}
+
+.pos-part-search-input {
+    padding-left: 2.25rem !important;
+    padding-right: 2.25rem !important;
+}
+
+.pos-part-search-clear {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1.75rem;
+    height: 1.75rem;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--color-text-muted);
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.pos-part-search-clear:hover {
+    color: var(--color-text-main);
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.pos-part-search-results {
+    position: absolute;
+    z-index: 20;
+    left: 0;
+    right: 0;
+    top: calc(100% + 0.35rem);
+    margin: 0;
+    padding: 0.35rem 0;
+    list-style: none;
+    max-height: 240px;
+    overflow-y: auto;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+}
+
+.pos-part-search-option {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.15rem;
+    width: 100%;
+    padding: 0.6rem 0.85rem;
+    border: none;
+    background: transparent;
+    color: var(--color-text-main);
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.875rem;
+}
+
+.pos-part-search-option:hover,
+.pos-part-search-option.is-selected {
+    background: var(--color-primary-alpha);
+}
+
+.pos-part-search-option-main {
+    font-weight: 500;
+}
+
+.pos-part-search-option-meta {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+.pos-part-search-empty {
+    padding: 0.75rem 0.85rem;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+}
+
+.pos-part-selected-hint {
+    margin: 0.5rem 0 0;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+}
+
+.pos-add-item-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-end;
+}
+
+.pos-add-item-qty {
+    width: 100px;
+    flex-shrink: 0;
+}
+
+.pos-add-item-btn {
+    flex: 1;
+    min-height: 2.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+}
+
+@media (max-width: 768px) {
+    .pos-add-item-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .pos-add-item-qty {
+        width: 100%;
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.spin {
+    animation: spin 0.8s linear infinite;
+}
+
+/* Nota penjualan — tampilan premium & kompak */
+.receipt-premium.print-page,
+.printable-area.receipt-premium {
+    padding: 1.15rem 1.5rem;
+    color: #0f172a;
+}
+
+.receipt-premium .receipt-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8125rem;
+    margin-bottom: 0.75rem;
+}
+
+.receipt-premium .receipt-table thead tr {
+    border-bottom: 1px solid #cbd5e1;
+}
+
+.receipt-premium .receipt-table th {
+    padding: 0.35rem 0.45rem;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+}
+
+.receipt-premium .receipt-table td {
+    padding: 0.4rem 0.45rem;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: top;
+}
+
+.receipt-premium .receipt-table .item-code {
+    font-size: 0.68rem;
+    color: #94a3b8;
+    margin-top: 0.1rem;
+}
+
+.receipt-premium .receipt-totals {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 0.65rem;
+}
+
+.receipt-premium .receipt-totals-box {
+    width: min(280px, 42%);
+}
+
+.receipt-premium .receipt-totals-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.2rem 0;
+    font-size: 0.8125rem;
+    color: #475569;
+}
+
+.receipt-premium .receipt-totals-row.is-grand {
+    padding-top: 0.45rem;
+    margin-top: 0.25rem;
+    border-top: 1px solid #cbd5e1;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.receipt-premium .receipt-footer {
+    text-align: center;
+    margin-top: 0.85rem;
+    padding-top: 0.65rem;
+    border-top: 1px solid #f1f5f9;
+    font-size: 0.7rem;
+    color: #64748b;
+    line-height: 1.45;
+    white-space: pre-line;
 }

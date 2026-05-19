@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { ShoppingCart, Plus, Trash2, ArrowLeft, Save } from 'lucide-react';
+import { ShoppingCart, Plus, Trash2, ArrowLeft, Save, Search } from 'lucide-react';
 import AdminLayout from '../../../Layouts/AdminLayout';
 
 export default function SalesForm({ spareParts }) {
@@ -13,8 +13,36 @@ export default function SalesForm({ spareParts }) {
 
     const [selectedPartId, setSelectedPartId] = useState('');
     const [quantity, setQuantity] = useState(1);
+    const [partSearch, setPartSearch] = useState('');
+    const [showPartResults, setShowPartResults] = useState(false);
 
     const formatCurrency = (amount) => `Rp ${Number(amount).toLocaleString('id-ID')}`;
+
+    const filteredSpareParts = useMemo(() => {
+        const q = partSearch.trim().toLowerCase();
+        if (!q) return [];
+
+        return spareParts.filter((part) => {
+            const code = (part.code || '').toLowerCase();
+            const name = (part.name || '').toLowerCase();
+            const desc = (part.description || '').toLowerCase();
+            return code.includes(q) || name.includes(q) || desc.includes(q);
+        });
+    }, [partSearch, spareParts]);
+
+    const selectedPart = spareParts.find((p) => p.id === parseInt(selectedPartId, 10));
+
+    const selectSparePart = (part) => {
+        setSelectedPartId(String(part.id));
+        setPartSearch(`${part.code} — ${part.name}`);
+        setShowPartResults(false);
+    };
+
+    const clearPartSelection = () => {
+        setSelectedPartId('');
+        setPartSearch('');
+        setShowPartResults(false);
+    };
 
     const handleAddItem = (e) => {
         e.preventDefault();
@@ -47,7 +75,7 @@ export default function SalesForm({ spareParts }) {
         }
 
         setData('items', newItems);
-        setSelectedPartId('');
+        clearPartSelection();
         setQuantity(1);
     };
 
@@ -77,33 +105,98 @@ export default function SalesForm({ spareParts }) {
                 <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Transaksi Baru</h2>
             </div>
 
-            <div className="hd-grid hd-grid-cols-3" style={{ gap: '1.5rem' }}>
-                {/* Left Panel: Items Selection */}
-                <div style={{ gridColumn: 'span 2' }}>
+            <div className="pos-form-layout">
+                <div className="pos-form-main">
                     <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
                         <h3 style={{ fontSize: '1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <ShoppingCart size={18} /> Tambah Barang
                         </h3>
                         
-                        <form onSubmit={handleAddItem} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
-                            <div style={{ flex: 1 }}>
-                                <label className="form-label">Pilih Spare Part</label>
-                                <select className="form-input" value={selectedPartId} onChange={e => setSelectedPartId(e.target.value)} required>
-                                    <option value="">-- Pilih --</option>
-                                    {spareParts.map(part => (
-                                        <option key={part.id} value={part.id}>
-                                            {part.code} - {part.name} (Stok: {part.stock}) - {formatCurrency(part.sell_price)}
-                                        </option>
-                                    ))}
-                                </select>
+                        <form onSubmit={handleAddItem} className="pos-add-item-form">
+                            <div className="pos-part-search-wrap">
+                                <label className="form-label">Cari Spare Part</label>
+                                <div className="pos-part-search-field">
+                                    <Search size={16} className="pos-part-search-icon" aria-hidden />
+                                    <input
+                                        type="text"
+                                        className="form-input pos-part-search-input"
+                                        placeholder="Ketik kode, nama, atau deskripsi..."
+                                        value={partSearch}
+                                        onChange={(e) => {
+                                            setPartSearch(e.target.value);
+                                            setSelectedPartId('');
+                                            setShowPartResults(true);
+                                        }}
+                                        onFocus={() => partSearch.trim() && setShowPartResults(true)}
+                                        onBlur={() => setTimeout(() => setShowPartResults(false), 150)}
+                                        autoComplete="off"
+                                    />
+                                    {selectedPartId && (
+                                        <button
+                                            type="button"
+                                            className="pos-part-search-clear"
+                                            onClick={clearPartSelection}
+                                            aria-label="Hapus pilihan"
+                                        >
+                                            ×
+                                        </button>
+                                    )}
+                                </div>
+
+                                {showPartResults && partSearch.trim() && (
+                                    <ul className="pos-part-search-results" role="listbox">
+                                        {filteredSpareParts.length > 0 ? (
+                                            filteredSpareParts.map((part) => (
+                                                <li key={part.id}>
+                                                    <button
+                                                        type="button"
+                                                        role="option"
+                                                        className={`pos-part-search-option${selectedPartId === String(part.id) ? ' is-selected' : ''}`}
+                                                        onMouseDown={(e) => e.preventDefault()}
+                                                        onClick={() => selectSparePart(part)}
+                                                    >
+                                                        <span className="pos-part-search-option-main">
+                                                            <strong>{part.code}</strong> — {part.name}
+                                                        </span>
+                                                        <span className="pos-part-search-option-meta">
+                                                            Stok: {part.stock} · {formatCurrency(part.sell_price)}
+                                                        </span>
+                                                    </button>
+                                                </li>
+                                            ))
+                                        ) : (
+                                            <li className="pos-part-search-empty">Tidak ada spare part yang cocok.</li>
+                                        )}
+                                    </ul>
+                                )}
+
+                                {selectedPart && (
+                                    <p className="pos-part-selected-hint">
+                                        Terpilih: <strong>{selectedPart.code}</strong> — {selectedPart.name} ({formatCurrency(selectedPart.sell_price)}, stok {selectedPart.stock})
+                                    </p>
+                                )}
                             </div>
-                            <div style={{ width: '100px' }}>
-                                <label className="form-label">Jumlah</label>
-                                <input type="number" className="form-input" value={quantity} onChange={e => setQuantity(parseInt(e.target.value))} min="1" required />
+
+                            <div className="pos-add-item-actions">
+                                <div className="pos-add-item-qty">
+                                    <label className="form-label">Jumlah</label>
+                                    <input
+                                        type="number"
+                                        className="form-input"
+                                        value={quantity}
+                                        onChange={(e) => setQuantity(parseInt(e.target.value, 10) || 1)}
+                                        min="1"
+                                        required
+                                    />
+                                </div>
+                                <button
+                                    type="submit"
+                                    className="btn btn-primary pos-add-item-btn"
+                                    disabled={!selectedPartId}
+                                >
+                                    <Plus size={16} /> Tambah
+                                </button>
                             </div>
-                            <button type="submit" className="btn btn-primary" style={{ height: '38px', padding: '0 1rem' }}>
-                                <Plus size={16} />
-                            </button>
                         </form>
                     </div>
 
@@ -145,9 +238,8 @@ export default function SalesForm({ spareParts }) {
                     </div>
                 </div>
 
-                {/* Right Panel: Checkout */}
-                <div>
-                    <div className="glass-panel" style={{ padding: '1.5rem', position: 'sticky', top: '1rem' }}>
+                <div className="pos-form-sidebar">
+                    <div className="glass-panel" style={{ padding: '1.5rem' }}>
                         <h3 style={{ fontSize: '1rem', marginBottom: '1.5rem' }}>Pembayaran</h3>
                         
                         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

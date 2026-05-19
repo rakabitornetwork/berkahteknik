@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\ShopSettingService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -44,6 +45,7 @@ class HandleInertiaRequests extends Middleware
                 'success' => fn () => $request->session()->get('success'),
                 'error'   => fn () => $request->session()->get('error'),
             ],
+            'shop' => fn () => app(ShopSettingService::class)->forFrontend(),
         ];
     }
 }

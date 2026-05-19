@@ -95,6 +95,21 @@ export default function PortalServiceDetail({ service, customer }) {
                     )}
                 </div>
 
+                {service.status === 'selesai' && (
+                    <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '1rem' }}>
+                        <h2 style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-primary)', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Garansi Servis</h2>
+                        <div style={{ fontSize: '0.9rem', lineHeight: 1.7 }}>
+                            <p style={{ margin: '0 0 0.5rem' }}>Masa garansi: <strong>{service.effective_warranty_months} bulan</strong></p>
+                            {service.warranty_starts_at && <p style={{ margin: '0 0 0.5rem' }}>Mulai: {service.warranty_starts_at}</p>}
+                            {service.warranty_expires_at && <p style={{ margin: '0 0 0.5rem' }}>Berlaku hingga: {new Date(service.warranty_expires_at).toLocaleDateString('id-ID')}</p>}
+                            <p style={{ margin: 0, fontWeight: 600, color: service.has_active_warranty ? 'var(--color-success)' : 'var(--color-text-muted)' }}>
+                                {service.has_active_warranty ? 'Status: Garansi masih aktif' : 'Status: Garansi tidak aktif / telah berakhir'}
+                            </p>
+                            {service.warranty_notes && <p style={{ marginTop: '0.75rem', color: 'var(--color-text-muted)' }}>{service.warranty_notes}</p>}
+                        </div>
+                    </div>
+                )}
+
                 {/* Rincian Biaya */}
                 <div className="glass-panel" style={{ padding: '1.5rem' }}>
                     <h2 style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-primary)', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Rincian Biaya</h2>

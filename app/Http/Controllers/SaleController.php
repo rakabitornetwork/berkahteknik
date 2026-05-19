@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\SparePart;
+use App\Services\ShopSettingService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
@@ -104,6 +105,16 @@ class SaleController extends Controller
         
         return Inertia::render('Admin/Sales/Show', [
             'sale' => $sale,
+        ]);
+    }
+
+    public function receipt(Sale $sale)
+    {
+        $sale->load('items.sparePart');
+
+        return Inertia::render('Admin/Sales/ReceiptPrint', [
+            'sale' => $sale,
+            'shop' => app(ShopSettingService::class)->forFrontend(),
         ]);
     }
 

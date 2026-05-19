@@ -1,14 +1,18 @@
 import React from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { Printer, ArrowLeft, CheckCircle, Clock, DollarSign } from 'lucide-react';
 import AdminLayout from '../../../Layouts/AdminLayout';
+import ReceiptHeader, { PaidWatermark } from '../../../Components/ReceiptHeader';
+import ThermalPrintButton from '../../../Components/ThermalPrintButton';
 
 export default function SalesShow({ sale }) {
+    const { shop } = usePage().props;
     const { data, setData, patch, processing, reset } = useForm({
         amount_paid: ''
     });
 
     const formatCurrency = (amount) => `Rp ${Number(amount).toLocaleString('id-ID')}`;
+    const paymentLabel = { cash: 'Tunai', transfer: 'Transfer Bank', qris: 'QRIS' }[sale.payment_method] || sale.payment_method;
 
     const handlePay = (e) => {
         e.preventDefault();
@@ -29,16 +33,21 @@ export default function SalesShow({ sale }) {
                     </Link>
                     <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Detail Transaksi</h2>
                 </div>
-                <div style={{ display: 'flex', gap: '0.75rem' }}>
-                    <button onClick={() => window.print()} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+                    <ThermalPrintButton sale={sale} shop={shop} />
+                    <a
+                        href={`/admin/sales/${sale.id}/receipt?print=1`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="btn btn-primary"
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                    >
                         <Printer size={16} /> Cetak Nota
-                    </button>
+                    </a>
                 </div>
             </div>
 
             <div className="hd-grid hd-grid-cols-3" style={{ gap: '1.5rem' }}>
-                
-                {/* Informasi Transaksi */}
                 <div style={{ gridColumn: 'span 1' }}>
                     <div className="glass-panel" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                         <div>
@@ -63,7 +72,7 @@ export default function SalesShow({ sale }) {
                         </div>
                         <div>
                             <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>Metode</div>
-                            <div style={{ fontSize: '0.9rem', fontWeight: 500, textTransform: 'capitalize' }}>{sale.payment_method || '-'}</div>
+                            <div style={{ fontSize: '0.9rem', fontWeight: 500, textTransform: 'capitalize' }}>{paymentLabel || '-'}</div>
                         </div>
                     </div>
 
@@ -75,14 +84,14 @@ export default function SalesShow({ sale }) {
                             <form onSubmit={handlePay} style={{ display: 'flex', gap: '0.75rem' }}>
                                 <div style={{ position: 'relative', flex: 1 }}>
                                     <span style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }}>Rp</span>
-                                    <input 
-                                        type="number" 
-                                        className="form-input" 
-                                        placeholder="Nominal bayar..." 
+                                    <input
+                                        type="number"
+                                        className="form-input"
+                                        placeholder="Nominal bayar..."
                                         value={data.amount_paid}
                                         onChange={e => setData('amount_paid', e.target.value)}
                                         style={{ paddingLeft: '2.5rem' }}
-                                        required 
+                                        required
                                     />
                                 </div>
                                 <button type="submit" className="btn btn-primary" disabled={processing}>
@@ -93,56 +102,55 @@ export default function SalesShow({ sale }) {
                     )}
                 </div>
 
-                {/* Struk / Daftar Belanja */}
                 <div style={{ gridColumn: 'span 2' }}>
-                    <div className="glass-panel printable-area" style={{ padding: '2rem' }}>
-                        
-                        {/* Header Struk (Only visible in print ideally, but good for display too) */}
-                        <div style={{ textAlign: 'center', marginBottom: '2rem', paddingBottom: '1rem', borderBottom: '2px dashed var(--color-border)' }}>
-                            <h1 style={{ margin: '0 0 0.5rem 0', fontSize: '1.5rem', fontWeight: 700 }}>BERKAH TEKNIK AC</h1>
-                            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-                                Penjualan Spare Part<br />
-                                {new Date(sale.created_at).toLocaleDateString('id-ID')}
-                            </p>
-                        </div>
+                    <div className="glass-panel printable-area receipt-sheet receipt-premium" style={{ position: 'relative', background: '#fff' }}>
+                        {sale.payment_status === 'lunas' && <PaidWatermark />}
 
-                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+                        <ReceiptHeader
+                            shop={shop}
+                            dark
+                            receiptNumber={sale.receipt_number}
+                            transactionDate={sale.created_at}
+                            customerName={sale.customer_name}
+                        />
+
+                        <table className="receipt-table">
                             <thead>
-                                <tr style={{ borderBottom: '1px solid var(--color-border)', textAlign: 'left' }}>
-                                    <th style={{ padding: '0.75rem 0.5rem' }}>Barang</th>
-                                    <th style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>Qty</th>
-                                    <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right' }}>Harga</th>
-                                    <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right' }}>Subtotal</th>
+                                <tr>
+                                    <th style={{ textAlign: 'left' }}>Barang</th>
+                                    <th style={{ textAlign: 'center', width: '4rem' }}>Qty</th>
+                                    <th style={{ textAlign: 'right', width: '7rem' }}>Harga</th>
+                                    <th style={{ textAlign: 'right', width: '7.5rem' }}>Subtotal</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {sale.items.map((item, index) => (
-                                    <tr key={index} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                                        <td style={{ padding: '0.75rem 0.5rem' }}>
-                                            <div style={{ fontWeight: 600 }}>{item.spare_part.name}</div>
-                                            <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{item.spare_part.code}</div>
+                                    <tr key={index}>
+                                        <td>
+                                            <div style={{ fontWeight: 600, color: '#0f172a' }}>{item.spare_part.name}</div>
+                                            <div className="item-code">{item.spare_part.code}</div>
                                         </td>
-                                        <td style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>{item.quantity}</td>
-                                        <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right' }}>{formatCurrency(item.unit_price)}</td>
-                                        <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', fontWeight: 600 }}>{formatCurrency(item.unit_price * item.quantity)}</td>
+                                        <td style={{ textAlign: 'center' }}>{item.quantity}</td>
+                                        <td style={{ textAlign: 'right' }}>{formatCurrency(item.unit_price)}</td>
+                                        <td style={{ textAlign: 'right', fontWeight: 600 }}>{formatCurrency(item.unit_price * item.quantity)}</td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
 
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.5rem' }}>
-                            <div style={{ width: '300px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem', fontSize: '1.25rem', fontWeight: 700, borderTop: '2px dashed var(--color-border)' }}>
+                        <div className="receipt-totals">
+                            <div className="receipt-totals-box">
+                                <div className="receipt-totals-row is-grand">
                                     <span>TOTAL</span>
                                     <span>{formatCurrency(sale.total_amount)}</span>
                                 </div>
                                 {sale.amount_paid > 0 && (
                                     <>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0.5rem', fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
-                                            <span>Tunai</span>
+                                        <div className="receipt-totals-row">
+                                            <span>{paymentLabel}</span>
                                             <span>{formatCurrency(sale.amount_paid)}</span>
                                         </div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0.5rem', fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
+                                        <div className="receipt-totals-row">
                                             <span>Kembali</span>
                                             <span>{formatCurrency(sale.change_amount)}</span>
                                         </div>
@@ -151,24 +159,12 @@ export default function SalesShow({ sale }) {
                             </div>
                         </div>
 
-                        <div style={{ textAlign: 'center', marginTop: '3rem', fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-                            <p>Terima kasih atas pembelian Anda!</p>
-                            <p>Barang yang sudah dibeli tidak dapat ditukar atau dikembalikan.</p>
+                        <div className="receipt-footer">
+                            {shop?.receipt_footer || 'Terima kasih atas pembelian Anda.'}
                         </div>
                     </div>
                 </div>
-
             </div>
-
-            {/* Print Styles */}
-            <style dangerouslySetInnerHTML={{__html: `
-                @media print {
-                    body * { visibility: hidden; }
-                    .printable-area, .printable-area * { visibility: visible; }
-                    .printable-area { position: absolute; left: 0; top: 0; width: 100%; border: none !important; box-shadow: none !important; background: transparent !important; color: #000 !important; }
-                    .admin-sidebar, header, .btn { display: none !important; }
-                }
-            `}} />
         </AdminLayout>
     );
 }

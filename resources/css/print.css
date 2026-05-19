@@ -1,0 +1,96 @@
+@media print {
+    html,
+    body {
+        background: #fff !important;
+        color: #000 !important;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+
+    /* Hanya halaman admin (sidebar + header) — jangan dipakai di SPK/nota standalone */
+    .admin-layout-container {
+        background: #fff !important;
+    }
+
+    .admin-layout-container .admin-sidebar,
+    .admin-layout-container header,
+    .admin-layout-container .btn,
+    .admin-layout-container .app-footer--admin {
+        display: none !important;
+    }
+
+    .admin-layout-container * {
+        visibility: hidden;
+    }
+
+    .admin-layout-container .printable-area,
+    .admin-layout-container .printable-area * {
+        visibility: visible;
+    }
+
+    .admin-layout-container .printable-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        border: none !important;
+        box-shadow: none !important;
+        background: #fff !important;
+        color: #000 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .admin-layout-container .printable-area * {
+        color: #000 !important;
+        border-color: #ccc !important;
+    }
+
+    /* Halaman cetak standalone: SPK & nota penjualan */
+    .receipt-print-shell,
+    .receipt-print-shell *,
+    .spk-page,
+    .spk-page *,
+    .print-page,
+    .print-page * {
+        visibility: visible !important;
+    }
+
+    .receipt-paid-watermark span {
+        color: rgba(22, 163, 74, 0.28) !important;
+        border-color: rgba(22, 163, 74, 0.4) !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .receipt-sheet {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .receipt-print-shell {
+        background: #fff !important;
+        min-height: auto !important;
+    }
+
+    .spk-page,
+    .print-page {
+        position: relative;
+        left: auto;
+        top: auto;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        background: #fff !important;
+        color: #000 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
+
+@page {
+    margin: 12mm;
+}

@@ -12,6 +12,8 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\Portal\CustomerAuthController;
 use App\Http\Controllers\Portal\PortalDashboardController;
 use App\Http\Controllers\AdminProfileController;
+use App\Http\Controllers\WorkOrderController;
+use App\Http\Controllers\SettingController;
 
 // ─── Redirect root ke portal ─────────────────────────────────────────────────
 Route::get('/', fn () => redirect('/portal'));
@@ -45,6 +47,10 @@ Route::prefix('admin')->middleware('auth')->name('admin.')->group(function () {
     // Laporan
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 
+    // Pengaturan Aplikasi
+    Route::get('/settings', [SettingController::class, 'edit'])->name('settings.edit');
+    Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
+
     // Profil Admin
     Route::get('/profile', [AdminProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile', [AdminProfileController::class, 'update'])->name('profile.update');
@@ -70,6 +76,10 @@ Route::prefix('admin')->middleware('auth')->name('admin.')->group(function () {
         'update'  => 'vehicles.update',
         'destroy' => 'vehicles.destroy',
     ]);
+
+    // Surat Perintah Kerja (SPK)
+    Route::get('/work-orders', [WorkOrderController::class, 'index'])->name('work-orders.index');
+    Route::get('/services/{service}/spk', [WorkOrderController::class, 'print'])->name('services.spk');
 
     // Servis
     Route::resource('services', ServiceController::class)->names([
@@ -104,6 +114,7 @@ Route::prefix('admin')->middleware('auth')->name('admin.')->group(function () {
 
     // Penjualan Langsung (POS)
     Route::patch('sales/{sale}/pay', [App\Http\Controllers\SaleController::class, 'pay'])->name('sales.pay');
+    Route::get('/sales/{sale}/receipt', [App\Http\Controllers\SaleController::class, 'receipt'])->name('sales.receipt');
     Route::resource('sales', App\Http\Controllers\SaleController::class)->only(['index', 'create', 'store', 'show', 'destroy'])->names([
         'index'   => 'sales.index',
         'create'  => 'sales.create',

@@ -1,6 +1,8 @@
 import React from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import { User } from 'lucide-react';
+import CompanyBranding from '../Components/CompanyBranding';
+import AppFooter from '../Components/AppFooter';
 
 export default function PortalLayout({ children, customer }) {
     return (
@@ -12,9 +14,8 @@ export default function PortalLayout({ children, customer }) {
                 borderBottom: '1px solid var(--color-border)',
             }}>
                 <div style={{ maxWidth: '960px', margin: '0 auto', padding: '0.875rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Link href="/portal/dashboard" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none' }}>
-                        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-light))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 800, fontSize: '0.9rem', boxShadow: 'var(--shadow-glow)' }}>AC</div>
-                        <span style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--color-primary-dark)' }}>Bengkel AC Berkah</span>
+                    <Link href="/portal/dashboard" style={{ textDecoration: 'none' }}>
+                        <CompanyBranding variant="portal" />
                     </Link>
                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                         {customer ? (
@@ -39,9 +40,7 @@ export default function PortalLayout({ children, customer }) {
                 </div>
             </main>
 
-            <footer style={{ borderTop: '1px solid var(--color-border)', padding: '1.5rem', textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>
-                &copy; {new Date().getFullYear()} Bengkel AC Berkah Teknik &mdash; Melayani dengan Sepenuh Hati
-            </footer>
+            <AppFooter variant="portal" />
         </div>
     );
 }

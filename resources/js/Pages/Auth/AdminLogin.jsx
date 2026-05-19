@@ -1,7 +1,8 @@
 import React from 'react';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 
 export default function AdminLogin() {
+    const { shop } = usePage().props;
     const { data, setData, post, processing, errors } = useForm({
         email: '',
         password: '',
@@ -19,8 +20,12 @@ export default function AdminLogin() {
             
             <div className="glass-panel" style={{ width: '100%', maxWidth: '400px', padding: '2.5rem', borderRadius: 'var(--radius-xl)' }}>
                 <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-                    <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--color-primary)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '1.5rem', marginBottom: '1rem' }}>AC</div>
-                    <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-primary-dark)' }}>Admin Login</h1>
+                    {shop?.logo_url ? (
+                        <img src={shop.logo_url} alt={shop.short_name} style={{ height: 48, marginBottom: '1rem' }} />
+                    ) : (
+                        <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--color-primary)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '1.5rem', marginBottom: '1rem' }}>AC</div>
+                    )}
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-primary-dark)' }}>{shop?.app_name || 'Admin Login'}</h1>
                     <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginTop: '0.5rem' }}>Masukkan kredensial Anda untuk masuk ke panel admin.</p>
                 </div>
 

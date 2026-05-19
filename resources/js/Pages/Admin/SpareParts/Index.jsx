@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '../../../Layouts/AdminLayout';
+import Pagination from '../../../Components/Pagination';
 import { AlertTriangle, CheckCircle, Edit, Trash2 } from 'lucide-react';
 
 const fmt = (n) => `Rp ${Number(n).toLocaleString('id-ID')}`;
@@ -84,23 +85,7 @@ export default function SparePartsIndex({ spareParts, filters }) {
                     </table>
                 </div>
 
-                {/* Pagination */}
-                {spareParts.links && (
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '1.25rem', flexWrap: 'wrap' }}>
-                        {spareParts.links.map((link, i) => (
-                            <button key={i} onClick={() => link.url && router.get(link.url, { search })}
-                                disabled={!link.url}
-                                dangerouslySetInnerHTML={{ __html: link.label }}
-                                style={{
-                                    padding: '0.3rem 0.65rem', fontSize: '0.8rem', borderRadius: 'var(--radius-sm)',
-                                    border: '1px solid var(--color-border)',
-                                    background: link.active ? 'var(--color-primary)' : 'transparent',
-                                    color: link.active ? 'white' : 'var(--color-text-muted)',
-                                    cursor: link.url ? 'pointer' : 'not-allowed',
-                                }} />
-                        ))}
-                    </div>
-                )}
+                <Pagination links={spareParts.links} query={{ search }} />
             </div>
         </AdminLayout>
     );

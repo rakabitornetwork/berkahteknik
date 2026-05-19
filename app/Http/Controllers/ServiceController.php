@@ -46,11 +46,15 @@ class ServiceController extends Controller
             'user_id'      => 'nullable|exists:users,id',
             'service_name' => 'required|string|max:255',
             'description'  => 'required|string',
+            'work_instructions' => 'nullable|string',
             'is_bring_own_part' => 'boolean',
             'service_fee'  => 'nullable|numeric|min:0',
             'parts'        => 'nullable|array',
             'parts.*.spare_part_id' => 'exists:spare_parts,id',
             'parts.*.quantity'      => 'integer|min:1',
+            'warranty_months' => 'nullable|integer|min:0|max:120',
+            'warranty_notes' => 'nullable|string',
+            'warranty_terms' => 'nullable|string',
         ]);
 
         $service = Service::create([
@@ -58,9 +62,13 @@ class ServiceController extends Controller
             'user_id'     => $validated['user_id'] ?? null,
             'service_name'=> $validated['service_name'],
             'description' => $validated['description'],
+            'work_instructions' => $validated['work_instructions'] ?? null,
             'is_bring_own_part' => $validated['is_bring_own_part'] ?? false,
             'service_fee' => $validated['service_fee'] ?? 0,
             'status'      => 'antri',
+            'warranty_months' => $validated['warranty_months'] ?? null,
+            'warranty_notes' => $validated['warranty_notes'] ?? null,
+            'warranty_terms' => $validated['warranty_terms'] ?? null,
         ]);
 
         // Attach spare parts and decrement stock
@@ -108,17 +116,18 @@ class ServiceController extends Controller
             'service_name'   => 'required|string|max:255',
             'description'    => 'required|string',
             'diagnosis'      => 'nullable|string',
+            'work_instructions' => 'nullable|string',
+            'mechanic_notes' => 'nullable|string',
             'is_bring_own_part' => 'boolean',
             'service_fee'    => 'nullable|numeric|min:0',
             'payment_status' => 'nullable|in:belum_lunas,lunas',
+            'warranty_months' => 'nullable|integer|min:0|max:120',
+            'warranty_notes' => 'nullable|string',
+            'warranty_terms' => 'nullable|string',
+            'warranty_starts_at' => 'nullable|date',
         ]);
 
-        if ($validated['status'] === 'dikerjakan' && !$service->started_at) {
-            $validated['started_at'] = now();
-        }
-        if ($validated['status'] === 'selesai' && !$service->completed_at) {
-            $validated['completed_at'] = now();
-        }
+        $this->applyStatusSideEffects($validated, $service);
 
         $service->update($validated);
 
@@ -128,6 +137,13 @@ class ServiceController extends Controller
 
     public function destroy(Service $service)
     {
+        $service->load('spareParts');
+
+        foreach ($service->spareParts as $sparePart) {
+            $sparePart->increment('stock', $sparePart->pivot->quantity);
+        }
+
+        $service->spareParts()->detach();
         $service->delete();
 
         return redirect()->route('admin.services.index')
@@ -139,15 +155,28 @@ class ServiceController extends Controller
         $request->validate(['status' => 'required|in:antri,dikerjakan,selesai']);
 
         $update = ['status' => $request->status];
-        if ($request->status === 'dikerjakan' && !$service->started_at) {
-            $update['started_at'] = now();
-        }
-        if ($request->status === 'selesai' && !$service->completed_at) {
-            $update['completed_at'] = now();
-        }
+        $this->applyStatusSideEffects($update, $service);
 
         $service->update($update);
 
         return back()->with('success', 'Status berhasil diperbarui.');
+    }
+
+    private function applyStatusSideEffects(array &$data, Service $service): void
+    {
+        $status = $data['status'] ?? $service->status;
+
+        if ($status === 'dikerjakan' && ! $service->started_at && empty($data['started_at'])) {
+            $data['started_at'] = now();
+        }
+
+        if ($status === 'selesai') {
+            if (! $service->completed_at && empty($data['completed_at'])) {
+                $data['completed_at'] = now();
+            }
+            if (! $service->warranty_starts_at && empty($data['warranty_starts_at'])) {
+                $data['warranty_starts_at'] = now()->toDateString();
+            }
+        }
     }
 }

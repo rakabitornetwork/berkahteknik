@@ -94,6 +94,11 @@ class PortalDashboardController extends Controller
                     'unit'       => $p->unit,
                     'unit_price' => $p->pivot->unit_price,
                 ]),
+                'effective_warranty_months' => $service->effective_warranty_months,
+                'warranty_expires_at' => $service->warranty_expires_at,
+                'warranty_starts_at' => $service->warranty_starts_at?->format('d M Y'),
+                'has_active_warranty' => $service->has_active_warranty,
+                'warranty_notes' => $service->warranty_notes,
             ],
             'customer' => $customer,
         ]);

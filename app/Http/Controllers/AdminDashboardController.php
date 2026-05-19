@@ -48,10 +48,41 @@ class AdminDashboardController extends Controller
                 'created_at'    => $s->created_at->format('d M Y H:i'),
             ]);
 
+        $lowStockParts = SparePart::whereColumn('stock', '<=', 'min_stock')
+            ->orderBy('stock')
+            ->orderBy('name')
+            ->take(8)
+            ->get(['id', 'code', 'name', 'stock', 'min_stock', 'unit']);
+
+        $salesTodayQuery = Sale::whereDate('created_at', $today);
+
+        $salesSummary = [
+            'today_count'  => (clone $salesTodayQuery)->count(),
+            'today_total'  => (float) (clone $salesTodayQuery)->sum('total_amount'),
+            'today_lunas'  => (float) Sale::whereDate('created_at', $today)->where('payment_status', 'lunas')->sum('total_amount'),
+            'unpaid_count' => Sale::where('payment_status', 'belum_lunas')->count(),
+        ];
+
+        $recentSales = Sale::latest()
+            ->take(5)
+            ->get()
+            ->map(fn ($s) => [
+                'id'              => $s->id,
+                'receipt_number'  => $s->receipt_number,
+                'customer_name'   => $s->customer_name ?: 'Pelanggan Umum',
+                'total_amount'    => $s->total_amount,
+                'payment_status'  => $s->payment_status,
+                'payment_method'  => $s->payment_method,
+                'created_at'      => $s->created_at->format('d M Y H:i'),
+            ]);
+
         return Inertia::render('Admin/Dashboard', [
             'auth'           => ['user' => Auth::user()],
             'stats'          => $stats,
             'activeServices' => $activeServices,
+            'lowStockParts'  => $lowStockParts,
+            'salesSummary'   => $salesSummary,
+            'recentSales'    => $recentSales,
         ]);
     }
 }

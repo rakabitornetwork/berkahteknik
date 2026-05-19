@@ -9,17 +9,23 @@ import {
     LogOut, 
     Menu, 
     Fan,
-    ShoppingCart
+    ShoppingCart,
+    FileText,
+    Settings,
 } from 'lucide-react';
+import CompanyBranding from '../Components/CompanyBranding';
+import AppFooter from '../Components/AppFooter';
 
 const navItems = [
     { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/admin/services', label: 'Manajemen Servis', icon: Wrench },
+    { href: '/admin/work-orders', label: 'Surat Perintah Kerja', icon: FileText },
     { href: '/admin/sales', label: 'Penjualan (POS)', icon: ShoppingCart },
     { href: '/admin/customers', label: 'Pelanggan', icon: Users },
     { href: '/admin/spare-parts', label: 'Spare Part & Stok', icon: Package },
     { href: '/admin/mechanics', label: 'Data Mekanik', icon: Users },
     { href: '/admin/reports', label: 'Laporan', icon: BarChart3 },
+    { href: '/admin/settings', label: 'Pengaturan Aplikasi', icon: Settings },
 ];
 
 export default function AdminLayout({ children, title }) {
@@ -65,10 +71,7 @@ export default function AdminLayout({ children, title }) {
             >
                 {/* Brand */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', height: '54px', padding: '0 0.5rem', overflow: 'hidden', borderBottom: '1px solid #27272a', margin: '0 -0.75rem', boxSizing: 'border-box' }}>
-                    <div style={{ color: '#fbbf24', flexShrink: 0, display: 'flex', alignItems: 'center', paddingLeft: '0.75rem' }}>
-                        <Fan size={22} strokeWidth={2.5} />
-                    </div>
-                    {!collapsed && <span style={{ fontWeight: 700, fontSize: '1rem', color: '#ffffff', whiteSpace: 'nowrap' }}>AC Berkah</span>}
+                    <CompanyBranding collapsed={collapsed} />
                 </div>
 
                 {/* Nav */}
@@ -168,6 +171,7 @@ export default function AdminLayout({ children, title }) {
                 <main>
                     {children}
                 </main>
+                <AppFooter variant="admin" />
             </div>
         </div>
     );

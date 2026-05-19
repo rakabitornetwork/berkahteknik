@@ -1,8 +1,9 @@
 import React from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { Fan } from 'lucide-react';
 
 export default function PortalLogin() {
+    const { shop } = usePage().props;
     const { data, setData, post, processing, errors } = useForm({
         phone: '', password: '', remember: false,
     });
@@ -19,7 +20,7 @@ export default function PortalLogin() {
             {/* Nav */}
             <div style={{ padding: '1.25rem 2rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 800, fontSize: '0.8rem' }}>AC</div>
-                <span style={{ fontWeight: 700, color: 'var(--color-primary-dark)' }}>Bengkel AC Berkah</span>
+                <span style={{ fontWeight: 700, color: 'var(--color-primary-dark)' }}>{shop?.short_name || shop?.app_name || 'Bengkel AC Berkah'}</span>
             </div>
 
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>

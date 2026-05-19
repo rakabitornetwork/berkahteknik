@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function DataTable({ columns, data }) {
     return (
-        <div className="glass-panel" style={{ overflowX: 'auto', borderRadius: 'var(--radius-md)' }}>
+        <div className="table-responsive">
             <table className="hd-table">
                 <thead>
                     <tr>

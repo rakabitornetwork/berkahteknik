@@ -3,7 +3,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { Plus, Search, Eye, Trash2, ShoppingCart } from 'lucide-react';
 import AdminLayout from '../../../Layouts/AdminLayout';
 import DataTable from '../../../Components/DataTable';
-import StatusBadge from '../../../Components/StatusBadge';
+import Pagination from '../../../Components/Pagination';
 
 export default function SalesIndex({ sales, filters }) {
     const [search, setSearch] = useState(filters.search || '');
@@ -51,81 +51,74 @@ export default function SalesIndex({ sales, filters }) {
         )},
     ];
 
+    const hasData = sales.data.length > 0;
+
     return (
         <AdminLayout title="Riwayat Penjualan">
             <Head title="Penjualan POS" />
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', gap: '1rem', flexWrap: 'wrap' }}>
-                <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.25rem' }}>
-                    <button 
-                        onClick={() => handleFilterStatus('')} 
-                        className={`btn ${!filters.status ? 'btn-primary' : 'btn-outline'}`}
-                        style={{ padding: '0.4rem 0.75rem', fontSize: '0.85rem' }}
-                    >
-                        Semua
-                    </button>
-                    <button 
-                        onClick={() => handleFilterStatus('lunas')} 
-                        className={`btn ${filters.status === 'lunas' ? 'btn-primary' : 'btn-outline'}`}
-                        style={{ padding: '0.4rem 0.75rem', fontSize: '0.85rem' }}
-                    >
-                        Lunas
-                    </button>
-                    <button 
-                        onClick={() => handleFilterStatus('belum_lunas')} 
-                        className={`btn ${filters.status === 'belum_lunas' ? 'btn-primary' : 'btn-outline'}`}
-                        style={{ padding: '0.4rem 0.75rem', fontSize: '0.85rem' }}
-                    >
-                        Belum Lunas
-                    </button>
-                </div>
+            <div className="glass-panel list-panel" style={{ marginBottom: '1rem' }}>
+                <header className="list-page-toolbar" style={{ marginBottom: 0 }}>
+                    <div className="filter-pills">
+                        <button
+                            type="button"
+                            onClick={() => handleFilterStatus('')}
+                            className={`filter-pill${!filters.status ? ' is-active' : ''}`}
+                        >
+                            Semua
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => handleFilterStatus('lunas')}
+                            className={`filter-pill${filters.status === 'lunas' ? ' is-active' : ''}`}
+                        >
+                            Lunas
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => handleFilterStatus('belum_lunas')}
+                            className={`filter-pill${filters.status === 'belum_lunas' ? ' is-active' : ''}`}
+                        >
+                            Belum Lunas
+                        </button>
+                    </div>
 
-                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                    <form onSubmit={handleSearch} style={{ display: 'flex', gap: '0.5rem', minWidth: '250px' }}>
-                        <div style={{ position: 'relative', width: '100%' }}>
-                            <Search size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
-                            <input 
-                                type="text" 
-                                className="form-input" 
-                                placeholder="Cari no nota atau nama..." 
+                    <form onSubmit={handleSearch} className="toolbar-search-row">
+                        <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
+                            <Search size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)', pointerEvents: 'none' }} />
+                            <input
+                                type="text"
+                                className="form-input toolbar-search-input"
+                                placeholder="Cari no nota atau nama..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 style={{ paddingLeft: '2.25rem', width: '100%' }}
                             />
                         </div>
-                        <button type="submit" className="btn btn-primary" style={{ padding: '0.5rem' }}><Search size={16} /></button>
+                        <button type="submit" className="btn btn-outline toolbar-action-btn" aria-label="Cari">
+                            <Search size={16} />
+                        </button>
+                        <Link href="/admin/sales/create" className="btn btn-primary toolbar-action-btn">
+                            <Plus size={16} style={{ marginRight: '0.35rem' }} />
+                            Transaksi Baru
+                        </Link>
                     </form>
-
-                    <Link href="/admin/sales/create" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', whiteSpace: 'nowrap' }}>
-                        <Plus size={16} /> Transaksi Baru
-                    </Link>
-                </div>
+                </header>
             </div>
 
-            <div className="glass-panel">
-                <DataTable columns={columns} data={sales.data} />
-                
-                {sales.data.length === 0 && (
-                    <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+            <div className="glass-panel list-panel">
+                {hasData ? (
+                    <>
+                        <DataTable columns={columns} data={sales.data} />
+                        <Pagination links={sales.links} query={{ search, status: filters.status }} />
+                    </>
+                ) : (
+                    <div className="list-empty-state">
                         <ShoppingCart size={48} style={{ margin: '0 auto 1rem', opacity: 0.2 }} />
                         <p>Belum ada transaksi penjualan langsung.</p>
                     </div>
                 )}
             </div>
-
-            {sales.links && sales.links.length > 3 && (
-                <div style={{ display: 'flex', gap: '0.25rem', marginTop: '1rem', justifyContent: 'center' }}>
-                    {sales.links.map((link, k) => (
-                        <Link 
-                            key={k} 
-                            href={link.url || '#'}
-                            className={`btn ${link.active ? 'btn-primary' : 'btn-outline'}`}
-                            style={{ padding: '0.25rem 0.75rem', fontSize: '0.75rem', opacity: link.url ? 1 : 0.5 }}
-                            dangerouslySetInnerHTML={{ __html: link.label }}
-                        />
-                    ))}
-                </div>
-            )}
         </AdminLayout>
     );
 }

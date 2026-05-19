@@ -3,7 +3,7 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import { Plus, Search, Trash2, Edit, Wrench } from 'lucide-react';
 import AdminLayout from '../../../Layouts/AdminLayout';
 import DataTable from '../../../Components/DataTable';
-import StatusBadge from '../../../Components/StatusBadge';
+import Pagination from '../../../Components/Pagination';
 
 export default function MechanicsIndex({ mechanics, filters }) {
     const [search, setSearch] = useState(filters.search || '');
@@ -109,31 +109,19 @@ export default function MechanicsIndex({ mechanics, filters }) {
             </div>
 
             {/* Data Table */}
-            <div className="glass-panel">
-                <DataTable columns={columns} data={mechanics.data} />
-                
-                {mechanics.data.length === 0 && (
-                    <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+            <div className="glass-panel list-panel">
+                {mechanics.data.length > 0 ? (
+                    <>
+                        <DataTable columns={columns} data={mechanics.data} />
+                        <Pagination links={mechanics.links} query={{ search }} />
+                    </>
+                ) : (
+                    <div className="list-empty-state">
                         <Wrench size={48} style={{ margin: '0 auto 1rem', opacity: 0.2 }} />
                         <p>Belum ada data mekanik.</p>
                     </div>
                 )}
             </div>
-
-            {/* Pagination Placeholder (Simplify for now) */}
-            {mechanics.links && mechanics.links.length > 3 && (
-                <div style={{ display: 'flex', gap: '0.25rem', marginTop: '1rem', justifyContent: 'center' }}>
-                    {mechanics.links.map((link, k) => (
-                        <Link 
-                            key={k} 
-                            href={link.url || '#'}
-                            className={`btn ${link.active ? 'btn-primary' : 'btn-outline'}`}
-                            style={{ padding: '0.25rem 0.75rem', fontSize: '0.75rem', opacity: link.url ? 1 : 0.5 }}
-                            dangerouslySetInnerHTML={{ __html: link.label }}
-                        />
-                    ))}
-                </div>
-            )}
 
             {/* Modal Form */}
             {isModalOpen && (

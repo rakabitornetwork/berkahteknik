@@ -1,14 +1,23 @@
 import React from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import AdminLayout from '../../../Layouts/AdminLayout';
 import StatusBadge from '../../../Components/StatusBadge';
-import { CheckCircle, Clock, Check, Wrench, CreditCard, ArrowLeft } from 'lucide-react';
+import { CheckCircle, Clock, Check, Wrench, CreditCard, ArrowLeft, Printer, FileText } from 'lucide-react';
 
 const fmt = (n) => `Rp ${Number(n).toLocaleString('id-ID')}`;
 
 export default function ServiceShow({ service }) {
+    const { shop } = usePage().props;
     const partsTotal = service.spare_parts?.reduce((sum, p) => sum + (p.pivot.quantity * p.pivot.unit_price), 0) || 0;
     const grandTotal = partsTotal + Number(service.service_fee || 0);
+
+    const handleDelete = () => {
+        const label = service.spk_number || `Servis #${String(service.id).padStart(4, '0')}`;
+        if (!window.confirm(`Yakin ingin menghapus ${label}? Data tidak dapat dikembalikan.`)) {
+            return;
+        }
+        router.delete(`/admin/services/${service.id}`);
+    };
 
     return (
         <AdminLayout title={`Detail Servis #${String(service.id).padStart(4, '0')}`}>
@@ -23,12 +32,20 @@ export default function ServiceShow({ service }) {
                             <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginTop: '0.5rem' }}>
                                 Servis #{String(service.id).padStart(4, '0')}
                             </h2>
+                            {service.spk_number && (
+                                <div style={{ fontFamily: 'monospace', fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-primary)', marginTop: '0.35rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                                    <FileText size={14} /> {service.spk_number}
+                                </div>
+                            )}
                             <div style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
                                 Masuk: {new Date(service.created_at).toLocaleString('id-ID')}
                             </div>
                         </div>
-                        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
                             <StatusBadge status={service.status} />
+                            <a href={`/admin/services/${service.id}/spk?print=1`} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                                <Printer size={16} /> Cetak SPK
+                            </a>
                             <Link href={`/admin/services/${service.id}/edit`} className="btn btn-outline" style={{ fontSize: '0.8rem' }}>Edit</Link>
                         </div>
                     </div>
@@ -60,6 +77,29 @@ export default function ServiceShow({ service }) {
                     </div>
                 </div>
 
+                <div className="glass-panel" style={{ padding: '1.25rem' }}>
+                    <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-primary)', marginBottom: '1rem' }}>Informasi Garansi</h3>
+                    <InfoRow label="Masa Garansi" value={`${service.effective_warranty_months} bulan`} />
+                    {service.status === 'selesai' && (
+                        <>
+                            <InfoRow label="Mulai Garansi" value={service.warranty_starts_at ? new Date(service.warranty_starts_at).toLocaleDateString('id-ID') : (service.completed_at ? new Date(service.completed_at).toLocaleDateString('id-ID') : '-')} />
+                            <InfoRow label="Berlaku Hingga" value={service.warranty_expires_at ? new Date(service.warranty_expires_at).toLocaleDateString('id-ID') : '-'} />
+                            <InfoRow label="Status" value={
+                                <span style={{ fontWeight: 600, color: service.has_active_warranty ? 'var(--color-success)' : 'var(--color-text-muted)' }}>
+                                    {service.has_active_warranty ? 'Garansi Aktif' : 'Garansi Berakhir / Tidak Berlaku'}
+                                </span>
+                            } />
+                        </>
+                    )}
+                    {service.warranty_notes && <InfoRow label="Catatan" value={service.warranty_notes} />}
+                    {service.warranty_terms && <InfoRow label="Syarat Khusus" value={service.warranty_terms} />}
+                    {shop?.warranty_policy && (
+                        <div style={{ marginTop: '0.75rem', fontSize: '0.8rem', color: 'var(--color-text-muted)', whiteSpace: 'pre-line', padding: '0.75rem', background: 'rgba(0,0,0,0.12)', borderRadius: 'var(--radius-md)' }}>
+                            <strong style={{ color: 'var(--color-text-main)' }}>Kebijakan garansi umum:</strong><br />{shop.warranty_policy}
+                        </div>
+                    )}
+                </div>
+
                 {/* Keluhan & Diagnosa */}
                 <div className="glass-panel" style={{ padding: '1.25rem' }}>
                     <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-primary)', marginBottom: '1rem' }}>Keluhan & Diagnosa</h3>
@@ -67,11 +107,31 @@ export default function ServiceShow({ service }) {
                         <div>
                             <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem', fontWeight: 500 }}>KELUHAN PELANGGAN</div>
                             <div style={{ fontSize: '0.9rem', lineHeight: 1.6 }}>{service.description}</div>
+                            {service.work_instructions && (
+                                <div style={{
+                                    marginTop: '0.75rem',
+                                    padding: '0.625rem 0.75rem',
+                                    background: 'rgba(245, 158, 11, 0.12)',
+                                    border: '1px solid rgba(251, 191, 36, 0.4)',
+                                    borderRadius: '6px',
+                                    fontSize: '0.85rem',
+                                    lineHeight: 1.6,
+                                    color: 'var(--color-text-main)',
+                                }}>
+                                    <strong style={{ color: 'var(--color-warning)' }}>Instruksi kerja:</strong>{' '}
+                                    {service.work_instructions}
+                                </div>
+                            )}
                         </div>
                         <div>
                             <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem', fontWeight: 500 }}>JENIS JASA & DIAGNOSA</div>
                             <div style={{ fontSize: '0.9rem', lineHeight: 1.6, fontWeight: 600, color: 'var(--color-primary)', marginBottom: '0.5rem' }}>{service.service_name}</div>
                             <div style={{ fontSize: '0.9rem', lineHeight: 1.6 }}>{service.diagnosis || <span style={{ color: 'var(--color-text-muted)', fontStyle: 'italic' }}>Belum ada diagnosa</span>}</div>
+                            {service.mechanic_notes && (
+                                <div style={{ marginTop: '0.75rem', fontSize: '0.85rem' }}>
+                                    <strong>Catatan mekanik:</strong> {service.mechanic_notes}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -137,8 +197,12 @@ export default function ServiceShow({ service }) {
                                 <CreditCard size={16} /> Tandai Lunas
                             </button>
                         )}
-                        <button onClick={() => { if (confirm('Hapus servis ini?')) router.delete(`/admin/services/${service.id}`) }}
-                            className="btn btn-outline" style={{ fontSize: '0.85rem', borderColor: 'var(--color-danger)', color: 'var(--color-danger)', marginLeft: 'auto' }}>
+                        <button
+                            type="button"
+                            onClick={handleDelete}
+                            className="btn btn-outline"
+                            style={{ fontSize: '0.85rem', borderColor: 'var(--color-danger)', color: 'var(--color-danger)', marginLeft: 'auto' }}
+                        >
                             Hapus Servis
                         </button>
                     </div>
@@ -156,3 +220,4 @@ function InfoRow({ label, value, bold }) {
         </div>
     );
 }
+

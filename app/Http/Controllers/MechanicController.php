@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 
@@ -46,7 +45,7 @@ class MechanicController extends Controller
             'name' => $validated['name'],
             'username' => $validated['username'] ?? null,
             'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
+            'password' => $validated['password'],
             'role' => 'mechanic',
         ]);
 
@@ -76,7 +75,7 @@ class MechanicController extends Controller
         $mechanic->email = $validated['email'];
         
         if (!empty($validated['password'])) {
-            $mechanic->password = Hash::make($validated['password']);
+            $mechanic->password = $validated['password'];
         }
 
         $mechanic->save();

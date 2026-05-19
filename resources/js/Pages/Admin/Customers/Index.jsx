@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '../../../Layouts/AdminLayout';
+import Pagination from '../../../Components/Pagination';
 import { Eye, Edit, Trash2 } from 'lucide-react';
 
 export default function CustomersIndex({ customers, filters }) {
@@ -77,23 +78,7 @@ export default function CustomersIndex({ customers, filters }) {
                     </table>
                 </div>
 
-                {/* Pagination */}
-                {customers.links && (
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '1.25rem', flexWrap: 'wrap' }}>
-                        {customers.links.map((link, i) => (
-                            <button key={i} onClick={() => link.url && router.get(link.url)}
-                                disabled={!link.url}
-                                dangerouslySetInnerHTML={{ __html: link.label }}
-                                style={{
-                                    padding: '0.3rem 0.65rem', fontSize: '0.8rem', borderRadius: 'var(--radius-sm)',
-                                    border: '1px solid var(--color-border)',
-                                    background: link.active ? 'var(--color-primary)' : 'transparent',
-                                    color: link.active ? 'white' : 'var(--color-text-muted)',
-                                    cursor: link.url ? 'pointer' : 'not-allowed', opacity: link.url ? 1 : 0.5,
-                                }} />
-                        ))}
-                    </div>
-                )}
+                <Pagination links={customers.links} query={{ search }} />
             </div>
         </AdminLayout>
     );
