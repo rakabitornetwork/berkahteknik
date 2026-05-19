@@ -177,6 +177,14 @@ export default function SystemUpdateIndex({ status, config }) {
                     )}
                 </div>
 
+                {status.is_on_target_version && status.target_tag_exists ? (
+                    <div className="glass-panel" style={{ padding: '1.5rem', fontSize: '0.85rem', color: 'var(--color-text-muted)', lineHeight: 1.55 }}>
+                        <p style={{ margin: 0 }}>
+                            Tidak ada update untuk dipasang. Server sudah pada tag terbaru di GitHub ({targetLabel}).
+                            Untuk rilis berikutnya: push tag baru dari Laragon (mis. <code style={{ fontFamily: 'monospace' }}>git tag 1.3 && git push origin 1.3</code>), lalu klik <strong>Perbarui status</strong>.
+                        </p>
+                    </div>
+                ) : (
                 <form onSubmit={submit} className="glass-panel" style={{ padding: '1.5rem' }}>
                     <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>Jalankan update</h2>
                     <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: '1rem', lineHeight: 1.55 }}>
@@ -206,6 +214,7 @@ export default function SystemUpdateIndex({ status, config }) {
                         {processing ? 'Memproses update...' : targetTag ? `Pasang versi ${targetLabel}` : 'Tidak ada tag'}
                     </button>
                 </form>
+                )}
 
                 {deployLogs.length > 0 && (
                     <div className="glass-panel" style={{ padding: '1.5rem' }}>
