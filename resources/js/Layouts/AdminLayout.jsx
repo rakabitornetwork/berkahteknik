@@ -13,6 +13,7 @@ import {
     FileText,
     Settings,
     Globe,
+    Download,
 } from 'lucide-react';
 import CompanyBranding from '../Components/CompanyBranding';
 import AppFooter from '../Components/AppFooter';
@@ -28,6 +29,7 @@ const navItems = [
     { href: '/admin/reports', label: 'Laporan', icon: BarChart3 },
     { href: '/admin/cms/posts', label: 'Konten Situs', icon: Globe },
     { href: '/admin/settings', label: 'Pengaturan Aplikasi', icon: Settings },
+    { href: '/admin/system-update', label: 'Update GitHub', icon: Download },
 ];
 
 export default function AdminLayout({ children, title }) {
@@ -78,7 +80,7 @@ export default function AdminLayout({ children, title }) {
 
                 {/* Nav */}
                 <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', flex: 1, marginTop: '1rem' }}>
-                    {navItems.map(item => {
+                    {navItems.filter(item => item.href !== '/admin/system-update' || user?.role === 'admin').map(item => {
                         const active = isActive(item.href);
                         return (
                             <Link key={item.href} href={item.href}
@@ -118,7 +120,8 @@ export default function AdminLayout({ children, title }) {
                 {/* Top Header (Flat) */}
                 <header style={{ 
                     height: '54px', padding: '0 1rem', 
-                    borderBottom: '1px solid #27272a', 
+                    background: 'var(--color-bg)',
+                    borderBottom: '1px solid var(--color-border)', 
                     display: 'flex', justifyContent: 'space-between', 
                     alignItems: 'center', flexShrink: 0, boxSizing: 'border-box'
                 }}>

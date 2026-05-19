@@ -45,6 +45,7 @@ class HandleInertiaRequests extends Middleware
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error'   => fn () => $request->session()->get('error'),
+                'deploy_logs' => fn () => $request->session()->get('deploy_logs'),
             ],
             'shop' => fn () => app(ShopSettingService::class)->forFrontend(),
         ];

@@ -142,6 +142,11 @@ a {
     min-width: 0;
     height: 100vh;
     overflow: hidden;
+    background: var(--color-bg);
+}
+
+.portal-header {
+    background: rgba(9, 9, 11, 0.92);
 }
 
 .admin-main-content > main {

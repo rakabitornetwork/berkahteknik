@@ -18,6 +18,7 @@ use App\Http\Controllers\Public\LandingController;
 use App\Http\Controllers\Public\PublicPostController;
 use App\Http\Controllers\CmsPostController;
 use App\Http\Controllers\LandingSettingController;
+use App\Http\Controllers\SystemUpdateController;
 
 // ─── Halaman publik (landing & konten) ───────────────────────────────────────
 Route::get('/', [LandingController::class, 'index'])->name('home');
@@ -56,6 +57,12 @@ Route::prefix('admin')->middleware('auth')->name('admin.')->group(function () {
     // Pengaturan Aplikasi
     Route::get('/settings', [SettingController::class, 'edit'])->name('settings.edit');
     Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
+
+    // Update dari GitHub (hanya role admin)
+    Route::middleware('admin.role')->prefix('system-update')->name('system-update.')->group(function () {
+        Route::get('/', [SystemUpdateController::class, 'index'])->name('index');
+        Route::post('/deploy', [SystemUpdateController::class, 'deploy'])->name('deploy');
+    });
 
     // CMS Konten Situs
     Route::prefix('cms')->name('cms.')->group(function () {

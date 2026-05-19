@@ -16,7 +16,7 @@ export default function CompanyBranding({ variant = 'default', collapsed = false
                         AC
                     </div>
                 )}
-                <span style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--color-primary-dark)' }}>{name}</span>
+                <span style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--color-text-main)' }}>{name}</span>
             </div>
         );
     }
