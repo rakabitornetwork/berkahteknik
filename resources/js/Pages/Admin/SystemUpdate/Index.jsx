@@ -7,6 +7,7 @@ export default function SystemUpdateIndex({ status, config }) {
     const { flash } = usePage().props;
     const deployLogs = flash?.deploy_logs ?? [];
     const [showLogs, setShowLogs] = useState(deployLogs.length > 0);
+    const [refreshing, setRefreshing] = useState(false);
 
     const { data, setData, post, processing, errors } = useForm({
         confirm: false,
@@ -22,7 +23,18 @@ export default function SystemUpdateIndex({ status, config }) {
     };
 
     const refreshStatus = () => {
-        router.reload({ only: ['status', 'config'] });
+        router.get(
+            '/admin/system-update',
+            { refresh: 1 },
+            {
+                preserveScroll: true,
+                only: ['status', 'config'],
+                replace: true,
+                onStart: () => setRefreshing(true),
+                onFinish: () => setRefreshing(false),
+                onError: () => setRefreshing(false),
+            },
+        );
     };
 
     if (!status?.available) {
@@ -68,8 +80,15 @@ export default function SystemUpdateIndex({ status, config }) {
                                 {status.remote_url} <ExternalLink size={12} />
                             </a>
                         </div>
-                        <button type="button" className="btn btn-outline" onClick={refreshStatus} style={{ fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                            <RefreshCw size={14} /> Perbarui status
+                        <button
+                            type="button"
+                            className="btn btn-outline"
+                            onClick={refreshStatus}
+                            disabled={refreshing}
+                            style={{ fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                        >
+                            <RefreshCw size={14} style={refreshing ? { animation: 'spin 0.8s linear infinite' } : undefined} />
+                            {refreshing ? 'Memperbarui...' : 'Perbarui status'}
                         </button>
                     </div>
 

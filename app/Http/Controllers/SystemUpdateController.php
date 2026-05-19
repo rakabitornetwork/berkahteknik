@@ -11,13 +11,19 @@ class SystemUpdateController extends Controller
     public function index(GitDeployService $deploy)
     {
         return Inertia::render('Admin/SystemUpdate/Index', [
-            'status' => $deploy->getStatus(),
-            'config' => [
-                'enabled' => (bool) config('deploy.enabled'),
-                'tag' => config('deploy.tag'),
-                'remote' => config('deploy.remote'),
-            ],
+            'status' => fn () => $deploy->getStatus(),
+            'config' => fn () => $this->deployConfig(),
         ]);
+    }
+
+    /** @return array<string, mixed> */
+    protected function deployConfig(): array
+    {
+        return [
+            'enabled' => (bool) config('deploy.enabled'),
+            'tag' => config('deploy.tag'),
+            'remote' => config('deploy.remote'),
+        ];
     }
 
     public function deploy(Request $request, GitDeployService $deploy)
