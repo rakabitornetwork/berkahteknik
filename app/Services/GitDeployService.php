@@ -144,9 +144,9 @@ class GitDeployService
             $logs[] = $this->logEntry('Bersihkan node_modules', $clean);
 
             $npmInstall = file_exists($this->basePath.'/package-lock.json')
-                ? $this->runShell('npm ci --include=dev --no-audit --no-fund')
-                : $this->runShell('npm install --include=dev --no-audit --no-fund');
-            $logs[] = $this->logEntry('NPM install (termasuk dev)', $npmInstall);
+                ? $this->runShell('npm ci --no-audit --no-fund')
+                : $this->runShell('npm install --no-audit --no-fund');
+            $logs[] = $this->logEntry('NPM install', $npmInstall);
             if (! $npmInstall['success']) {
                 return $this->result(false, $logs, 'NPM install gagal.');
             }
@@ -163,8 +163,6 @@ class GitDeployService
                 return $this->result(false, $logs, 'NPM build gagal.');
             }
 
-            $npmPrune = $this->runShell('npm prune --omit=dev --no-audit --no-fund');
-            $logs[] = $this->logEntry('NPM prune dev (hemat disk)', $npmPrune);
         }
 
         if ($runOptimize) {

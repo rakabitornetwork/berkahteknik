@@ -19,11 +19,11 @@ fi
 if [[ ! -f package-lock.json ]]; then
     echo "WARNING: package-lock.json tidak ada, memakai npm install..."
     rm -rf node_modules
-    npm install --include=dev --no-audit --no-fund
+    npm install --no-audit --no-fund
 else
-    echo "==> Instal bersih (npm ci --include=dev)..."
+    echo "==> Instal bersih (npm ci)..."
     rm -rf node_modules
-    npm ci --include=dev --no-audit --no-fund
+    npm ci --no-audit --no-fund
 fi
 
 echo "==> Memastikan paket @point-of-sale..."
