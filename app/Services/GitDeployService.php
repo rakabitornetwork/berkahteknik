@@ -128,12 +128,21 @@ class GitDeployService
         }
 
         if ($runNpm && file_exists($this->basePath.'/package.json')) {
+            $clean = $this->cleanNodeModules();
+            $logs[] = $this->logEntry('Bersihkan node_modules', $clean);
+
             $npmInstall = file_exists($this->basePath.'/package-lock.json')
                 ? $this->runShell('npm ci --include=dev --no-audit --no-fund')
                 : $this->runShell('npm install --include=dev --no-audit --no-fund');
             $logs[] = $this->logEntry('NPM install (termasuk dev)', $npmInstall);
             if (! $npmInstall['success']) {
                 return $this->result(false, $logs, 'NPM install gagal.');
+            }
+
+            $ensurePos = $this->ensurePointOfSalePackages();
+            $logs[] = $this->logEntry('Pastikan paket thermal printer', $ensurePos);
+            if (! $ensurePos['success']) {
+                return $this->result(false, $logs, 'Paket @point-of-sale tidak terpasang. Cek koneksi npm registry di server.');
             }
 
             $npmBuild = $this->runShell('npm run build');
@@ -209,6 +218,62 @@ class GitDeployService
         $status = $this->runGit('status --porcelain');
 
         return trim($status['output'] ?? '') !== '';
+    }
+
+    protected function cleanNodeModules(): array
+    {
+        $dir = $this->basePath.'/node_modules';
+
+        if (! is_dir($dir)) {
+            return ['success' => true, 'output' => 'node_modules tidak ada, lewati.', 'exit_code' => 0];
+        }
+
+        $command = PHP_OS_FAMILY === 'Windows'
+            ? 'rmdir /s /q node_modules'
+            : 'rm -rf node_modules';
+
+        return $this->runShell($command, $this->basePath);
+    }
+
+    protected function ensurePointOfSalePackages(): array
+    {
+        $required = [
+            '@point-of-sale/receipt-printer-encoder',
+            '@point-of-sale/webbluetooth-receipt-printer',
+        ];
+
+        $missing = [];
+        foreach ($required as $package) {
+            $path = $this->basePath.'/node_modules/'.$package;
+            if (! is_dir($path)) {
+                $missing[] = $package;
+            }
+        }
+
+        if ($missing === []) {
+            return ['success' => true, 'output' => 'Semua paket @point-of-sale terpasang.', 'exit_code' => 0];
+        }
+
+        $install = $this->runShell(
+            'npm install '.implode(' ', array_map('escapeshellarg', $missing)).' --no-audit --no-fund',
+            $this->basePath
+        );
+
+        if (! $install['success']) {
+            return $install;
+        }
+
+        foreach ($required as $package) {
+            if (! is_dir($this->basePath.'/node_modules/'.$package)) {
+                return [
+                    'success' => false,
+                    'output' => 'Masih hilang setelah install: '.$package.'. Perbarui package.json & package-lock.json dari Git.',
+                    'exit_code' => 1,
+                ];
+            }
+        }
+
+        return ['success' => true, 'output' => 'Paket dilengkapi: '.implode(', ', $missing), 'exit_code' => 0];
     }
 
     protected function runGit(string $args): array

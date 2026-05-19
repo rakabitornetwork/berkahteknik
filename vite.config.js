@@ -15,4 +15,10 @@ export default defineConfig({
             '@': '/resources/js',
         },
     },
+    optimizeDeps: {
+        include: [
+            '@point-of-sale/receipt-printer-encoder',
+            '@point-of-sale/webbluetooth-receipt-printer',
+        ],
+    },
 });
