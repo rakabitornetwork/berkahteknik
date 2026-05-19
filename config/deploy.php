@@ -37,6 +37,9 @@ return [
         'storage',
         'bootstrap/cache',
         '.env',
+        '.npmrc',
+        'build',
+        'vite',
     ],
 
 ];
