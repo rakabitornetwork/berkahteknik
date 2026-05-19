@@ -21,7 +21,7 @@ class SystemUpdateController extends Controller
     {
         return [
             'enabled' => (bool) config('deploy.enabled'),
-            'tag' => config('deploy.tag'),
+            'tag_mode' => 'latest',
             'remote' => config('deploy.remote'),
         ];
     }

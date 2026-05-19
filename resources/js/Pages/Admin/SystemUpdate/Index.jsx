@@ -48,7 +48,8 @@ export default function SystemUpdateIndex({ status, config }) {
         );
     }
 
-    const targetTag = config.tag || status.target_tag || '1.1';
+    const targetTag = status.target_tag ?? null;
+    const targetLabel = formatVersion(targetTag);
     const needsUpdate = status.needs_update;
     const repoUrl = status.remote_url?.replace(/\.git$/, '') || 'https://github.com/rakabitornetwork/berkahteknik';
 
@@ -93,12 +94,18 @@ export default function SystemUpdateIndex({ status, config }) {
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
-                        <Stat label="Versi saat ini" value={status.current_tag ? `v${status.current_tag.replace(/^v/, '')}` : status.current_version} highlight={!status.is_on_target_version} />
-                        <Stat label="Versi target" value={`v${targetTag.replace(/^v/, '')}`} />
+                        <Stat label="Versi saat ini" value={status.current_tag ? formatVersion(status.current_tag) : status.current_version} highlight={!status.is_on_target_version} />
+                        <Stat label="Tag terbaru di GitHub" value={targetLabel} highlight={needsUpdate} />
                         {!status.target_tag_exists && (
                             <Stat label="Tag di GitHub" value="Belum ada" highlight />
                         )}
                     </div>
+
+                    {status.available_tags?.length > 1 && (
+                        <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', margin: '0 0 1rem' }}>
+                            Tag di repo: {status.available_tags.map((t) => formatVersion(t)).join(', ')}
+                        </p>
+                    )}
 
                     {status.last_commit_message && (
                         <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', margin: '0 0 1rem', lineHeight: 1.5 }}>
@@ -143,8 +150,8 @@ export default function SystemUpdateIndex({ status, config }) {
                         }}>
                             <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 2 }} />
                             <span>
-                                Tag <strong>v{targetTag.replace(/^v/, '')}</strong> belum ada di GitHub.
-                                Buat: <code style={{ fontFamily: 'monospace' }}>git tag {targetTag}</code> lalu <code style={{ fontFamily: 'monospace' }}>git push origin {targetTag}</code>
+                                Belum ada tag rilis semver di GitHub (format: 1.0, 1.1, 1.2).
+                                Buat: <code style={{ fontFamily: 'monospace' }}>git tag 1.2</code> lalu <code style={{ fontFamily: 'monospace' }}>git push origin 1.2</code>
                             </span>
                         </div>
                     )}
@@ -155,7 +162,7 @@ export default function SystemUpdateIndex({ status, config }) {
                             background: 'rgba(59, 130, 246, 0.12)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: 'var(--radius-md)', fontSize: '0.85rem', color: 'var(--color-primary-light)',
                         }}>
                             <Download size={16} />
-                            Versi <strong>v{targetTag.replace(/^v/, '')}</strong> tersedia di GitHub — siap dipasang.
+                            Tag terbaru <strong>{targetLabel}</strong> tersedia di GitHub — siap dipasang.
                         </div>
                     )}
 
@@ -165,7 +172,7 @@ export default function SystemUpdateIndex({ status, config }) {
                             background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: 'var(--radius-md)', fontSize: '0.85rem', color: 'var(--color-success)',
                         }}>
                             <CheckCircle2 size={16} />
-                            Server sudah pada versi <strong>v{targetTag.replace(/^v/, '')}</strong>.
+                            Server sudah pada versi <strong>{targetLabel}</strong> (tag terbaru di GitHub).
                         </div>
                     )}
                 </div>
@@ -173,7 +180,7 @@ export default function SystemUpdateIndex({ status, config }) {
                 <form onSubmit={submit} className="glass-panel" style={{ padding: '1.5rem' }}>
                     <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>Jalankan update</h2>
                     <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: '1rem', lineHeight: 1.55 }}>
-                        Akan checkout ke tag versi <strong>v{targetTag.replace(/^v/, '')}</strong> dari GitHub, lalu menjalankan langkah yang Anda centang di bawah.
+                        Akan checkout ke tag terbaru <strong>{targetLabel}</strong> dari GitHub, lalu menjalankan langkah yang Anda centang di bawah.
                     </p>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem', fontSize: '0.875rem' }}>
@@ -192,11 +199,11 @@ export default function SystemUpdateIndex({ status, config }) {
                     <button
                         type="submit"
                         className="btn btn-primary"
-                        disabled={processing || !config.enabled || !status.can_deploy}
+                        disabled={processing || !config.enabled || !status.can_deploy || !targetTag}
                         style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
                     >
                         <Download size={16} />
-                        {processing ? 'Memproses update...' : `Pasang versi v${targetTag.replace(/^v/, '')}`}
+                        {processing ? 'Memproses update...' : targetTag ? `Pasang versi ${targetLabel}` : 'Tidak ada tag'}
                     </button>
                 </form>
 
@@ -225,6 +232,14 @@ export default function SystemUpdateIndex({ status, config }) {
             </div>
         </AdminLayout>
     );
+}
+
+function formatVersion(tag) {
+    if (!tag) {
+        return '—';
+    }
+
+    return `v${String(tag).replace(/^v/, '')}`;
 }
 
 function Stat({ label, value, highlight }) {

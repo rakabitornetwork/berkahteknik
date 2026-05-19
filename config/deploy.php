@@ -14,11 +14,6 @@ return [
 
     'enabled' => env('DEPLOY_GITHUB_ENABLED', env('APP_ENV', 'production') === 'local'),
 
-    'branch' => env('DEPLOY_GITHUB_BRANCH', 'main'),
-
-    /** Tag versi yang dipasang saat update (mis. 1.1), bukan commit hash */
-    'tag' => env('DEPLOY_GITHUB_TAG', '1.1'),
-
     'remote' => env('DEPLOY_GITHUB_REMOTE', 'origin'),
 
     /** CLI PHP (bukan php-fpm). Wajib di VPS jika deploy lewat panel web. */

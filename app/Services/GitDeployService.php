@@ -29,12 +29,13 @@ class GitDeployService
         }
 
         $remote = config('deploy.remote', 'origin');
-        $targetTag = $this->configuredTag();
         $remoteUrl = trim($this->runGit('remote get-url '.$remote)['output'] ?? '');
 
         $fetch = $this->runGit('fetch '.$remote.' --tags --force');
-        $resolvedTag = $this->resolveTagRef($targetTag, false);
-        $remoteTagExists = $this->remoteTagExists($remote, $targetTag);
+        $availableTags = $this->listReleaseTags();
+        $targetTag = $availableTags[0] ?? null;
+        $resolvedTag = $targetTag ? $this->resolveTagRef($targetTag, false) : null;
+        $remoteTagExists = $targetTag !== null && $resolvedTag !== null;
 
         $describe = $this->runGit('describe --tags --exact-match');
         $currentExactTag = $describe['success'] ? trim($describe['output']) : null;
@@ -61,6 +62,8 @@ class GitDeployService
             'target_tag' => $targetTag,
             'target_tag_ref' => $resolvedTag,
             'target_tag_exists' => $remoteTagExists,
+            'tag_mode' => 'latest',
+            'available_tags' => array_slice($availableTags, 0, 5),
             'current_version' => $currentExactTag ?: ('commit '.$currentShort),
             'current_tag' => $currentExactTag,
             'current_short' => $currentShort,
@@ -88,7 +91,6 @@ class GitDeployService
 
         $logs = [];
         $remote = config('deploy.remote', 'origin');
-        $targetTag = $this->configuredTag();
 
         if (! $this->isGitRepository()) {
             return $this->fail($logs, 'Bukan repository Git.');
@@ -106,9 +108,14 @@ class GitDeployService
             return $this->result(false, $logs, 'Gagal mengambil tag dari GitHub.');
         }
 
+        $targetTag = $this->resolveLatestRemoteTag();
+        if (! $targetTag) {
+            return $this->result(false, $logs, 'Tidak ada tag rilis semver di GitHub. Buat tag: git tag 1.2 && git push origin 1.2');
+        }
+
         $tagRef = $this->resolveTagRef($targetTag, true);
         if (! $tagRef) {
-            return $this->result(false, $logs, "Tag versi \"{$targetTag}\" tidak ditemukan di GitHub. Buat tag di repo: git tag {$targetTag} && git push origin {$targetTag}");
+            return $this->result(false, $logs, "Tag versi \"{$targetTag}\" tidak ditemukan setelah fetch. Coba push ulang: git push origin {$targetTag}");
         }
 
         $checkout = $this->runGit('checkout -f '.escapeshellarg($tagRef));
@@ -180,9 +187,38 @@ class GitDeployService
         return $this->result(true, $logs, 'Aplikasi berhasil diperbarui ke versi '.$targetTag.'.');
     }
 
-    protected function configuredTag(): string
+    protected function resolveLatestRemoteTag(): ?string
     {
-        return (string) config('deploy.tag', '1.1');
+        $tags = $this->listReleaseTags();
+
+        return $tags[0] ?? null;
+    }
+
+    /**
+     * Tag rilis semver dari repo lokal (setelah git fetch), tertinggi pertama.
+     *
+     * @return list<string> Tanpa prefix "v", mis. ["1.2", "1.1", "1.0"]
+     */
+    protected function listReleaseTags(): array
+    {
+        $result = $this->runGit('tag -l --sort=-v:refname');
+        if (! $result['success']) {
+            return [];
+        }
+
+        $tags = [];
+        foreach (explode("\n", trim($result['output'] ?? '')) as $line) {
+            $line = trim($line);
+            if ($line === '') {
+                continue;
+            }
+
+            if (preg_match('/^v?(\d+\.\d+(?:\.\d+)?)$/', $line, $matches)) {
+                $tags[] = $matches[1];
+            }
+        }
+
+        return array_values(array_unique($tags));
     }
 
     /** @return list<string> */
