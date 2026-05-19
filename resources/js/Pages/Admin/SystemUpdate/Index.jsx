@@ -95,7 +95,13 @@ export default function SystemUpdateIndex({ status, config }) {
                             background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 'var(--radius-md)', fontSize: '0.8rem', color: 'var(--color-danger)',
                         }}>
                             <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 2 }} />
-                            <span>Ada perubahan file lokal yang belum di-commit. Commit atau stash terlebih dahulu sebelum memasang versi dari GitHub.</span>
+                            <span>
+                                Ada perubahan pada file penting yang belum di-commit.
+                                {status.local_changes?.length > 0 && (
+                                    <> File: <code style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>{status.local_changes.join(', ')}</code>.</>
+                                )}
+                                {' '}Atau tambahkan <code style={{ fontFamily: 'monospace' }}>DEPLOY_ALLOW_DIRTY=true</code> di .env lalu <code style={{ fontFamily: 'monospace' }}>php artisan config:clear</code>.
+                            </span>
                         </div>
                     )}
 

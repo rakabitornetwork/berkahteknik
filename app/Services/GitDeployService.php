@@ -68,8 +68,9 @@ class GitDeployService
             'needs_update' => $remoteTagExists && ! $onTarget,
             'last_commit_message' => $lastMessage,
             'last_commit_date' => $lastDate,
-            'has_local_changes' => $this->hasLocalChanges(),
-            'can_deploy' => ($remoteTagExists && (! $this->hasLocalChanges() || config('deploy.allow_dirty_working_tree'))),
+            'has_local_changes' => $this->hasBlockingLocalChanges(),
+            'local_changes' => $this->getBlockingLocalChangePaths(),
+            'can_deploy' => ($remoteTagExists && (! $this->hasBlockingLocalChanges() || config('deploy.allow_dirty_working_tree'))),
             'fetch_ok' => $fetch['success'],
             'fetch_output' => $fetch['output'],
         ];
@@ -90,8 +91,10 @@ class GitDeployService
             return $this->fail($logs, 'Bukan repository Git.');
         }
 
-        if ($this->hasLocalChanges() && ! config('deploy.allow_dirty_working_tree')) {
-            return $this->fail($logs, 'Ada perubahan lokal yang belum di-commit. Commit atau stash dulu sebelum update.');
+        if ($this->hasBlockingLocalChanges() && ! config('deploy.allow_dirty_working_tree')) {
+            $files = implode(', ', $this->getBlockingLocalChangePaths());
+
+            return $this->fail($logs, 'Ada perubahan lokal pada file penting: '.$files.'. Commit/stash dulu, atau set DEPLOY_ALLOW_DIRTY=true di .env');
         }
 
         $fetchResult = $this->runGit('fetch '.$remote.' --tags --force');
@@ -213,11 +216,59 @@ class GitDeployService
         return false;
     }
 
-    protected function hasLocalChanges(): bool
+    /** @return list<string> */
+    protected function getLocalChangePaths(): array
     {
         $status = $this->runGit('status --porcelain');
+        $output = trim($status['output'] ?? '');
 
-        return trim($status['output'] ?? '') !== '';
+        if ($output === '') {
+            return [];
+        }
+
+        $paths = [];
+        foreach (explode("\n", $output) as $line) {
+            if (strlen($line) < 4) {
+                continue;
+            }
+
+            $path = trim(substr($line, 3));
+            if (str_contains($path, ' -> ')) {
+                $path = trim(substr($path, strpos($path, ' -> ') + 4));
+            }
+
+            $paths[] = $path;
+        }
+
+        return $paths;
+    }
+
+    protected function isIgnoredDirtyPath(string $path): bool
+    {
+        $normalized = str_replace('\\', '/', $path);
+
+        foreach (config('deploy.ignore_dirty_paths', []) as $ignore) {
+            $ignore = rtrim(str_replace('\\', '/', (string) $ignore), '/');
+            if ($normalized === $ignore || str_starts_with($normalized, $ignore.'/')) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /** @return list<string> */
+    protected function getBlockingLocalChangePaths(): array
+    {
+        return array_values(array_filter(
+            $this->getLocalChangePaths(),
+            fn (string $path) => ! $this->isIgnoredDirtyPath($path)
+        ));
+    }
+
+    protected function hasBlockingLocalChanges(): bool
+    {
+        return $this->getBlockingLocalChangePaths() !== [];
     }
 
     protected function cleanNodeModules(): array

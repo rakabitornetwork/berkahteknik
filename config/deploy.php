@@ -23,6 +23,20 @@ return [
 
     'timeout' => (int) env('DEPLOY_COMMAND_TIMEOUT', 300),
 
-    'allow_dirty_working_tree' => env('DEPLOY_ALLOW_DIRTY', false),
+    /*
+    | Di VPS, vendor/node_modules/build/storage sering tampak "kotor" — itu normal.
+    | Production default: izinkan deploy (checkout -f akan timpa file ter-track).
+    */
+    'allow_dirty_working_tree' => env('DEPLOY_ALLOW_DIRTY', env('APP_ENV', 'production') === 'production'),
+
+    'ignore_dirty_paths' => [
+        'vendor',
+        'node_modules',
+        'public/build',
+        'public/hot',
+        'storage',
+        'bootstrap/cache',
+        '.env',
+    ],
 
 ];
