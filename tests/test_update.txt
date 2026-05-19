@@ -1,0 +1,7 @@
+// Script sederhana untuk mengakses/mengubah document.location
+
+// Mendapatkan URL saat ini
+console.log('URL saat ini:', document.location.href);
+
+// Mengarahkan ke URL baru (uncomment untuk menjalankan)
+// document.location.href = 'https://www.example.com';
