@@ -89,18 +89,31 @@ export default function SystemUpdateIndex({ status, config }) {
                         </p>
                     )}
 
-                    {status.has_local_changes && (
+                    {status.has_local_changes && !status.can_deploy && (
                         <div style={{
                             display: 'flex', gap: '0.5rem', alignItems: 'flex-start', padding: '0.75rem', marginBottom: '1rem',
                             background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 'var(--radius-md)', fontSize: '0.8rem', color: 'var(--color-danger)',
                         }}>
                             <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 2 }} />
                             <span>
-                                Ada perubahan pada file penting yang belum di-commit.
+                                Deploy diblokir: ada perubahan file penting yang belum di-commit.
                                 {status.local_changes?.length > 0 && (
                                     <> File: <code style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>{status.local_changes.join(', ')}</code>.</>
                                 )}
                                 {' '}Atau tambahkan <code style={{ fontFamily: 'monospace' }}>DEPLOY_ALLOW_DIRTY=true</code> di .env lalu <code style={{ fontFamily: 'monospace' }}>php artisan config:clear</code>.
+                            </span>
+                        </div>
+                    )}
+
+                    {status.ignored_local_changes?.length > 0 && status.can_deploy && (
+                        <div style={{
+                            display: 'flex', gap: '0.5rem', alignItems: 'flex-start', padding: '0.75rem', marginBottom: '1rem',
+                            background: 'rgba(234, 179, 8, 0.1)', border: '1px solid rgba(234, 179, 8, 0.35)', borderRadius: 'var(--radius-md)', fontSize: '0.8rem', color: '#ca8a04',
+                        }}>
+                            <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 2 }} />
+                            <span>
+                                File lokal di server (normal setelah build): <code style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>{status.ignored_local_changes.join(', ')}</code>.
+                                {status.allow_dirty ? ' Deploy diizinkan.' : ' Tidak menghalangi deploy.'}
                             </span>
                         </div>
                     )}

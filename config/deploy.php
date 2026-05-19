@@ -21,6 +21,11 @@ return [
 
     'remote' => env('DEPLOY_GITHUB_REMOTE', 'origin'),
 
+    /** CLI PHP (bukan php-fpm). Wajib di VPS jika deploy lewat panel web. */
+    'php_binary' => env('DEPLOY_PHP_BINARY'),
+
+    'composer_binary' => env('DEPLOY_COMPOSER_BINARY', 'composer'),
+
     'timeout' => (int) env('DEPLOY_COMMAND_TIMEOUT', 300),
 
     /*

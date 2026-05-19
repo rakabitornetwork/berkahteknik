@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
 
 class GitDeployService
@@ -70,6 +71,8 @@ class GitDeployService
             'last_commit_date' => $lastDate,
             'has_local_changes' => $this->hasBlockingLocalChanges(),
             'local_changes' => $this->getBlockingLocalChangePaths(),
+            'ignored_local_changes' => $this->getIgnoredLocalChangePaths(),
+            'allow_dirty' => (bool) config('deploy.allow_dirty_working_tree'),
             'can_deploy' => ($remoteTagExists && (! $this->hasBlockingLocalChanges() || config('deploy.allow_dirty_working_tree'))),
             'fetch_ok' => $fetch['success'],
             'fetch_output' => $fetch['output'],
@@ -115,10 +118,16 @@ class GitDeployService
         }
 
         if ($runComposer && file_exists($this->basePath.'/composer.json')) {
-            $composer = $this->runShell('composer install --no-interaction --prefer-dist --optimize-autoloader');
-            $logs[] = $this->logEntry('Composer install', $composer);
+            $composer = $this->runComposerInstall();
+            $logs[] = $this->logEntry('Composer install (--no-dev)', $composer);
             if (! $composer['success']) {
-                return $this->result(false, $logs, 'Composer install gagal.');
+                return $this->result(false, $logs, 'Composer install gagal. Pastikan DEPLOY_PHP_BINARY mengarah ke PHP CLI (bukan php-fpm).');
+            }
+
+            $discover = $this->runPhp('package:discover --ansi');
+            $logs[] = $this->logEntry('Artisan package:discover', $discover);
+            if (! $discover['success']) {
+                return $this->result(false, $logs, 'package:discover gagal. Set DEPLOY_PHP_BINARY=/usr/bin/php8.3 di .env VPS.');
             }
         }
 
@@ -271,6 +280,15 @@ class GitDeployService
         return $this->getBlockingLocalChangePaths() !== [];
     }
 
+    /** @return list<string> */
+    protected function getIgnoredLocalChangePaths(): array
+    {
+        return array_values(array_filter(
+            $this->getLocalChangePaths(),
+            fn (string $path) => $this->isIgnoredDirtyPath($path)
+        ));
+    }
+
     protected function cleanNodeModules(): array
     {
         $dir = $this->basePath.'/node_modules';
@@ -332,19 +350,71 @@ class GitDeployService
         return $this->runShell('git '.$args, $this->basePath);
     }
 
-    protected function runPhp(string $args): array
+    protected function runComposerInstall(): array
     {
-        $php = PHP_BINARY ?: 'php';
+        $composer = (string) config('deploy.composer_binary', 'composer');
 
-        return $this->runShell(escapeshellarg($php).' artisan '.$args, $this->basePath);
+        return $this->runShell(
+            escapeshellarg($composer).' install --no-dev --no-interaction --prefer-dist --optimize-autoloader',
+            $this->basePath,
+            $this->deployProcessEnv(),
+        );
     }
 
-    protected function runShell(string $command, ?string $cwd = null): array
+    protected function runPhp(string $args): array
+    {
+        $php = $this->resolvePhpCliBinary();
+
+        return $this->runShell(
+            escapeshellarg($php).' artisan '.$args,
+            $this->basePath,
+            $this->deployProcessEnv(),
+        );
+    }
+
+    /** @return array<string, string> */
+    protected function deployProcessEnv(): array
+    {
+        return array_filter([
+            'COMPOSER_PHP' => $this->resolvePhpCliBinary(),
+            'COMPOSER_ALLOW_SUPERUSER' => '1',
+        ]);
+    }
+
+    protected function resolvePhpCliBinary(): string
+    {
+        if ($configured = config('deploy.php_binary')) {
+            return (string) $configured;
+        }
+
+        $binary = PHP_BINARY ?: '';
+        if ($binary !== '' && ! str_contains($binary, 'fpm')) {
+            return $binary;
+        }
+
+        $finder = new PhpExecutableFinder;
+        $found = $finder->find(false);
+        if (is_string($found) && $found !== '' && ! str_contains($found, 'fpm')) {
+            return $found;
+        }
+
+        foreach (['php8.3', 'php8.2', 'php8.1', 'php'] as $candidate) {
+            $which = trim((string) shell_exec('command -v '.$candidate.' 2>/dev/null'));
+            if ($which !== '' && ! str_contains($which, 'fpm')) {
+                return $which;
+            }
+        }
+
+        return 'php';
+    }
+
+    protected function runShell(string $command, ?string $cwd = null, array $env = []): array
     {
         $timeout = (int) config('deploy.timeout', 300);
 
         try {
-            $process = Process::fromShellCommandline($command, $cwd ?? $this->basePath);
+            $processEnv = $env === [] ? null : array_merge($_ENV, $_SERVER, $env);
+            $process = Process::fromShellCommandline($command, $cwd ?? $this->basePath, $processEnv);
             $process->setTimeout($timeout);
             $process->run();
 
