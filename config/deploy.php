@@ -16,6 +16,9 @@ return [
 
     'branch' => env('DEPLOY_GITHUB_BRANCH', 'main'),
 
+    /** Tag versi yang dipasang saat update (mis. 1.1), bukan commit hash */
+    'tag' => env('DEPLOY_GITHUB_TAG', '1.1'),
+
     'remote' => env('DEPLOY_GITHUB_REMOTE', 'origin'),
 
     'timeout' => (int) env('DEPLOY_COMMAND_TIMEOUT', 300),

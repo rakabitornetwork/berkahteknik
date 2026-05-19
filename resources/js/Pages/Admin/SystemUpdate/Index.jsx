@@ -36,7 +36,8 @@ export default function SystemUpdateIndex({ status, config }) {
         );
     }
 
-    const behind = status.commits_behind ?? 0;
+    const targetTag = config.tag || status.target_tag || '1.1';
+    const needsUpdate = status.needs_update;
     const repoUrl = status.remote_url?.replace(/\.git$/, '') || 'https://github.com/rakabitornetwork/berkahteknik';
 
     return (
@@ -73,10 +74,12 @@ export default function SystemUpdateIndex({ status, config }) {
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
-                        <Stat label="Branch" value={`${status.current_branch} → ${status.branch}`} />
-                        <Stat label="Commit" value={status.head || '—'} />
-                        <Stat label="Di belakang remote" value={behind} highlight={behind > 0} />
-                        <Stat label="Di depan remote" value={status.commits_ahead ?? 0} />
+                        <Stat label="Versi saat ini" value={status.current_tag ? `v${status.current_tag.replace(/^v/, '')}` : status.current_version} highlight={!status.is_on_target_version} />
+                        <Stat label="Versi target" value={`v${targetTag.replace(/^v/, '')}`} />
+                        <Stat label="Status" value={status.is_on_target_version ? `Sudah v${targetTag.replace(/^v/, '')}` : 'Perlu update'} highlight={needsUpdate} />
+                        {!status.target_tag_exists && (
+                            <Stat label="Tag di GitHub" value="Belum ada" highlight />
+                        )}
                     </div>
 
                     {status.last_commit_message && (
@@ -92,17 +95,40 @@ export default function SystemUpdateIndex({ status, config }) {
                             background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 'var(--radius-md)', fontSize: '0.8rem', color: 'var(--color-danger)',
                         }}>
                             <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 2 }} />
-                            <span>Ada perubahan file lokal yang belum di-commit. Commit atau stash terlebih dahulu sebelum pull dari GitHub.</span>
+                            <span>Ada perubahan file lokal yang belum di-commit. Commit atau stash terlebih dahulu sebelum memasang versi dari GitHub.</span>
                         </div>
                     )}
 
-                    {behind > 0 && !status.has_local_changes && (
+                    {!status.target_tag_exists && (
+                        <div style={{
+                            display: 'flex', gap: '0.5rem', alignItems: 'flex-start', padding: '0.75rem', marginBottom: '1rem',
+                            background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 'var(--radius-md)', fontSize: '0.8rem', color: 'var(--color-danger)',
+                        }}>
+                            <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 2 }} />
+                            <span>
+                                Tag <strong>v{targetTag.replace(/^v/, '')}</strong> belum ada di GitHub.
+                                Buat: <code style={{ fontFamily: 'monospace' }}>git tag {targetTag}</code> lalu <code style={{ fontFamily: 'monospace' }}>git push origin {targetTag}</code>
+                            </span>
+                        </div>
+                    )}
+
+                    {needsUpdate && status.target_tag_exists && !status.has_local_changes && (
                         <div style={{
                             display: 'flex', gap: '0.5rem', alignItems: 'center', padding: '0.75rem', marginBottom: '1rem',
                             background: 'rgba(59, 130, 246, 0.12)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: 'var(--radius-md)', fontSize: '0.85rem', color: 'var(--color-primary-light)',
                         }}>
                             <Download size={16} />
-                            Tersedia <strong>{behind}</strong> commit baru di GitHub.
+                            Versi <strong>v{targetTag.replace(/^v/, '')}</strong> tersedia di GitHub — siap dipasang.
+                        </div>
+                    )}
+
+                    {status.is_on_target_version && (
+                        <div style={{
+                            display: 'flex', gap: '0.5rem', alignItems: 'center', padding: '0.75rem', marginBottom: '1rem',
+                            background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: 'var(--radius-md)', fontSize: '0.85rem', color: 'var(--color-success)',
+                        }}>
+                            <CheckCircle2 size={16} />
+                            Server sudah pada versi <strong>v{targetTag.replace(/^v/, '')}</strong>.
                         </div>
                     )}
                 </div>
@@ -110,7 +136,7 @@ export default function SystemUpdateIndex({ status, config }) {
                 <form onSubmit={submit} className="glass-panel" style={{ padding: '1.5rem' }}>
                     <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>Jalankan update</h2>
                     <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: '1rem', lineHeight: 1.55 }}>
-                        Akan menarik kode terbaru dari <strong>{status.remote}/{status.branch}</strong>, lalu menjalankan langkah yang Anda centang di bawah.
+                        Akan checkout ke tag versi <strong>v{targetTag.replace(/^v/, '')}</strong> dari GitHub, lalu menjalankan langkah yang Anda centang di bawah.
                     </p>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem', fontSize: '0.875rem' }}>
@@ -129,11 +155,11 @@ export default function SystemUpdateIndex({ status, config }) {
                     <button
                         type="submit"
                         className="btn btn-primary"
-                        disabled={processing || !config.enabled || !status.can_pull}
+                        disabled={processing || !config.enabled || !status.can_deploy}
                         style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
                     >
                         <Download size={16} />
-                        {processing ? 'Memproses update...' : 'Tarik & Terapkan dari GitHub'}
+                        {processing ? 'Memproses update...' : `Pasang versi v${targetTag.replace(/^v/, '')}`}
                     </button>
                 </form>
 

@@ -27,39 +27,49 @@ class GitDeployService
             ];
         }
 
-        $branch = config('deploy.branch', 'main');
         $remote = config('deploy.remote', 'origin');
-
+        $targetTag = $this->configuredTag();
         $remoteUrl = trim($this->runGit('remote get-url '.$remote)['output'] ?? '');
-        $currentBranch = trim($this->runGit('branch --show-current')['output'] ?? $branch);
-        $head = trim($this->runGit('rev-parse --short HEAD')['output'] ?? '');
+
+        $fetch = $this->runGit('fetch '.$remote.' --tags --force');
+        $resolvedTag = $this->resolveTagRef($targetTag, false);
+        $remoteTagExists = $this->remoteTagExists($remote, $targetTag);
+
+        $describe = $this->runGit('describe --tags --exact-match');
+        $currentExactTag = $describe['success'] ? trim($describe['output']) : null;
+
+        $currentShort = trim($this->runGit('rev-parse --short HEAD')['output'] ?? '');
+        $targetShort = $resolvedTag
+            ? trim($this->runGit('rev-parse --short '.escapeshellarg($resolvedTag))['output'] ?? '')
+            : null;
+
+        $head = trim($this->runGit('rev-parse HEAD')['output'] ?? '');
+        $tagCommit = $resolvedTag
+            ? trim($this->runGit('rev-parse '.escapeshellarg($resolvedTag))['output'] ?? '')
+            : '';
+        $onTarget = $resolvedTag && $head !== '' && $head === $tagCommit;
+
         $lastMessage = trim($this->runGit('log -1 --pretty=%s')['output'] ?? '');
         $lastDate = trim($this->runGit('log -1 --pretty=%ci')['output'] ?? '');
-
-        $dirty = $this->hasLocalChanges();
-        $behind = 0;
-        $ahead = 0;
-
-        $fetch = $this->runGit('fetch '.$remote.' '.$branch);
-        if ($fetch['success']) {
-            $behind = (int) trim($this->runGit('rev-list --count HEAD..'.$remote.'/'.$branch)['output'] ?? '0');
-            $ahead = (int) trim($this->runGit('rev-list --count '.$remote.'/'.$branch.'..HEAD')['output'] ?? '0');
-        }
 
         return [
             'available' => true,
             'enabled' => (bool) config('deploy.enabled'),
             'remote' => $remote,
             'remote_url' => $remoteUrl,
-            'branch' => $branch,
-            'current_branch' => $currentBranch,
-            'head' => $head,
+            'target_tag' => $targetTag,
+            'target_tag_ref' => $resolvedTag,
+            'target_tag_exists' => $remoteTagExists,
+            'current_version' => $currentExactTag ?: ('commit '.$currentShort),
+            'current_tag' => $currentExactTag,
+            'current_short' => $currentShort,
+            'target_short' => $targetShort,
+            'is_on_target_version' => $onTarget,
+            'needs_update' => $remoteTagExists && ! $onTarget,
             'last_commit_message' => $lastMessage,
             'last_commit_date' => $lastDate,
-            'has_local_changes' => $dirty,
-            'commits_behind' => $behind,
-            'commits_ahead' => $ahead,
-            'can_pull' => ! $dirty || config('deploy.allow_dirty_working_tree'),
+            'has_local_changes' => $this->hasLocalChanges(),
+            'can_deploy' => ($remoteTagExists && (! $this->hasLocalChanges() || config('deploy.allow_dirty_working_tree'))),
             'fetch_ok' => $fetch['success'],
             'fetch_output' => $fetch['output'],
         ];
@@ -73,8 +83,8 @@ class GitDeployService
         $runOptimize = $options['optimize'] ?? true;
 
         $logs = [];
-        $branch = config('deploy.branch', 'main');
         $remote = config('deploy.remote', 'origin');
+        $targetTag = $this->configuredTag();
 
         if (! $this->isGitRepository()) {
             return $this->fail($logs, 'Bukan repository Git.');
@@ -84,17 +94,21 @@ class GitDeployService
             return $this->fail($logs, 'Ada perubahan lokal yang belum di-commit. Commit atau stash dulu sebelum update.');
         }
 
-        $steps = [
-            'Git fetch' => 'fetch '.$remote.' '.$branch,
-            'Git pull' => 'pull '.$remote.' '.$branch,
-        ];
+        $fetchResult = $this->runGit('fetch '.$remote.' --tags --force');
+        $logs[] = $this->logEntry('Git fetch tags', $fetchResult);
+        if (! $fetchResult['success']) {
+            return $this->result(false, $logs, 'Gagal mengambil tag dari GitHub.');
+        }
 
-        foreach ($steps as $label => $cmd) {
-            $result = $this->runGit($cmd);
-            $logs[] = $this->logEntry($label, $result);
-            if (! $result['success']) {
-                return $this->result(false, $logs, 'Update Git gagal pada langkah: '.$label);
-            }
+        $tagRef = $this->resolveTagRef($targetTag, true);
+        if (! $tagRef) {
+            return $this->result(false, $logs, "Tag versi \"{$targetTag}\" tidak ditemukan di GitHub. Buat tag di repo: git tag {$targetTag} && git push origin {$targetTag}");
+        }
+
+        $checkout = $this->runGit('checkout -f '.escapeshellarg($tagRef));
+        $logs[] = $this->logEntry('Checkout tag '.$targetTag, $checkout);
+        if (! $checkout['success']) {
+            return $this->result(false, $logs, 'Gagal checkout ke tag '.$targetTag);
         }
 
         if ($runComposer && file_exists($this->basePath.'/composer.json')) {
@@ -141,7 +155,50 @@ class GitDeployService
             }
         }
 
-        return $this->result(true, $logs, 'Update dari GitHub berhasil diselesaikan.');
+        return $this->result(true, $logs, 'Aplikasi berhasil diperbarui ke versi '.$targetTag.'.');
+    }
+
+    protected function configuredTag(): string
+    {
+        return (string) config('deploy.tag', '1.1');
+    }
+
+    /** @return list<string> */
+    protected function tagCandidates(string $tag): array
+    {
+        $tag = trim($tag);
+        $candidates = [$tag];
+
+        if (! str_starts_with($tag, 'v')) {
+            $candidates[] = 'v'.$tag;
+        } else {
+            $candidates[] = ltrim($tag, 'v');
+        }
+
+        return array_values(array_unique($candidates));
+    }
+
+    protected function resolveTagRef(string $tag, bool $strict): ?string
+    {
+        foreach ($this->tagCandidates($tag) as $candidate) {
+            if ($this->runGit('rev-parse --verify '.escapeshellarg($candidate.'^{commit}'))['success']) {
+                return $candidate;
+            }
+        }
+
+        return $strict ? null : null;
+    }
+
+    protected function remoteTagExists(string $remote, string $tag): bool
+    {
+        foreach ($this->tagCandidates($tag) as $candidate) {
+            $result = $this->runGit('ls-remote --tags '.$remote.' '.escapeshellarg('refs/tags/'.$candidate));
+            if ($result['success'] && trim($result['output']) !== '') {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     protected function hasLocalChanges(): bool

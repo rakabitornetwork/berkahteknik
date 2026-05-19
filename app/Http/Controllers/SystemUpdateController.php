@@ -14,7 +14,7 @@ class SystemUpdateController extends Controller
             'status' => $deploy->getStatus(),
             'config' => [
                 'enabled' => (bool) config('deploy.enabled'),
-                'branch' => config('deploy.branch'),
+                'tag' => config('deploy.tag'),
                 'remote' => config('deploy.remote'),
             ],
         ]);
