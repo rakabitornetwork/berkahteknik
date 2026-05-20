@@ -43,9 +43,9 @@ export default function SystemUpdateIndex({ status, config }) {
 
     const { data, setData, post, processing, errors } = useForm({
         confirm: false,
-        run_composer: true,
-        run_migrate: true,
-        run_npm: true,
+        run_composer: false,
+        run_migrate: false,
+        run_npm: false,
         run_optimize: true,
     });
 
