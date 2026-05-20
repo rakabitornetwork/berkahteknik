@@ -128,9 +128,17 @@ export default function Dashboard({ auth, stats, activeServices, lowStockParts =
                             ))}
                         </div>
                     ) : (
-                        <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
-                            <CheckCircle size={28} style={{ margin: '0 auto 0.5rem', color: 'var(--color-success)', opacity: 0.8 }} />
-                            Semua stok spare part masih aman.
+                        <div style={{
+                            padding: '1.5rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.5rem',
+                            color: 'var(--color-text-muted)',
+                            fontSize: '0.85rem',
+                        }}>
+                            <CheckCircle size={18} style={{ color: 'var(--color-success)', opacity: 0.8, flexShrink: 0 }} />
+                            <span>Semua stok spare part masih aman.</span>
                         </div>
                     )}
                 </div>
