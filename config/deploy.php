@@ -16,6 +16,14 @@ return [
 
     'remote' => env('DEPLOY_GITHUB_REMOTE', 'origin'),
 
+    'branch' => env('DEPLOY_GITHUB_BRANCH', 'main'),
+
+    /*
+    | URL dasar repo GitHub untuk link "Bandingkan di GitHub" (opsional).
+    | Kosongkan untuk otomatis dari git remote get-url origin.
+    */
+    'github_compare_base' => env('DEPLOY_GITHUB_COMPARE_BASE'),
+
     /** CLI PHP (bukan php-fpm). Wajib di VPS jika deploy lewat panel web. */
     'php_binary' => env('DEPLOY_PHP_BINARY'),
 

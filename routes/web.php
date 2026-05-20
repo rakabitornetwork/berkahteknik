@@ -62,6 +62,7 @@ Route::prefix('admin')->middleware('auth')->name('admin.')->group(function () {
     Route::middleware('admin.role')->prefix('system-update')->name('system-update.')->group(function () {
         Route::get('/', [SystemUpdateController::class, 'index'])->name('index');
         Route::post('/deploy', [SystemUpdateController::class, 'deploy'])->name('deploy');
+        Route::post('/discard-changes', [SystemUpdateController::class, 'discardChanges'])->name('discard-changes');
     });
 
     // CMS Konten Situs

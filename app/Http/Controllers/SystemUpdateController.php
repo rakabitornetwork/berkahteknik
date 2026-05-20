@@ -21,7 +21,7 @@ class SystemUpdateController extends Controller
     {
         return [
             'enabled' => (bool) config('deploy.enabled'),
-            'tag_mode' => 'latest',
+            'branch' => config('deploy.branch', 'main'),
             'remote' => config('deploy.remote'),
         ];
     }
@@ -46,6 +46,27 @@ class SystemUpdateController extends Controller
             'npm' => $request->boolean('run_npm', true),
             'optimize' => $request->boolean('run_optimize', true),
         ]);
+
+        if ($result['success']) {
+            return back()->with([
+                'success' => $result['message'],
+                'deploy_logs' => $result['logs'],
+            ]);
+        }
+
+        return back()->with([
+            'error' => $result['message'],
+            'deploy_logs' => $result['logs'],
+        ]);
+    }
+
+    public function discardChanges(GitDeployService $deploy)
+    {
+        if (! config('deploy.enabled')) {
+            return back()->with('error', 'Fitur update GitHub belum diaktifkan.');
+        }
+
+        $result = $deploy->discardLocalChanges();
 
         if ($result['success']) {
             return back()->with([

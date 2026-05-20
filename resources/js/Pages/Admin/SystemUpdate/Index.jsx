@@ -3,11 +3,43 @@ import { Head, router, useForm, usePage } from '@inertiajs/react';
 import AdminLayout from '../../../Layouts/AdminLayout';
 import { Download, GitBranch, RefreshCw, AlertTriangle, CheckCircle2, ExternalLink } from 'lucide-react';
 
+function shortSha(sha) {
+    if (!sha || typeof sha !== 'string') {
+        return '—';
+    }
+    return sha.length > 10 ? `${sha.slice(0, 7)}…` : sha;
+}
+
+function updateStatusLabel(status) {
+    if (status.fetch_error) {
+        return '—';
+    }
+    if (!status.available || status.remote_sha === null) {
+        return '—';
+    }
+    return status.has_update ? 'Ada update' : 'Tidak ada update';
+}
+
+function formatCommitDate(iso) {
+    if (!iso) {
+        return '';
+    }
+    try {
+        return new Date(iso).toLocaleString('id-ID', {
+            dateStyle: 'short',
+            timeStyle: 'short',
+        });
+    } catch {
+        return iso;
+    }
+}
+
 export default function SystemUpdateIndex({ status, config }) {
     const { flash } = usePage().props;
     const deployLogs = flash?.deploy_logs ?? [];
     const [showLogs, setShowLogs] = useState(deployLogs.length > 0);
     const [refreshing, setRefreshing] = useState(false);
+    const [discarding, setDiscarding] = useState(false);
 
     const { data, setData, post, processing, errors } = useForm({
         confirm: false,
@@ -19,7 +51,7 @@ export default function SystemUpdateIndex({ status, config }) {
 
     const submit = (e) => {
         e.preventDefault();
-        if (!status?.needs_update) {
+        if (!status?.has_update) {
             return;
         }
         post('/admin/system-update/deploy', { preserveScroll: true });
@@ -40,6 +72,21 @@ export default function SystemUpdateIndex({ status, config }) {
         );
     };
 
+    const runDiscardChanges = () => {
+        if (
+            !confirm(
+                'PERINGATAN: Ini akan MENGHAPUS SEMUA perubahan lokal di server dan meriset ke HEAD. Lanjutkan?',
+            )
+        ) {
+            return;
+        }
+        setDiscarding(true);
+        router.post('/admin/system-update/discard-changes', {}, {
+            preserveScroll: true,
+            onFinish: () => setDiscarding(false),
+        });
+    };
+
     if (!status?.available) {
         return (
             <AdminLayout title="Update GitHub">
@@ -51,16 +98,21 @@ export default function SystemUpdateIndex({ status, config }) {
         );
     }
 
-    const targetTag = status.target_tag ?? null;
-    const targetLabel = formatVersion(targetTag);
-    const needsUpdate = status.needs_update;
-    const repoUrl = status.remote_url?.replace(/\.git$/, '') || 'https://github.com/rakabitornetwork/berkahteknik';
+    const repoUrl = status.remote_url?.replace(/\.git$/, '') || status.remote_url;
+    const pendingCommits = status.pending_commits ?? [];
+    const blockingDirty = status.has_blocking_changes && !status.allow_dirty;
+    const canDeploy =
+        config.enabled &&
+        status.can_deploy &&
+        status.has_update &&
+        !blockingDirty &&
+        !status.fetch_error;
 
     return (
         <AdminLayout title="Update GitHub">
             <Head title="Update GitHub" />
 
-            <div style={{ maxWidth: 800, display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <div style={{ maxWidth: 900, display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 {!config.enabled && (
                     <div style={{
                         padding: '1rem',
@@ -74,110 +126,179 @@ export default function SystemUpdateIndex({ status, config }) {
                     </div>
                 )}
 
-                <div className="glass-panel" style={{ padding: '1.5rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
-                        <div>
-                            <h2 style={{ fontSize: '1rem', fontWeight: 600, margin: '0 0 0.35rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <GitBranch size={18} /> Status Repository
+                {(flash?.success || flash?.error) && (
+                    <div className="glass-panel" style={{
+                        padding: '1rem',
+                        fontSize: '0.8rem',
+                        whiteSpace: 'pre-wrap',
+                        borderRadius: 'var(--radius-md)',
+                        background: flash?.success ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.1)',
+                        border: flash?.success ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(239, 68, 68, 0.3)',
+                        color: flash?.success ? 'var(--color-success)' : 'var(--color-danger)',
+                    }}>
+                        {flash?.success || flash?.error}
+                    </div>
+                )}
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
+                    {/* Status repositori */}
+                    <div className="glass-panel" style={{ padding: '1.5rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                            <h2 style={{ fontSize: '1rem', fontWeight: 600, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <GitBranch size={18} /> Status repositori
                             </h2>
-                            <a href={repoUrl} target="_blank" rel="noreferrer" style={{ fontSize: '0.8rem', color: 'var(--color-primary)', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <button
+                                type="button"
+                                className="btn btn-outline"
+                                onClick={refreshStatus}
+                                disabled={refreshing}
+                                style={{ fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                            >
+                                <RefreshCw size={14} style={refreshing ? { animation: 'spin 0.8s linear infinite' } : undefined} />
+                                {refreshing ? 'Memperbarui...' : 'Perbarui status'}
+                            </button>
+                        </div>
+
+                        {repoUrl && (
+                            <a href={repoUrl} target="_blank" rel="noreferrer" style={{ fontSize: '0.75rem', color: 'var(--color-primary)', display: 'inline-flex', alignItems: 'center', gap: '0.25rem', marginBottom: '1rem' }}>
                                 {status.remote_url} <ExternalLink size={12} />
                             </a>
-                        </div>
-                        <button
-                            type="button"
-                            className="btn btn-outline"
-                            onClick={refreshStatus}
-                            disabled={refreshing}
-                            style={{ fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
-                        >
-                            <RefreshCw size={14} style={refreshing ? { animation: 'spin 0.8s linear infinite' } : undefined} />
-                            {refreshing ? 'Memperbarui...' : 'Perbarui status'}
-                        </button>
-                    </div>
+                        )}
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
-                        <Stat label="Versi saat ini" value={status.current_tag ? formatVersion(status.current_tag) : status.current_version} highlight={!status.is_on_target_version} />
-                        <Stat label="Tag terbaru di GitHub" value={targetLabel} highlight={needsUpdate} />
-                        {!status.target_tag_exists && (
-                            <Stat label="Tag di GitHub" value="Belum ada" highlight />
+                        <dl style={{ margin: 0, fontSize: '0.875rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--color-border)', marginBottom: '0.5rem' }}>
+                                <dt style={{ color: 'var(--color-text-muted)' }}>Cabang</dt>
+                                <dd style={{ margin: 0, fontFamily: 'monospace', fontWeight: 500 }}>{status.branch}</dd>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem' }}>
+                                <dt style={{ color: 'var(--color-text-muted)' }}>Ada update</dt>
+                                <dd style={{
+                                    margin: 0,
+                                    fontWeight: 500,
+                                    color: status.has_update && !status.fetch_error
+                                        ? 'var(--color-warning)'
+                                        : status.fetch_error
+                                          ? 'var(--color-text-muted)'
+                                          : 'var(--color-success)',
+                                }}>
+                                    {updateStatusLabel(status)}
+                                </dd>
+                            </div>
+                        </dl>
+
+                        {status.fetch_error && (
+                            <p style={{ margin: '1rem 0 0', fontSize: '0.8rem', color: 'var(--color-danger)', display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+                                <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 2 }} />
+                                {status.fetch_error}
+                            </p>
+                        )}
+
+                        {status.dirty && (
+                            <div style={{ marginTop: '1rem' }}>
+                                <p style={{ fontSize: '0.8rem', color: 'var(--color-danger)', display: 'flex', gap: '0.5rem', alignItems: 'flex-start', margin: '0 0 0.5rem' }}>
+                                    <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 2 }} />
+                                    Ada perubahan pada file yang dilacak di server. Selesaikan dulu sebelum menarik dari GitHub.
+                                </p>
+                                <ul style={{ maxHeight: 120, overflow: 'auto', margin: '0 0 0.75rem', padding: '0.5rem', fontSize: '0.7rem', fontFamily: 'monospace', listStyle: 'none', borderRadius: 'var(--radius-md)', border: '1px solid rgba(239, 68, 68, 0.2)', background: 'rgba(239, 68, 68, 0.05)' }}>
+                                    {status.dirty_files?.map((f, i) => (
+                                        <li key={i} style={{ color: 'var(--color-danger)' }}>• {f}</li>
+                                    ))}
+                                </ul>
+                                <button
+                                    type="button"
+                                    disabled={discarding || processing}
+                                    onClick={runDiscardChanges}
+                                    style={{ background: 'none', border: 'none', padding: 0, fontSize: '0.7rem', textDecoration: 'underline', color: discarding ? 'var(--color-text-muted)' : 'var(--color-danger)', cursor: discarding ? 'not-allowed' : 'pointer' }}
+                                >
+                                    {discarding ? 'Memproses...' : 'Reset perubahan lokal'}
+                                </button>
+                            </div>
+                        )}
+
+                        {status.ignored_local_changes?.length > 0 && status.allow_dirty && (
+                            <p style={{ margin: '1rem 0 0', fontSize: '0.75rem', color: '#ca8a04' }}>
+                                File lokal diabaikan (normal setelah build): {status.ignored_local_changes.join(', ')}
+                            </p>
                         )}
                     </div>
 
-                    {status.last_commit_message && (
-                        <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', margin: '0 0 1rem', lineHeight: 1.5 }}>
-                            <strong>Terakhir:</strong> {status.last_commit_message}
-                            {status.last_commit_date && <span style={{ opacity: 0.8 }}> ({status.last_commit_date})</span>}
-                        </p>
-                    )}
+                    {/* Perbandingan versi */}
+                    <div className="glass-panel" style={{ padding: '1.5rem' }}>
+                        <h2 style={{ fontSize: '1rem', fontWeight: 600, margin: '0 0 1rem' }}>Perbandingan versi</h2>
 
-                    {status.has_local_changes && !status.can_deploy && (
-                        <div style={{
-                            display: 'flex', gap: '0.5rem', alignItems: 'flex-start', padding: '0.75rem', marginBottom: '1rem',
-                            background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 'var(--radius-md)', fontSize: '0.8rem', color: 'var(--color-danger)',
-                        }}>
-                            <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 2 }} />
-                            <span>
-                                Deploy diblokir: ada perubahan file penting yang belum di-commit.
-                                {status.local_changes?.length > 0 && (
-                                    <> File: <code style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>{status.local_changes.join(', ')}</code>.</>
-                                )}
-                                {' '}Atau tambahkan <code style={{ fontFamily: 'monospace' }}>DEPLOY_ALLOW_DIRTY=true</code> di .env lalu <code style={{ fontFamily: 'monospace' }}>php artisan config:clear</code>.
-                            </span>
-                        </div>
-                    )}
+                        <dl style={{ margin: 0, fontSize: '0.875rem' }}>
+                            <div style={{ marginBottom: '1rem' }}>
+                                <dt style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>Versi terpasang</dt>
+                                <dd style={{ margin: '0.25rem 0 0', fontFamily: 'monospace', fontWeight: 600, fontSize: '1rem' }}>
+                                    {status.local_version ?? '—'}
+                                </dd>
+                                <dd style={{ margin: '0.15rem 0 0', fontFamily: 'monospace', fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>
+                                    {shortSha(status.local_sha)}
+                                </dd>
+                            </div>
+                            <div>
+                                <dt style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>Versi tersedia (origin)</dt>
+                                <dd style={{ margin: '0.25rem 0 0', fontFamily: 'monospace', fontWeight: 600, fontSize: '1rem' }}>
+                                    {status.remote_version ?? (status.fetch_error ? '—' : '…')}
+                                </dd>
+                                <dd style={{ margin: '0.15rem 0 0', fontFamily: 'monospace', fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>
+                                    {shortSha(status.remote_sha)}
+                                </dd>
+                            </div>
+                        </dl>
 
-                    {status.ignored_local_changes?.length > 0 && status.can_deploy && (
-                        <div style={{
-                            display: 'flex', gap: '0.5rem', alignItems: 'flex-start', padding: '0.75rem', marginBottom: '1rem',
-                            background: 'rgba(234, 179, 8, 0.1)', border: '1px solid rgba(234, 179, 8, 0.35)', borderRadius: 'var(--radius-md)', fontSize: '0.8rem', color: '#ca8a04',
-                        }}>
-                            <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 2 }} />
-                            <span>
-                                File lokal di server (normal setelah build): <code style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>{status.ignored_local_changes.join(', ')}</code>.
-                                {status.allow_dirty ? ' Deploy diizinkan.' : ' Tidak menghalangi deploy.'}
-                            </span>
-                        </div>
-                    )}
+                        {!status.has_release_tags && (
+                            <p style={{ margin: '1rem 0 0', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                                Belum ada tag rilis; buat tag di GitHub untuk nomor versi (mis. 1.0, 1.1).
+                            </p>
+                        )}
 
-                    {!status.target_tag_exists && (
-                        <div style={{
-                            display: 'flex', gap: '0.5rem', alignItems: 'flex-start', padding: '0.75rem', marginBottom: '1rem',
-                            background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 'var(--radius-md)', fontSize: '0.8rem', color: 'var(--color-danger)',
-                        }}>
-                            <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 2 }} />
-                            <span>
-                                Belum ada tag rilis semver di GitHub (format: 1.0, 1.1, 1.2).
-                                Buat: <code style={{ fontFamily: 'monospace' }}>git tag 1.2</code> lalu <code style={{ fontFamily: 'monospace' }}>git push origin 1.2</code>
-                            </span>
-                        </div>
-                    )}
+                        {status.has_update && status.commits_behind > 0 && (
+                            <p style={{ margin: '1rem 0 0', fontSize: '0.8rem', color: 'var(--color-warning)' }}>
+                                {status.commits_behind} commit di belakang origin
+                            </p>
+                        )}
 
-                    {needsUpdate && status.target_tag_exists && !status.has_local_changes && (
-                        <div style={{
-                            display: 'flex', gap: '0.5rem', alignItems: 'center', padding: '0.75rem', marginBottom: '1rem',
-                            background: 'rgba(59, 130, 246, 0.12)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: 'var(--radius-md)', fontSize: '0.85rem', color: 'var(--color-primary-light)',
-                        }}>
-                            <Download size={16} />
-                            Tag terbaru <strong>{targetLabel}</strong> tersedia di GitHub — siap dipasang.
-                        </div>
-                    )}
+                        {status.has_update && pendingCommits.length > 0 && (
+                            <div style={{ marginTop: '1rem' }}>
+                                <p style={{ fontSize: '0.8rem', fontWeight: 600, margin: '0 0 0.5rem', color: 'var(--color-text-muted)' }}>
+                                    Perubahan yang akan masuk
+                                </p>
+                                <ul style={{ maxHeight: 180, overflow: 'auto', margin: 0, padding: '0.5rem', listStyle: 'none', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', background: 'rgba(255,255,255,0.02)' }}>
+                                    {pendingCommits.map((c) => (
+                                        <li key={c.short_sha} style={{ fontSize: '0.75rem', marginBottom: '0.5rem' }}>
+                                            <span style={{ fontFamily: 'monospace', color: 'var(--color-primary-light)' }}>{c.short_sha}</span>
+                                            <span> — {c.subject}</span>
+                                            {c.date && (
+                                                <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--color-text-muted)', marginTop: '0.1rem' }}>
+                                                    {formatCommitDate(c.date)}
+                                                </span>
+                                            )}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
 
-                    {status.is_on_target_version && (
-                        <div style={{
-                            display: 'flex', gap: '0.5rem', alignItems: 'center', padding: '0.75rem', marginBottom: '1rem',
-                            background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: 'var(--radius-md)', fontSize: '0.85rem', color: 'var(--color-success)',
-                        }}>
-                            <CheckCircle2 size={16} />
-                            Server sudah pada versi <strong>{targetLabel}</strong> (tag terbaru di GitHub).
-                        </div>
-                    )}
+                        {status.compare_url && (
+                            <a
+                                href={status.compare_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                style={{ marginTop: '1rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', color: 'var(--color-primary)' }}
+                            >
+                                <ExternalLink size={14} />
+                                Bandingkan di GitHub
+                            </a>
+                        )}
+                    </div>
                 </div>
 
+                {/* Jalankan update */}
                 <form onSubmit={submit} className="glass-panel" style={{ padding: '1.5rem' }}>
-                    <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>Jalankan update</h2>
+                    <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.5rem' }}>Jalankan update</h2>
                     <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: '1rem', lineHeight: 1.55 }}>
-                        Akan checkout ke tag terbaru <strong>{targetLabel}</strong> dari GitHub, lalu menjalankan langkah yang Anda centang di bawah.
+                        Akan menarik perubahan dari <strong>origin/{status.branch}</strong> (git pull), lalu menjalankan langkah yang Anda centang di bawah.
                     </p>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem', fontSize: '0.875rem' }}>
@@ -196,15 +317,17 @@ export default function SystemUpdateIndex({ status, config }) {
                     <button
                         type="submit"
                         className="btn btn-primary"
-                        disabled={processing || !config.enabled || !status.can_deploy || !targetTag || !needsUpdate}
+                        disabled={processing || !canDeploy}
                         style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
                     >
                         <Download size={16} />
-                        {processing ? 'Memproses update...' : !needsUpdate ? 'Sudah versi terbaru' : targetTag ? `Pasang versi ${targetLabel}` : 'Tidak ada tag'}
+                        {processing ? 'Memproses update...' : status.has_update ? 'Update' : 'Sudah versi terbaru'}
                     </button>
-                    {!needsUpdate && status.target_tag_exists && (
-                        <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', margin: '0.75rem 0 0' }}>
-                            Tidak ada update baru di GitHub. Push tag rilis baru lalu klik <strong>Perbarui status</strong>.
+
+                    {!status.has_update && !status.fetch_error && (
+                        <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', margin: '0.75rem 0 0', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <CheckCircle2 size={14} style={{ color: 'var(--color-success)' }} />
+                            Kode sudah selaras dengan origin untuk cabang ini.
                         </p>
                     )}
                 </form>
@@ -233,23 +356,6 @@ export default function SystemUpdateIndex({ status, config }) {
                 )}
             </div>
         </AdminLayout>
-    );
-}
-
-function formatVersion(tag) {
-    if (!tag) {
-        return '—';
-    }
-
-    return `v${String(tag).replace(/^v/, '')}`;
-}
-
-function Stat({ label, value, highlight }) {
-    return (
-        <div style={{ padding: '0.65rem 0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
-            <div style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</div>
-            <div style={{ fontSize: '0.9rem', fontWeight: 600, color: highlight ? 'var(--color-warning)' : 'var(--color-text-main)', marginTop: '0.15rem' }}>{value}</div>
-        </div>
     );
 }
 
