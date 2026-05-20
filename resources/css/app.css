@@ -291,6 +291,8 @@ a {
 
 .theme-toggle-btn .theme-icon {
     position: absolute;
+    top: 0;
+    left: 0;
     width: 1.125rem;
     height: 1.125rem;
     transition: transform 0.35s ease, opacity 0.35s ease;
@@ -298,6 +300,9 @@ a {
 
 .theme-toggle-btn .theme-icon-wrap {
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 1.125rem;
     height: 1.125rem;
 }
