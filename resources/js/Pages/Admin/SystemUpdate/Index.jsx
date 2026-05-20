@@ -19,6 +19,9 @@ export default function SystemUpdateIndex({ status, config }) {
 
     const submit = (e) => {
         e.preventDefault();
+        if (!status?.needs_update) {
+            return;
+        }
         post('/admin/system-update/deploy', { preserveScroll: true });
     };
 
@@ -101,12 +104,6 @@ export default function SystemUpdateIndex({ status, config }) {
                         )}
                     </div>
 
-                    {status.available_tags?.length > 1 && (
-                        <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', margin: '0 0 1rem' }}>
-                            Tag di repo: {status.available_tags.map((t) => formatVersion(t)).join(', ')}
-                        </p>
-                    )}
-
                     {status.last_commit_message && (
                         <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', margin: '0 0 1rem', lineHeight: 1.5 }}>
                             <strong>Terakhir:</strong> {status.last_commit_message}
@@ -177,14 +174,6 @@ export default function SystemUpdateIndex({ status, config }) {
                     )}
                 </div>
 
-                {status.is_on_target_version && status.target_tag_exists ? (
-                    <div className="glass-panel" style={{ padding: '1.5rem', fontSize: '0.85rem', color: 'var(--color-text-muted)', lineHeight: 1.55 }}>
-                        <p style={{ margin: 0 }}>
-                            Tidak ada update untuk dipasang. Server sudah pada tag terbaru di GitHub ({targetLabel}).
-                            Untuk rilis berikutnya: push tag baru dari Laragon (mis. <code style={{ fontFamily: 'monospace' }}>git tag 1.3 && git push origin 1.3</code>), lalu klik <strong>Perbarui status</strong>.
-                        </p>
-                    </div>
-                ) : (
                 <form onSubmit={submit} className="glass-panel" style={{ padding: '1.5rem' }}>
                     <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>Jalankan update</h2>
                     <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: '1rem', lineHeight: 1.55 }}>
@@ -207,14 +196,18 @@ export default function SystemUpdateIndex({ status, config }) {
                     <button
                         type="submit"
                         className="btn btn-primary"
-                        disabled={processing || !config.enabled || !status.can_deploy || !targetTag}
+                        disabled={processing || !config.enabled || !status.can_deploy || !targetTag || !needsUpdate}
                         style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
                     >
                         <Download size={16} />
-                        {processing ? 'Memproses update...' : targetTag ? `Pasang versi ${targetLabel}` : 'Tidak ada tag'}
+                        {processing ? 'Memproses update...' : !needsUpdate ? 'Sudah versi terbaru' : targetTag ? `Pasang versi ${targetLabel}` : 'Tidak ada tag'}
                     </button>
+                    {!needsUpdate && status.target_tag_exists && (
+                        <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', margin: '0.75rem 0 0' }}>
+                            Tidak ada update baru di GitHub. Push tag rilis baru lalu klik <strong>Perbarui status</strong>.
+                        </p>
+                    )}
                 </form>
-                )}
 
                 {deployLogs.length > 0 && (
                     <div className="glass-panel" style={{ padding: '1.5rem' }}>

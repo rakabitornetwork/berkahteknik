@@ -63,7 +63,6 @@ class GitDeployService
             'target_tag_ref' => $resolvedTag,
             'target_tag_exists' => $remoteTagExists,
             'tag_mode' => 'latest',
-            'available_tags' => array_slice($availableTags, 0, 5),
             'current_version' => $currentExactTag ?: ('commit '.$currentShort),
             'current_tag' => $currentExactTag,
             'current_short' => $currentShort,
@@ -116,6 +115,12 @@ class GitDeployService
         $tagRef = $this->resolveTagRef($targetTag, true);
         if (! $tagRef) {
             return $this->result(false, $logs, "Tag versi \"{$targetTag}\" tidak ditemukan setelah fetch. Coba push ulang: git push origin {$targetTag}");
+        }
+
+        $head = trim($this->runGit('rev-parse HEAD')['output'] ?? '');
+        $tagCommit = trim($this->runGit('rev-parse '.escapeshellarg($tagRef))['output'] ?? '');
+        if ($head !== '' && $head === $tagCommit) {
+            return $this->result(false, $logs, 'Server sudah pada versi terbaru di GitHub ('.$targetTag.'). Tidak ada update untuk dipasang.');
         }
 
         $checkout = $this->runGit('checkout -f '.escapeshellarg($tagRef));
