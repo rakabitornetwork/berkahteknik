@@ -1,5 +1,6 @@
 import React from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
+import ThemeToggle from './ThemeToggle';
 
 export function AuthBrand({ title, subtitle }) {
     const { shop } = usePage().props;
@@ -65,6 +66,10 @@ export default function AuthScreen({
             }}
         >
             <Head title={headTitle} />
+
+            <div style={{ position: 'fixed', top: '1rem', right: '1rem', zIndex: 50 }}>
+                <ThemeToggle />
+            </div>
 
             <div style={{ width: '100%', maxWidth }}>
                 {backHref && (

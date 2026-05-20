@@ -3,6 +3,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { Menu, X } from 'lucide-react';
 import CompanyBranding from '../Components/CompanyBranding';
 import AppFooter from '../Components/AppFooter';
+import ThemeToggle from '../Components/ThemeToggle';
 
 export function portalCtaUrl(auth, landingCtaUrl) {
     if (auth?.customer) {
@@ -36,12 +37,11 @@ export default function PublicLayout({ children }) {
     return (
         <div className="public-site" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--color-bg)' }}>
             <header
+                className="public-site-header"
                 style={{
                     position: 'sticky',
                     top: 0,
                     zIndex: 50,
-                    background: 'rgba(9, 9, 11, 0.9)',
-                    backdropFilter: 'blur(12px)',
                     borderBottom: '1px solid var(--color-border)',
                 }}
             >
@@ -50,23 +50,27 @@ export default function PublicLayout({ children }) {
                         <CompanyBranding variant="portal" />
                     </Link>
 
-                    <nav className="public-nav-desktop" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                    <nav className="public-nav-desktop" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                         {navLink('/', 'Beranda')}
                         {navLink('/konten', 'Berita & Promo')}
+                        <ThemeToggle />
                         <Link href={ctaUrl} className="btn btn-primary" style={{ fontSize: '0.85rem', padding: '0.45rem 1rem' }}>
                             {ctaLabel}
                         </Link>
                     </nav>
 
-                    <button
-                        type="button"
-                        className="public-nav-toggle"
-                        onClick={() => setMobileOpen((v) => !v)}
-                        style={{ background: 'transparent', border: 'none', color: 'var(--color-text-main)', cursor: 'pointer', padding: '0.25rem' }}
-                        aria-label="Menu"
-                    >
-                        {mobileOpen ? <X size={22} /> : <Menu size={22} />}
-                    </button>
+                    <div className="public-nav-mobile-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <ThemeToggle />
+                        <button
+                            type="button"
+                            className="public-nav-toggle"
+                            onClick={() => setMobileOpen((v) => !v)}
+                            style={{ background: 'transparent', border: 'none', color: 'var(--color-text-main)', cursor: 'pointer', padding: '0.25rem' }}
+                            aria-label="Menu"
+                        >
+                            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+                        </button>
+                    </div>
                 </div>
 
                 {mobileOpen && (

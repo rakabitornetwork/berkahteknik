@@ -3,6 +3,7 @@ import { Link } from '@inertiajs/react';
 import { User } from 'lucide-react';
 import CompanyBranding from '../Components/CompanyBranding';
 import AppFooter from '../Components/AppFooter';
+import ThemeToggle from '../Components/ThemeToggle';
 
 export default function PortalLayout({ children, customer }) {
     return (
@@ -13,9 +14,6 @@ export default function PortalLayout({ children, customer }) {
                     position: 'sticky',
                     top: 0,
                     zIndex: 50,
-                    background: 'rgba(9, 9, 11, 0.92)',
-                    backdropFilter: 'blur(12px)',
-                    WebkitBackdropFilter: 'blur(12px)',
                     borderBottom: '1px solid var(--color-border)',
                 }}
             >
@@ -24,6 +22,7 @@ export default function PortalLayout({ children, customer }) {
                         <CompanyBranding variant="portal" />
                     </Link>
                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                        <ThemeToggle />
                         {customer ? (
                             <>
                                 <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-text-main)', display: 'inline-flex', alignItems: 'center', gap: '0.375rem' }}>
