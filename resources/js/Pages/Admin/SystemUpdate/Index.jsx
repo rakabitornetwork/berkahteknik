@@ -215,11 +215,6 @@ export default function SystemUpdateIndex({ status, config }) {
                             </div>
                         )}
 
-                        {status.ignored_local_changes?.length > 0 && status.allow_dirty && (
-                            <p style={{ margin: '1rem 0 0', fontSize: '0.75rem', color: '#ca8a04' }}>
-                                File lokal diabaikan (normal setelah build): {status.ignored_local_changes.join(', ')}
-                            </p>
-                        )}
                     </div>
 
                     {/* Perbandingan versi */}
