@@ -31,7 +31,7 @@ export default function CompanyBranding({ variant = 'default', collapsed = false
                 </span>
             )}
             {!collapsed && (
-                <span style={{ fontWeight: 700, fontSize: '1rem', color: '#ffffff', whiteSpace: 'nowrap' }}>{name}</span>
+                <span style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--color-sidebar-active-text)', whiteSpace: 'nowrap' }}>{name}</span>
             )}
         </div>
     );

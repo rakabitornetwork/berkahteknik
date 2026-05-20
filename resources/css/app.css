@@ -875,7 +875,7 @@ option {
 
 /* Landing page publik */
 .public-nav-mobile-actions {
-    display: none;
+    display: none !important;
 }
 
 .public-nav-toggle {
