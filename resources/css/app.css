@@ -183,10 +183,12 @@ a {
 
 .admin-sidebar {
     width: 220px;
+    height: 100vh;
     transition: all var(--transition-normal);
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
+    min-height: 0;
     background-color: var(--color-sidebar-bg);
     border-right: 1px solid var(--color-sidebar-border);
     padding: 0 0.75rem;
@@ -211,7 +213,26 @@ a {
     flex-direction: column;
     gap: 0.25rem;
     flex: 1;
+    min-height: 0;
     margin-top: 1rem;
+    padding-bottom: 1rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-sidebar-border) transparent;
+}
+
+.admin-nav::-webkit-scrollbar {
+    width: 6px;
+}
+
+.admin-nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.admin-nav::-webkit-scrollbar-thumb {
+    background: var(--color-sidebar-border);
+    border-radius: 999px;
 }
 
 .admin-nav-link {
