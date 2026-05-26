@@ -5,6 +5,9 @@ export default function StatusBadge({ status }) {
     let pulseClass = '';
 
     switch (status.toLowerCase()) {
+        case 'booking':
+            colorClass = 'text-indigo-500';
+            break;
         case 'antri':
             colorClass = 'text-amber-500';
             break;
@@ -20,7 +23,7 @@ export default function StatusBadge({ status }) {
     }
 
     return (
-        <span style={{ color: `var(--color-${colorClass.includes('amber') ? 'warning' : colorClass.includes('blue') ? 'info' : colorClass.includes('emerald') ? 'success' : 'text-muted'})` }} className={`status-pulse ${pulseClass} capitalize font-medium ml-4`}>
+        <span style={{ color: `var(--color-${colorClass.includes('amber') ? 'warning' : colorClass.includes('blue') ? 'info' : colorClass.includes('emerald') ? 'success' : colorClass.includes('indigo') ? 'primary' : 'text-muted'})` }} className={`status-pulse ${pulseClass} capitalize font-medium ml-4`}>
             {status}
         </span>
     );

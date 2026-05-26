@@ -13,6 +13,7 @@ class Service extends Model
         'service_fee', 'payment_status', 'started_at', 'completed_at',
         'is_bring_own_part', 'service_name', 'spk_number', 'spk_issued_at',
         'warranty_months', 'warranty_notes', 'warranty_terms', 'warranty_starts_at',
+        'scheduled_at',
     ];
 
     protected $appends = [
@@ -26,6 +27,7 @@ class Service extends Model
         'completed_at'  => 'datetime',
         'spk_issued_at' => 'datetime',
         'warranty_starts_at' => 'date',
+        'scheduled_at' => 'datetime',
     ];
 
     protected static function booted(): void

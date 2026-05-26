@@ -17,6 +17,7 @@ export default function ServicesIndex({ services, filters }) {
 
     const statuses = [
         { value: '', label: 'Semua Status' },
+        { value: 'booking', label: 'Booking' },
         { value: 'antri', label: 'Antri' },
         { value: 'dikerjakan', label: 'Dikerjakan' },
         { value: 'selesai', label: 'Selesai' },

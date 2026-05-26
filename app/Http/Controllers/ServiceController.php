@@ -112,7 +112,7 @@ class ServiceController extends Controller
     {
         $validated = $request->validate([
             'user_id'        => 'nullable|exists:users,id',
-            'status'         => 'required|in:antri,dikerjakan,selesai',
+            'status'         => 'required|in:booking,antri,dikerjakan,selesai',
             'service_name'   => 'required|string|max:255',
             'description'    => 'required|string',
             'diagnosis'      => 'nullable|string',
@@ -152,7 +152,7 @@ class ServiceController extends Controller
 
     public function updateStatus(Request $request, Service $service)
     {
-        $request->validate(['status' => 'required|in:antri,dikerjakan,selesai']);
+        $request->validate(['status' => 'required|in:booking,antri,dikerjakan,selesai']);
 
         $update = ['status' => $request->status];
         $this->applyStatusSideEffects($update, $service);

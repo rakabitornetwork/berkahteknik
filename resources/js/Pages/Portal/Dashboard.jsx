@@ -48,13 +48,25 @@ export default function PortalDashboard({ customer, vehicles, activeService }) {
             <Head title="Dashboard Pelanggan" />
 
             {/* Welcome */}
-            <div style={{ marginBottom: '2rem' }}>
-                <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--color-primary-dark)' }}>
-                    Selamat datang, {customer?.name}!
-                </h1>
-                <p style={{ color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
-                    Pantau status pengerjaan AC mobil Anda secara real-time.
-                </p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+                <div>
+                    <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--color-primary-dark)', margin: 0 }}>
+                        Selamat datang, {customer?.name}!
+                    </h1>
+                    <p style={{ color: 'var(--color-text-muted)', marginTop: '0.25rem', margin: 0 }}>
+                        Pantau status pengerjaan AC mobil Anda secara real-time.
+                    </p>
+                </div>
+                {vehicles?.length > 0 && (
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                        <Link href="/portal/vehicles/create" className="btn btn-outline" style={{ fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', textDecoration: 'none' }}>
+                            + Tambah Kendaraan
+                        </Link>
+                        <Link href="/portal/bookings/create" className="btn btn-primary" style={{ fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', textDecoration: 'none' }}>
+                            Booking Servis AC
+                        </Link>
+                    </div>
+                )}
             </div>
 
             {/* Active Service Banner */}
@@ -76,8 +88,11 @@ export default function PortalDashboard({ customer, vehicles, activeService }) {
             {vehicles?.length === 0 && (
                 <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center' }}>
                     <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem', color: 'var(--color-text-muted)' }}><Car size={48} strokeWidth={1.5} /></div>
-                    <h2 style={{ fontWeight: 600, marginBottom: '0.5rem' }}>Belum ada kendaraan</h2>
-                    <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Kunjungi bengkel kami dan kendaraan Anda akan didaftarkan secara otomatis.</p>
+                    <h2 style={{ fontWeight: 600, marginBottom: '0.5rem' }}>Belum ada kendaraan terdaftar</h2>
+                    <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>Daftarkan kendaraan Anda terlebih dahulu untuk mulai melakukan reservasi servis AC secara online.</p>
+                    <Link href="/portal/vehicles/create" className="btn btn-primary" style={{ display: 'inline-flex', textDecoration: 'none' }}>
+                        + Daftarkan Kendaraan Sekarang
+                    </Link>
                 </div>
             )}
 

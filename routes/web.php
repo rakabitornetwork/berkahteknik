@@ -38,6 +38,14 @@ Route::prefix('portal')->name('portal.')->group(function () {
     Route::middleware('auth:customer')->group(function () {
         Route::get('/dashboard',         [PortalDashboardController::class, 'index'])->name('dashboard');
         Route::get('/services/{id}',     [PortalDashboardController::class, 'serviceDetail'])->name('service.detail');
+
+        // Vehicles
+        Route::get('/vehicles/create',   [PortalDashboardController::class, 'createVehicle'])->name('vehicles.create');
+        Route::post('/vehicles',          [PortalDashboardController::class, 'storeVehicle'])->name('vehicles.store');
+
+        // Bookings
+        Route::get('/bookings/create',   [PortalDashboardController::class, 'createBooking'])->name('bookings.create');
+        Route::post('/bookings',          [PortalDashboardController::class, 'storeBooking'])->name('bookings.store');
     });
 });
 

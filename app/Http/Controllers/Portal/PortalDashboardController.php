@@ -42,6 +42,7 @@ class PortalDashboardController extends Controller
                             'started_at'     => $s->started_at?->format('d M Y H:i'),
                             'completed_at'   => $s->completed_at?->format('d M Y H:i'),
                             'created_at'     => $s->created_at->format('d M Y H:i'),
+                            'scheduled_at'   => $s->scheduled_at?->format('d M Y H:i'),
                             'parts'          => $s->spareParts->map(fn($p) => [
                                 'name'       => $p->name,
                                 'quantity'   => $p->pivot->quantity,
@@ -87,6 +88,7 @@ class PortalDashboardController extends Controller
                 'started_at'     => $service->started_at?->format('d M Y H:i'),
                 'completed_at'   => $service->completed_at?->format('d M Y H:i'),
                 'created_at'     => $service->created_at->format('d M Y H:i'),
+                'scheduled_at'   => $service->scheduled_at?->format('d M Y H:i'),
                 'vehicle'        => "{$service->vehicle->brand} {$service->vehicle->model} ({$service->vehicle->license_plate})",
                 'parts'          => $service->spareParts->map(fn($p) => [
                     'name'       => $p->name,
@@ -102,5 +104,66 @@ class PortalDashboardController extends Controller
             ],
             'customer' => $customer,
         ]);
+    }
+
+    public function createVehicle()
+    {
+        return Inertia::render('Portal/VehicleForm', [
+            'customer' => Auth::guard('customer')->user(),
+        ]);
+    }
+
+    public function storeVehicle(Request $request)
+    {
+        $customer = Auth::guard('customer')->user();
+
+        $validated = $request->validate([
+            'license_plate' => 'required|string|max:20|unique:vehicles,license_plate',
+            'brand'         => 'required|string|max:50',
+            'model'         => 'required|string|max:50',
+            'year'          => 'nullable|integer|min:1990|max:' . (date('Y') + 1),
+        ]);
+
+        $validated['customer_id'] = $customer->id;
+
+        Vehicle::create($validated);
+
+        return redirect()->route('portal.dashboard')
+            ->with('success', 'Kendaraan berhasil ditambahkan.');
+    }
+
+    public function createBooking()
+    {
+        $customer = Auth::guard('customer')->user();
+        $vehicles = Vehicle::where('customer_id', $customer->id)->get();
+
+        return Inertia::render('Portal/BookingForm', [
+            'customer' => $customer,
+            'vehicles' => $vehicles,
+        ]);
+    }
+
+    public function storeBooking(Request $request)
+    {
+        $customer = Auth::guard('customer')->user();
+
+        $validated = $request->validate([
+            'vehicle_id'   => 'required|exists:vehicles,id,customer_id,' . $customer->id,
+            'service_name' => 'required|string|max:255',
+            'description'  => 'required|string',
+            'scheduled_at' => 'required|date|after:today',
+        ]);
+
+        \App\Models\Service::create([
+            'vehicle_id'   => $validated['vehicle_id'],
+            'service_name' => $validated['service_name'],
+            'description'  => $validated['description'],
+            'scheduled_at' => $validated['scheduled_at'],
+            'status'       => 'booking',
+            'service_fee'  => 0,
+        ]);
+
+        return redirect()->route('portal.dashboard')
+            ->with('success', 'Booking servis berhasil diajukan. Silakan tunggu konfirmasi admin.');
     }
 }
