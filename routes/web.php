@@ -113,6 +113,7 @@ Route::prefix('admin')->middleware('auth')->name('admin.')->group(function () {
         'destroy' => 'services.destroy',
     ]);
     Route::patch('services/{service}/status', [ServiceController::class, 'updateStatus'])->name('services.status');
+    Route::get('services/{service}/invoice', [ServiceController::class, 'invoice'])->name('services.invoice');
 
     // Spare Part
     Route::resource('spare-parts', SparePartController::class)->except(['show'])->names([

@@ -162,6 +162,16 @@ class ServiceController extends Controller
         return back()->with('success', 'Status berhasil diperbarui.');
     }
 
+    public function invoice(Service $service)
+    {
+        $service->load(['vehicle.customer', 'technician', 'spareParts']);
+
+        return Inertia::render('Admin/Services/InvoicePrint', [
+            'service' => $service,
+            'shop' => app(\App\Services\ShopSettingService::class)->forFrontend(),
+        ]);
+    }
+
     private function applyStatusSideEffects(array &$data, Service $service): void
     {
         $status = $data['status'] ?? $service->status;

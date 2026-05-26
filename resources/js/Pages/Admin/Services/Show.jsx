@@ -43,8 +43,11 @@ export default function ServiceShow({ service }) {
                         </div>
                         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
                             <StatusBadge status={service.status} />
-                            <a href={`/admin/services/${service.id}/spk?print=1`} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                                <Printer size={16} /> Cetak SPK
+                            <a href={`/admin/services/${service.id}/spk?print=1`} target="_blank" rel="noreferrer" className="btn btn-outline" style={{ fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                                <Printer size={14} /> Cetak SPK
+                            </a>
+                            <a href={`/admin/services/${service.id}/invoice?print=1`} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                                <Printer size={14} /> Cetak Invoice
                             </a>
                             <Link href={`/admin/services/${service.id}/edit`} className="btn btn-outline" style={{ fontSize: '0.8rem' }}>Edit</Link>
                         </div>
