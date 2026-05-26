@@ -21,9 +21,9 @@ export default function Form({ supplier = null, errors = {} }) {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (isEditing) {
-            router.put(route('suppliers.update', supplier.id), formData, { preserveScroll: true });
+            router.put(route('admin.suppliers.update', supplier.id), formData, { preserveScroll: true });
         } else {
-            router.post(route('suppliers.store'), formData, { preserveScroll: true });
+            router.post(route('admin.suppliers.store'), formData, { preserveScroll: true });
         }
     };
 
@@ -32,7 +32,7 @@ export default function Form({ supplier = null, errors = {} }) {
             <div style={{ padding: '1.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
                     <Link
-                        href={route('suppliers.index')}
+                        href={route('admin.suppliers.index')}
                         style={{
                             display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
                             color: 'var(--color-text-muted)', textDecoration: 'none',
@@ -143,7 +143,7 @@ export default function Form({ supplier = null, errors = {} }) {
                     {/* Actions */}
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', paddingTop: '0.5rem' }}>
                         <Link
-                            href={route('suppliers.index')}
+                            href={route('admin.suppliers.index')}
                             style={{
                                 padding: '0.6rem 1.25rem', borderRadius: '0.5rem',
                                 border: '1px solid var(--color-border)',

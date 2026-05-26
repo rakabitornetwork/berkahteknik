@@ -6,7 +6,7 @@ import AdminLayout from '../../../Layouts/AdminLayout';
 export default function Index({ suppliers }) {
     const handleDelete = (id) => {
         if (confirm('Apakah Anda yakin ingin menghapus supplier ini?')) {
-            router.delete(route('suppliers.destroy', id));
+            router.delete(route('admin.suppliers.destroy', id));
         }
     };
 
@@ -22,7 +22,7 @@ export default function Index({ suppliers }) {
                         </h2>
                     </div>
                     <Link
-                        href={route('suppliers.create')}
+                        href={route('admin.suppliers.create')}
                         style={{
                             display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
                             padding: '0.6rem 1.1rem', borderRadius: '0.5rem',
@@ -70,7 +70,7 @@ export default function Index({ suppliers }) {
                                         <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
                                             <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
                                                 <Link
-                                                    href={route('suppliers.edit', supplier.id)}
+                                                    href={route('admin.suppliers.edit', supplier.id)}
                                                     title="Edit"
                                                     style={{ color: 'var(--color-primary)', display: 'inline-flex' }}
                                                 >

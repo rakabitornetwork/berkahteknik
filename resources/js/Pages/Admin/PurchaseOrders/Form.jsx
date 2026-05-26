@@ -58,9 +58,9 @@ export default function Form({ order = null, suppliers = [], spareParts = [], er
     const handleSubmit = (e) => {
         e.preventDefault();
         if (isEditing) {
-            router.put(route('purchase-orders.update', order.id), formData, { preserveScroll: true });
+            router.put(route('admin.purchase-orders.update', order.id), formData, { preserveScroll: true });
         } else {
-            router.post(route('purchase-orders.store'), formData, { preserveScroll: true });
+            router.post(route('admin.purchase-orders.store'), formData, { preserveScroll: true });
         }
     };
 
@@ -76,7 +76,7 @@ export default function Form({ order = null, suppliers = [], spareParts = [], er
             <div style={{ padding: '1.5rem' }}>
                 {/* Back + Title */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
-                    <Link href={route('purchase-orders.index')} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', color: 'var(--color-text-muted)', textDecoration: 'none', fontSize: '0.875rem' }}>
+                    <Link href={route('admin.purchase-orders.index')} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', color: 'var(--color-text-muted)', textDecoration: 'none', fontSize: '0.875rem' }}>
                         <ArrowLeft size={16} /> Kembali
                     </Link>
                     <ShoppingBag size={20} style={{ color: 'var(--color-primary)' }} />
@@ -233,7 +233,7 @@ export default function Form({ order = null, suppliers = [], spareParts = [], er
                     {/* Actions */}
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
                         <Link
-                            href={route('purchase-orders.index')}
+                            href={route('admin.purchase-orders.index')}
                             style={{
                                 padding: '0.6rem 1.25rem', borderRadius: '0.5rem',
                                 border: '1px solid var(--color-border)',

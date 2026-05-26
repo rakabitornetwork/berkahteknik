@@ -17,7 +17,7 @@ export default function Show({ order }) {
             ? 'Tandai PO ini sebagai selesai? Stok spare part akan bertambah otomatis.'
             : 'Batalkan Purchase Order ini?';
         if (confirm(msg)) {
-            router.patch(route('purchase-orders.status', order.id), { status });
+            router.patch(route('admin.purchase-orders.status', order.id), { status });
         }
     };
 
@@ -31,7 +31,7 @@ export default function Show({ order }) {
                 {/* Header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        <Link href={route('purchase-orders.index')} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', color: 'var(--color-text-muted)', textDecoration: 'none', fontSize: '0.875rem' }}>
+                        <Link href={route('admin.purchase-orders.index')} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', color: 'var(--color-text-muted)', textDecoration: 'none', fontSize: '0.875rem' }}>
                             <ArrowLeft size={16} /> Kembali
                         </Link>
                         <ShoppingBag size={20} style={{ color: 'var(--color-primary)' }} />

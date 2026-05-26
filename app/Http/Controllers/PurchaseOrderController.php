@@ -68,7 +68,7 @@ class PurchaseOrderController extends Controller
         $order->total_amount = $total;
         $order->save();
 
-        return redirect()->route('purchase-orders.index')->with('success', 'Purchase Order created successfully.');
+        return redirect()->route('admin.purchase-orders.index')->with('success', 'Purchase Order created successfully.');
     }
 
     /**
@@ -132,7 +132,7 @@ class PurchaseOrderController extends Controller
         $purchaseOrder->total_amount = $total;
         $purchaseOrder->save();
 
-        return redirect()->route('purchase-orders.index')->with('success', 'Purchase Order updated successfully.');
+        return redirect()->route('admin.purchase-orders.index')->with('success', 'Purchase Order updated successfully.');
     }
 
     /**
@@ -141,7 +141,7 @@ class PurchaseOrderController extends Controller
     public function destroy(PurchaseOrder $purchaseOrder)
     {
         $purchaseOrder->delete();
-        return redirect()->route('purchase-orders.index')->with('success', 'Purchase Order deleted successfully.');
+        return redirect()->route('admin.purchase-orders.index')->with('success', 'Purchase Order deleted successfully.');
     }
 
     /**
@@ -168,7 +168,7 @@ class PurchaseOrderController extends Controller
             }
         }
 
-        return redirect()->route('purchase-orders.show', $purchaseOrder)->with('success', 'Status updated successfully.');
+        return redirect()->route('admin.purchase-orders.show', $purchaseOrder)->with('success', 'Status updated successfully.');
     }
 }
 ?>

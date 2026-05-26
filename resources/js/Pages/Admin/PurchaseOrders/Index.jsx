@@ -12,12 +12,12 @@ const statusConfig = {
 export default function Index({ orders }) {
     const handleDelete = (id) => {
         if (confirm('Apakah Anda yakin ingin menghapus Purchase Order ini?')) {
-            router.delete(route('purchase-orders.destroy', id));
+            router.delete(route('admin.purchase-orders.destroy', id));
         }
     };
 
     const handleStatusUpdate = (id, status) => {
-        router.patch(route('purchase-orders.status', id), { status }, { preserveScroll: true });
+        router.patch(route('admin.purchase-orders.status', id), { status }, { preserveScroll: true });
     };
 
     return (
@@ -32,7 +32,7 @@ export default function Index({ orders }) {
                         </h2>
                     </div>
                     <Link
-                        href={route('purchase-orders.create')}
+                        href={route('admin.purchase-orders.create')}
                         style={{
                             display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
                             padding: '0.6rem 1.1rem', borderRadius: '0.5rem',
@@ -99,7 +99,7 @@ export default function Index({ orders }) {
                                                 <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', alignItems: 'center' }}>
                                                     {/* Detail */}
                                                     <Link
-                                                        href={route('purchase-orders.show', order.id)}
+                                                        href={route('admin.purchase-orders.show', order.id)}
                                                         title="Lihat Detail"
                                                         style={{ color: 'var(--color-primary)', display: 'inline-flex' }}
                                                     >
