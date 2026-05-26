@@ -14,6 +14,7 @@ class Sale extends Model
         'change_amount',
         'payment_status',
         'payment_method',
+        'branch_id',
     ];
 
     public function items()

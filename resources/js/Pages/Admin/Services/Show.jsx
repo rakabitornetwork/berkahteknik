@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import AdminLayout from '../../../Layouts/AdminLayout';
 import StatusBadge from '../../../Components/StatusBadge';
@@ -10,6 +10,10 @@ export default function ServiceShow({ service }) {
     const { shop } = usePage().props;
     const partsTotal = service.spare_parts?.reduce((sum, p) => sum + (p.pivot.quantity * p.pivot.unit_price), 0) || 0;
     const grandTotal = partsTotal + Number(service.service_fee || 0);
+    const payments = service.payments || [];
+    const paidTotal = payments.reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+    const balanceDue = Math.max(0, grandTotal - paidTotal);
+    const [paymentForm, setPaymentForm] = useState({ amount: balanceDue || '', payment_method: 'cash', notes: '' });
 
     const handleDelete = () => {
         const label = service.spk_number || `Servis #${String(service.id).padStart(4, '0')}`;
@@ -180,6 +184,49 @@ export default function ServiceShow({ service }) {
                         </tbody>
                     </table>
 
+                    <div style={{ marginBottom: '1rem', padding: '1rem', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)' }}>
+                        <h4 style={{ margin: '0 0 0.75rem', fontSize: '0.9rem', fontWeight: 700 }}>Riwayat Pembayaran Servis</h4>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                            <InfoMini label="Total Invoice" value={fmt(grandTotal)} />
+                            <InfoMini label="Sudah Dibayar" value={fmt(paidTotal)} />
+                            <InfoMini label="Sisa Tagihan" value={fmt(balanceDue)} />
+                        </div>
+                        {payments.length > 0 && (
+                            <table className="hd-table" style={{ marginBottom: '0.75rem' }}>
+                                <thead>
+                                    <tr>
+                                        <th>Tanggal</th>
+                                        <th>Metode</th>
+                                        <th>Catatan</th>
+                                        <th style={{ textAlign: 'right' }}>Nominal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {payments.map(payment => (
+                                        <tr key={payment.id}>
+                                            <td>{payment.payment_date}</td>
+                                            <td>{payment.payment_method || '-'}</td>
+                                            <td>{payment.notes || '-'}</td>
+                                            <td style={{ textAlign: 'right', fontWeight: 600 }}>{fmt(payment.amount)}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                        {balanceDue > 0 && service.status === 'selesai' && (
+                            <form onSubmit={e => { e.preventDefault(); router.post('/admin/service-payments', { service_id: service.id, ...paymentForm }); }} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.5fr auto', gap: '0.5rem', alignItems: 'center' }}>
+                                <input className="form-input" type="number" min="1" value={paymentForm.amount} onChange={e => setPaymentForm({ ...paymentForm, amount: e.target.value })} placeholder="Nominal" required />
+                                <select className="form-input" value={paymentForm.payment_method} onChange={e => setPaymentForm({ ...paymentForm, payment_method: e.target.value })}>
+                                    <option value="cash">Tunai</option>
+                                    <option value="transfer">Transfer</option>
+                                    <option value="qris">QRIS</option>
+                                </select>
+                                <input className="form-input" value={paymentForm.notes} onChange={e => setPaymentForm({ ...paymentForm, notes: e.target.value })} placeholder="Catatan pembayaran" />
+                                <button className="btn btn-primary" type="submit">Catat Bayar</button>
+                            </form>
+                        )}
+                    </div>
+
                     {/* Status Update Buttons */}
                     <div style={{ display: 'flex', gap: '0.75rem', paddingTop: '1rem', borderTop: '1px dashed var(--color-border)', flexWrap: 'wrap' }}>
                         {service.status === 'antri' && (
@@ -220,6 +267,15 @@ function InfoRow({ label, value, bold }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.375rem 0', borderBottom: '1px solid var(--color-border)', fontSize: '0.875rem', gap: '1rem' }}>
             <span style={{ color: 'var(--color-text-muted)', flexShrink: 0 }}>{label}</span>
             <span style={{ fontWeight: bold ? 700 : 400, textAlign: 'right' }}>{value}</span>
+        </div>
+    );
+}
+
+function InfoMini({ label, value }) {
+    return (
+        <div style={{ padding: '0.6rem', borderRadius: 'var(--radius-sm)', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--color-border)' }}>
+            <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', fontWeight: 700 }}>{label}</div>
+            <div style={{ fontWeight: 800, marginTop: '0.2rem' }}>{value}</div>
         </div>
     );
 }

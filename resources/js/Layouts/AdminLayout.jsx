@@ -16,6 +16,17 @@ import {
     Download,
     Truck,
     Wallet,
+    CalendarClock,
+    Bell,
+    Landmark,
+    RotateCcw,
+    ShieldCheck,
+    UserCheck,
+    QrCode,
+    Archive,
+    Building2,
+    LockKeyhole,
+    CreditCard,
 } from 'lucide-react';
 import CompanyBranding from '../Components/CompanyBranding';
 import AppFooter from '../Components/AppFooter';
@@ -24,15 +35,28 @@ import ThemeToggle from '../Components/ThemeToggle';
 const navItems = [
     { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/admin/services', label: 'Manajemen Servis', icon: Wrench },
+    { href: '/admin/bookings', label: 'Booking Servis', icon: CalendarClock },
     { href: '/admin/work-orders', label: 'Surat Perintah Kerja', icon: FileText },
+    { href: '/admin/service-payments', label: 'Pembayaran Servis', icon: CreditCard, roles: ['owner', 'admin', 'cashier'] },
     { href: '/admin/sales', label: 'Penjualan (POS)', icon: ShoppingCart },
     { href: '/admin/customers', label: 'Pelanggan', icon: Users },
     { href: '/admin/spare-parts', label: 'Spare Part & Stok', icon: Package },
+    { href: '/admin/stock-movements', label: 'Kartu Stok', icon: QrCode },
     { href: '/admin/mechanics', label: 'Data Mekanik', icon: Users },
+    { href: '/admin/mechanic-ops', label: 'Operasional Mekanik', icon: UserCheck, roles: ['owner', 'admin'] },
     { href: '/admin/reports', label: 'Laporan', icon: BarChart3 },
+    { href: '/admin/finance', label: 'Buku Kas & Laba Rugi', icon: Landmark, roles: ['owner', 'admin'] },
     { href: '/admin/expenses', label: 'Pengeluaran Bengkel', icon: Wallet },
     { href: '/admin/suppliers', label: 'Supplier', icon: Truck },
     { href: '/admin/purchase-orders', label: 'Pengadaan Barang (PO)', icon: ShoppingBag },
+    { href: '/admin/returns', label: 'Retur & Refund', icon: RotateCcw, roles: ['owner', 'admin', 'cashier', 'purchasing'] },
+    { href: '/admin/warranty-claims', label: 'Klaim Garansi', icon: ShieldCheck },
+    { href: '/admin/crm/follow-ups', label: 'CRM Follow-up', icon: UserCheck },
+    { href: '/admin/audit-logs', label: 'Audit Log', icon: LockKeyhole, roles: ['owner', 'admin'] },
+    { href: '/admin/branches-warehouses', label: 'Cabang & Gudang', icon: Building2, roles: ['owner', 'admin'] },
+    { href: '/admin/backups', label: 'Backup & Restore', icon: Archive, roles: ['owner', 'admin'] },
+    { href: '/admin/pro/notifications', label: 'Notifikasi Otomatis', icon: Bell, pro: true },
+    { href: '/admin/pro/digital-payments', label: 'Pembayaran Digital', icon: CreditCard, pro: true },
     { href: '/admin/cms/posts', label: 'Konten Situs', icon: Globe },
     { href: '/admin/settings', label: 'Pengaturan Aplikasi', icon: Settings },
     { href: '/admin/system-update', label: 'Update GitHub', icon: Download },
@@ -49,6 +73,12 @@ export default function AdminLayout({ children, title }) {
         if (href === '/admin' && url === '/admin') return true;
         if (href !== '/admin' && url?.startsWith(href)) return true;
         return false;
+    };
+
+    const canSee = (item) => {
+        if (item.href === '/admin/system-update' && user?.role !== 'admin' && user?.role !== 'owner') return false;
+        if (!item.roles) return true;
+        return item.roles.includes(user?.role) || user?.role === 'admin';
     };
 
     useEffect(() => {
@@ -73,7 +103,7 @@ export default function AdminLayout({ children, title }) {
                 </div>
 
                 <nav className="admin-nav">
-                    {navItems.filter(item => item.href !== '/admin/system-update' || user?.role === 'admin').map(item => {
+                    {navItems.filter(canSee).map(item => {
                         const active = isActive(item.href);
                         return (
                             <Link
@@ -82,7 +112,16 @@ export default function AdminLayout({ children, title }) {
                                 className={`admin-nav-link${active ? ' is-active' : ''}`}
                             >
                                 <item.icon size={20} strokeWidth={active ? 2 : 1.75} style={{ flexShrink: 0 }} />
-                                {!collapsed && item.label}
+                                {!collapsed && (
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', minWidth: 0 }}>
+                                        <span>{item.label}</span>
+                                        {item.pro && (
+                                            <span style={{ fontSize: '0.62rem', fontWeight: 800, color: 'var(--color-warning)', border: '1px solid rgba(245,158,11,0.45)', borderRadius: '999px', padding: '0.05rem 0.35rem' }}>
+                                                PRO
+                                            </span>
+                                        )}
+                                    </span>
+                                )}
                             </Link>
                         );
                     })}

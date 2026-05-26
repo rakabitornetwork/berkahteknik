@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\SparePart;
+use App\Services\OperationalJournal;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -32,6 +33,7 @@ class SparePartController extends Controller
     {
         $validated = $request->validate([
             'code'        => 'required|string|unique:spare_parts,code',
+            'barcode'     => 'nullable|string|unique:spare_parts,barcode',
             'name'        => 'required|string|max:150',
             'unit'        => 'required|string|in:pcs,liter,set,meter,kg',
             'stock'       => 'required|integer|min:0',
@@ -58,6 +60,7 @@ class SparePartController extends Controller
     {
         $validated = $request->validate([
             'code'        => "required|string|unique:spare_parts,code,{$sparePart->id}",
+            'barcode'     => "nullable|string|unique:spare_parts,barcode,{$sparePart->id}",
             'name'        => 'required|string|max:150',
             'unit'        => 'required|string|in:pcs,liter,set,meter,kg',
             'stock'       => 'required|integer|min:0',
@@ -81,14 +84,18 @@ class SparePartController extends Controller
             ->with('success', 'Spare part berhasil dihapus.');
     }
 
-    public function adjustStock(Request $request, SparePart $sparePart)
+    public function adjustStock(Request $request, SparePart $sparePart, OperationalJournal $journal)
     {
         $request->validate([
             'adjustment' => 'required|integer',
             'reason'     => 'nullable|string',
         ]);
 
+        $before = $sparePart->stock;
         $sparePart->increment('stock', $request->adjustment);
+        $sparePart->refresh();
+        $journal->stock($sparePart, 'adjustment', abs((int) $request->adjustment), $before, $sparePart->stock, $sparePart, $request->reason ?: 'Penyesuaian stok manual');
+        $journal->audit('adjust', 'stock', $sparePart, 'Stok disesuaikan.', ['adjustment' => $request->adjustment, 'reason' => $request->reason]);
 
         return back()->with('success', 'Stok berhasil disesuaikan.');
     }

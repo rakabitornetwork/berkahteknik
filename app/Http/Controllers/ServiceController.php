@@ -7,7 +7,9 @@ use App\Models\Service;
 use App\Models\SparePart;
 use App\Models\User;
 use App\Models\Vehicle;
+use App\Services\OperationalJournal;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class ServiceController extends Controller
@@ -39,7 +41,7 @@ class ServiceController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, OperationalJournal $journal)
     {
         $validated = $request->validate([
             'vehicle_id'   => 'required|exists:vehicles,id',
@@ -57,31 +59,36 @@ class ServiceController extends Controller
             'warranty_terms' => 'nullable|string',
         ]);
 
-        $service = Service::create([
-            'vehicle_id'  => $validated['vehicle_id'],
-            'user_id'     => $validated['user_id'] ?? null,
-            'service_name'=> $validated['service_name'],
-            'description' => $validated['description'],
-            'work_instructions' => $validated['work_instructions'] ?? null,
-            'is_bring_own_part' => $validated['is_bring_own_part'] ?? false,
-            'service_fee' => $validated['service_fee'] ?? 0,
-            'status'      => 'antri',
-            'warranty_months' => $validated['warranty_months'] ?? null,
-            'warranty_notes' => $validated['warranty_notes'] ?? null,
-            'warranty_terms' => $validated['warranty_terms'] ?? null,
-        ]);
+        DB::transaction(function () use ($validated, $journal) {
+            $service = Service::create([
+                'vehicle_id'  => $validated['vehicle_id'],
+                'user_id'     => $validated['user_id'] ?? null,
+                'service_name'=> $validated['service_name'],
+                'description' => $validated['description'],
+                'work_instructions' => $validated['work_instructions'] ?? null,
+                'is_bring_own_part' => $validated['is_bring_own_part'] ?? false,
+                'service_fee' => $validated['service_fee'] ?? 0,
+                'status'      => 'antri',
+                'warranty_months' => $validated['warranty_months'] ?? null,
+                'warranty_notes' => $validated['warranty_notes'] ?? null,
+                'warranty_terms' => $validated['warranty_terms'] ?? null,
+            ]);
 
-        // Attach spare parts and decrement stock
-        if (!empty($validated['parts'])) {
-            foreach ($validated['parts'] as $part) {
-                $sparePart = SparePart::find($part['spare_part_id']);
-                $service->spareParts()->attach($sparePart->id, [
-                    'quantity'   => $part['quantity'],
-                    'unit_price' => $sparePart->sell_price,
-                ]);
-                $sparePart->decrement('stock', $part['quantity']);
+            if (!empty($validated['parts'])) {
+                foreach ($validated['parts'] as $part) {
+                    $sparePart = SparePart::lockForUpdate()->find($part['spare_part_id']);
+                    $before = $sparePart->stock;
+                    $service->spareParts()->attach($sparePart->id, [
+                        'quantity'   => $part['quantity'],
+                        'unit_price' => $sparePart->sell_price,
+                    ]);
+                    $sparePart->decrement('stock', $part['quantity']);
+                    $sparePart->refresh();
+                    $journal->stock($sparePart, 'out', $part['quantity'], $before, $sparePart->stock, $service, 'Pemakaian spare part servis', $sparePart->buy_price);
+                }
             }
-        }
+            $journal->audit('create', 'service', $service, 'Servis baru dibuat.');
+        });
 
         return redirect()->route('admin.services.index')
             ->with('success', 'Servis baru berhasil ditambahkan.');
@@ -89,7 +96,7 @@ class ServiceController extends Controller
 
     public function show(Service $service)
     {
-        $service->load(['vehicle.customer', 'technician', 'spareParts']);
+        $service->load(['vehicle.customer', 'technician', 'spareParts', 'payments']);
 
         return Inertia::render('Admin/Services/Show', [
             'service' => $service,
@@ -135,16 +142,22 @@ class ServiceController extends Controller
             ->with('success', 'Data servis berhasil diperbarui.');
     }
 
-    public function destroy(Service $service)
+    public function destroy(Service $service, OperationalJournal $journal)
     {
-        $service->load('spareParts');
+        DB::transaction(function () use ($service, $journal) {
+            $service->load('spareParts');
 
-        foreach ($service->spareParts as $sparePart) {
-            $sparePart->increment('stock', $sparePart->pivot->quantity);
-        }
+            foreach ($service->spareParts as $sparePart) {
+                $before = $sparePart->stock;
+                $sparePart->increment('stock', $sparePart->pivot->quantity);
+                $sparePart->refresh();
+                $journal->stock($sparePart, 'return', $sparePart->pivot->quantity, $before, $sparePart->stock, $service, 'Stok dikembalikan karena servis dihapus');
+            }
 
-        $service->spareParts()->detach();
-        $service->delete();
+            $journal->audit('delete', 'service', $service, 'Servis dihapus.');
+            $service->spareParts()->detach();
+            $service->delete();
+        });
 
         return redirect()->route('admin.services.index')
             ->with('success', 'Data servis berhasil dihapus.');
@@ -164,7 +177,7 @@ class ServiceController extends Controller
 
     public function invoice(Service $service)
     {
-        $service->load(['vehicle.customer', 'technician', 'spareParts']);
+        $service->load(['vehicle.customer', 'technician', 'spareParts', 'payments']);
 
         return Inertia::render('Admin/Services/InvoicePrint', [
             'service' => $service,

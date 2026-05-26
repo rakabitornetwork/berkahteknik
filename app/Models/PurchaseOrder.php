@@ -16,6 +16,11 @@ class PurchaseOrder extends Model
         'order_date',
         'total_amount',
         'status',
+        'branch_id',
+        'supplier_invoice_number',
+        'due_date',
+        'payable_status',
+        'completed_at',
     ];
 
     protected static function boot()

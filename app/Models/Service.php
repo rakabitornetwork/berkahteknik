@@ -13,7 +13,7 @@ class Service extends Model
         'service_fee', 'payment_status', 'started_at', 'completed_at',
         'is_bring_own_part', 'service_name', 'spk_number', 'spk_issued_at',
         'warranty_months', 'warranty_notes', 'warranty_terms', 'warranty_starts_at',
-        'scheduled_at',
+        'scheduled_at', 'branch_id', 'booking_status', 'booking_notes', 'booking_cancelled_at',
     ];
 
     protected $appends = [
@@ -28,6 +28,7 @@ class Service extends Model
         'spk_issued_at' => 'datetime',
         'warranty_starts_at' => 'date',
         'scheduled_at' => 'datetime',
+        'booking_cancelled_at' => 'datetime',
     ];
 
     protected static function booted(): void
@@ -73,6 +74,16 @@ class Service extends Model
         return $this->belongsToMany(SparePart::class, 'service_spare_parts')
                     ->withPivot('quantity', 'unit_price')
                     ->withTimestamps();
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(ServicePayment::class);
+    }
+
+    public function warrantyClaims()
+    {
+        return $this->hasMany(WarrantyClaim::class);
     }
 
     public function getTotalCostAttribute()
