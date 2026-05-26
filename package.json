@@ -15,10 +15,11 @@
         "@point-of-sale/webbluetooth-receipt-printer": "^2.0.0",
         "@vitejs/plugin-react": "^4.2.1",
         "laravel-vite-plugin": "^1.0",
-        "vite": "^5.0",
         "lucide-react": "^1.16.0",
+        "qrcode.react": "^4.2.0",
         "react": "^19.2.6",
         "react-dom": "^19.2.6",
-        "recharts": "^3.8.1"
+        "recharts": "^3.8.1",
+        "vite": "^5.0"
     }
 }

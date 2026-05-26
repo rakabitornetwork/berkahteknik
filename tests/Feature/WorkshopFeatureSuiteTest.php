@@ -27,6 +27,8 @@ class WorkshopFeatureSuiteTest extends TestCase
         ] as $table) {
             $this->assertTrue(Schema::hasTable($table), "Missing table: {$table}");
         }
+
+        $this->assertTrue(Schema::hasColumn('users', 'attendance_qr_token'));
     }
 
     public function test_pro_features_are_locked_by_default(): void
@@ -47,6 +49,8 @@ class WorkshopFeatureSuiteTest extends TestCase
             'admin.returns.index',
             'admin.warranty-claims.index',
             'admin.mechanic-ops.index',
+            'admin.mechanic-ops.attendance.scan',
+            'admin.mechanic-ops.mechanics.qr-token',
             'admin.audit-logs.index',
             'admin.crm.follow-ups.index',
             'admin.branches-warehouses.index',

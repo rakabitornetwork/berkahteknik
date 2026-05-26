@@ -206,6 +206,8 @@ Route::prefix('admin')->middleware(['auth', 'admin.role'])->name('admin.')->grou
 
     Route::get('/mechanic-ops', [OperationsController::class, 'mechanicOps'])->name('mechanic-ops.index');
     Route::post('/mechanic-ops/attendance', [OperationsController::class, 'storeAttendance'])->name('mechanic-ops.attendance');
+    Route::post('/mechanic-ops/attendance/scan', [OperationsController::class, 'scanAttendance'])->name('mechanic-ops.attendance.scan');
+    Route::patch('/mechanic-ops/mechanics/{mechanic}/qr-token', [OperationsController::class, 'regenerateMechanicQr'])->name('mechanic-ops.mechanics.qr-token');
     Route::post('/mechanic-ops/commissions/generate', [OperationsController::class, 'generateCommissions'])->name('mechanic-ops.commissions.generate');
     Route::get('/audit-logs', [OperationsController::class, 'auditLogs'])->name('audit-logs.index');
     Route::get('/crm/follow-ups', [OperationsController::class, 'crm'])->name('crm.follow-ups.index');

@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class OperationsController extends Controller
@@ -465,6 +466,8 @@ class OperationsController extends Controller
 
     public function mechanicOps()
     {
+        $this->ensureMechanicAttendanceTokens();
+
         $attendanceRows = DB::table('mechanic_attendances')
             ->join('users', 'mechanic_attendances.user_id', '=', 'users.id')
             ->select('mechanic_attendances.*', 'users.name')
@@ -499,8 +502,101 @@ class OperationsController extends Controller
         return Inertia::render('Admin/Operations/MechanicOps', [
             'attendanceRows' => $attendanceRows,
             'commissionRows' => $commissionRows,
-            'mechanics' => User::where('role', 'mechanic')->orderBy('name')->get(['id', 'name']),
+            'mechanics' => User::where('role', 'mechanic')
+                ->orderBy('name')
+                ->get(['id', 'name', 'attendance_qr_token'])
+                ->map(fn (User $mechanic) => [
+                    'id' => $mechanic->id,
+                    'name' => $mechanic->name,
+                    'attendance_qr_token' => $mechanic->attendance_qr_token,
+                    'attendance_qr_payload' => 'MECHANIC_ATTENDANCE:'.$mechanic->attendance_qr_token,
+                ]),
         ]);
+    }
+
+    public function scanAttendance(Request $request, OperationalJournal $journal)
+    {
+        $validated = $request->validate([
+            'qr_payload' => 'required|string',
+        ]);
+
+        $token = trim($validated['qr_payload']);
+        if (str_starts_with($token, 'MECHANIC_ATTENDANCE:')) {
+            $token = substr($token, strlen('MECHANIC_ATTENDANCE:'));
+        }
+
+        $mechanic = User::where('role', 'mechanic')
+            ->where('attendance_qr_token', $token)
+            ->first();
+
+        if (! $mechanic) {
+            return back()->withErrors(['qr_payload' => 'QR mekanik tidak valid atau tidak terdaftar.']);
+        }
+
+        $today = now()->toDateString();
+        $time = now()->format('H:i:s');
+        $attendance = DB::table('mechanic_attendances')
+            ->where('user_id', $mechanic->id)
+            ->where('attendance_date', $today)
+            ->first();
+
+        if (! $attendance) {
+            DB::table('mechanic_attendances')->insert([
+                'user_id' => $mechanic->id,
+                'branch_id' => $mechanic->branch_id ?? null,
+                'attendance_date' => $today,
+                'status' => 'present',
+                'check_in' => $time,
+                'notes' => 'Check-in via scan QR',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            $journal->audit('check_in', 'mechanic_attendance', $mechanic, 'Check-in mekanik via scan QR.');
+
+            return back()->with('success', "{$mechanic->name} berhasil check-in pada {$time}.");
+        }
+
+        if (! $attendance->check_out) {
+            DB::table('mechanic_attendances')
+                ->where('id', $attendance->id)
+                ->update([
+                    'check_out' => $time,
+                    'notes' => trim(($attendance->notes ? $attendance->notes."\n" : '').'Check-out via scan QR'),
+                    'updated_at' => now(),
+                ]);
+            $journal->audit('check_out', 'mechanic_attendance', $mechanic, 'Check-out mekanik via scan QR.');
+
+            return back()->with('success', "{$mechanic->name} berhasil check-out pada {$time}.");
+        }
+
+        return back()->with('success', "Absensi {$mechanic->name} hari ini sudah lengkap.");
+    }
+
+    public function regenerateMechanicQr(User $mechanic, OperationalJournal $journal)
+    {
+        abort_if($mechanic->role !== 'mechanic', 404);
+
+        $mechanic->update(['attendance_qr_token' => $this->newAttendanceQrToken()]);
+        $journal->audit('regenerate_qr', 'mechanic_attendance', $mechanic, 'Token QR absensi mekanik dibuat ulang.');
+
+        return back()->with('success', "QR absensi {$mechanic->name} berhasil dibuat ulang.");
+    }
+
+    private function ensureMechanicAttendanceTokens(): void
+    {
+        User::where('role', 'mechanic')
+            ->whereNull('attendance_qr_token')
+            ->get()
+            ->each(fn (User $mechanic) => $mechanic->update(['attendance_qr_token' => $this->newAttendanceQrToken()]));
+    }
+
+    private function newAttendanceQrToken(): string
+    {
+        do {
+            $token = Str::random(48);
+        } while (User::where('attendance_qr_token', $token)->exists());
+
+        return $token;
     }
 
     public function storeAttendance(Request $request)
