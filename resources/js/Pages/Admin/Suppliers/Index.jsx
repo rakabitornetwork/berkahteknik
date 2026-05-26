@@ -2,6 +2,7 @@ import React from 'react';
 import { router, Link } from '@inertiajs/react';
 import { Plus, Edit, Trash2, Truck } from 'lucide-react';
 import AdminLayout from '../../../Layouts/AdminLayout';
+import Pagination from '../../../Components/Pagination';
 
 export default function Index({ suppliers }) {
     const handleDelete = (id) => {
@@ -92,10 +93,7 @@ export default function Index({ suppliers }) {
                     </table>
                 </div>
 
-                {/* Pagination */}
-                {suppliers.links && (
-                    <div style={{ marginTop: '1rem' }} dangerouslySetInnerHTML={{ __html: suppliers.links }} />
-                )}
+                <Pagination links={suppliers.links} />
             </div>
         </AdminLayout>
     );
