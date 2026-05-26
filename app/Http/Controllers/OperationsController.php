@@ -556,6 +556,21 @@ class OperationsController extends Controller
             return back()->with('success', "{$mechanic->name} berhasil check-in pada {$time}.");
         }
 
+        if (! $attendance->check_in) {
+            DB::table('mechanic_attendances')
+                ->where('id', $attendance->id)
+                ->update([
+                    'status' => 'present',
+                    'check_in' => $time,
+                    'check_out' => null,
+                    'notes' => trim(($attendance->notes ? $attendance->notes."\n" : '').'Check-in via scan QR'),
+                    'updated_at' => now(),
+                ]);
+            $journal->audit('check_in', 'mechanic_attendance', $mechanic, 'Check-in mekanik via scan QR.');
+
+            return back()->with('success', "{$mechanic->name} berhasil check-in pada {$time}.");
+        }
+
         if (! $attendance->check_out) {
             DB::table('mechanic_attendances')
                 ->where('id', $attendance->id)
