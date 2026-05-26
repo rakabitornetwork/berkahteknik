@@ -2,6 +2,7 @@ import React from 'react';
 import { router, Link } from '@inertiajs/react';
 import { CheckCircle, XCircle, Plus, Eye, Trash2, ShoppingBag, Clock, Ban } from 'lucide-react';
 import AdminLayout from '../../../Layouts/AdminLayout';
+import Pagination from '../../../Components/Pagination';
 
 const statusConfig = {
     pending:   { label: 'Menunggu',  color: '#d97706', bg: '#fef3c7' },
@@ -146,10 +147,7 @@ export default function Index({ orders }) {
                     </table>
                 </div>
 
-                {/* Pagination */}
-                {orders.links && (
-                    <div style={{ marginTop: '1rem' }} dangerouslySetInnerHTML={{ __html: orders.links }} />
-                )}
+                <Pagination links={orders.links} />
             </div>
         </AdminLayout>
     );
