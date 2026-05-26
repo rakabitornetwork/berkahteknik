@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Head, router } from '@inertiajs/react';
+import jsQR from 'jsqr';
 import { QRCodeSVG } from 'qrcode.react';
 import AdminLayout from '../../../Layouts/AdminLayout';
 
@@ -10,6 +11,7 @@ export default function MechanicOps({ attendanceRows = [], commissionRows = [], 
     const [cameraScanning, setCameraScanning] = useState(false);
     const [scannerMessage, setScannerMessage] = useState('');
     const videoRef = useRef(null);
+    const canvasRef = useRef(null);
 
     const submitAttendance = (e) => {
         e.preventDefault();
@@ -47,14 +49,10 @@ export default function MechanicOps({ attendanceRows = [], commissionRows = [], 
         };
 
         const start = async () => {
-            if (!('BarcodeDetector' in window)) {
-                setScannerMessage('Browser belum mendukung scan QR langsung. Gunakan input token manual atau browser Chrome/Edge terbaru.');
-                setCameraScanning(false);
-                return;
-            }
-
             try {
-                const detector = new window.BarcodeDetector({ formats: ['qr_code'] });
+                const detector = 'BarcodeDetector' in window
+                    ? new window.BarcodeDetector({ formats: ['qr_code'] })
+                    : null;
                 stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
                 if (!videoRef.current) return;
 
@@ -66,9 +64,22 @@ export default function MechanicOps({ attendanceRows = [], commissionRows = [], 
                     if (stopped || !videoRef.current) return;
 
                     try {
-                        const codes = await detector.detect(videoRef.current);
-                        if (codes.length > 0) {
-                            const value = codes[0].rawValue;
+                        let value = null;
+
+                        if (detector) {
+                            const codes = await detector.detect(videoRef.current);
+                            value = codes[0]?.rawValue || null;
+                        } else if (canvasRef.current && videoRef.current.videoWidth > 0) {
+                            const canvas = canvasRef.current;
+                            const context = canvas.getContext('2d', { willReadFrequently: true });
+                            canvas.width = videoRef.current.videoWidth;
+                            canvas.height = videoRef.current.videoHeight;
+                            context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+                            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                            value = jsQR(imageData.data, imageData.width, imageData.height)?.data || null;
+                        }
+
+                        if (value) {
                             setQrPayload(value);
                             setCameraScanning(false);
                             stopCamera();
@@ -127,7 +138,10 @@ export default function MechanicOps({ attendanceRows = [], commissionRows = [], 
                         </button>
                     </div>
                     {cameraScanning && (
-                        <video ref={videoRef} muted playsInline style={{ width: '100%', maxHeight: '280px', objectFit: 'cover', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }} />
+                        <>
+                            <video ref={videoRef} muted playsInline style={{ width: '100%', maxHeight: '280px', objectFit: 'cover', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }} />
+                            <canvas ref={canvasRef} style={{ display: 'none' }} />
+                        </>
                     )}
                     {scannerMessage && <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{scannerMessage}</div>}
                 </div>
@@ -190,7 +204,7 @@ export default function MechanicOps({ attendanceRows = [], commissionRows = [], 
                     </form>
                 </div>
 
-                <div className="glass-panel" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
+                <div className="glass-panel printable-area" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
                         <div>
                             <h3 style={{ margin: 0 }}>Kartu QR Mekanik</h3>
