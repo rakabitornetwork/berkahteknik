@@ -27,6 +27,8 @@ import {
     Building2,
     LockKeyhole,
     CreditCard,
+    Eye,
+    EyeOff,
 } from 'lucide-react';
 import CompanyBranding from '../Components/CompanyBranding';
 import AppFooter from '../Components/AppFooter';
@@ -41,25 +43,25 @@ const navItems = [
     { href: '/admin/sales', label: 'Penjualan (POS)', icon: ShoppingCart },
     { href: '/admin/customers', label: 'Pelanggan', icon: Users },
     { href: '/admin/spare-parts', label: 'Spare Part & Stok', icon: Package },
-    { href: '/admin/stock-movements', label: 'Kartu Stok', icon: QrCode },
-    { href: '/admin/mechanics', label: 'Data Mekanik', icon: Users },
-    { href: '/admin/mechanic-ops', label: 'Operasional Mekanik', icon: UserCheck, roles: ['owner', 'admin'] },
-    { href: '/admin/reports', label: 'Laporan', icon: BarChart3 },
-    { href: '/admin/finance', label: 'Buku Kas & Laba Rugi', icon: Landmark, roles: ['owner', 'admin'] },
-    { href: '/admin/expenses', label: 'Pengeluaran Bengkel', icon: Wallet },
-    { href: '/admin/suppliers', label: 'Supplier', icon: Truck },
-    { href: '/admin/purchase-orders', label: 'Pengadaan Barang (PO)', icon: ShoppingBag },
-    { href: '/admin/returns', label: 'Retur & Refund', icon: RotateCcw, roles: ['owner', 'admin', 'cashier', 'purchasing'] },
-    { href: '/admin/warranty-claims', label: 'Klaim Garansi', icon: ShieldCheck },
-    { href: '/admin/crm/follow-ups', label: 'CRM Follow-up', icon: UserCheck },
-    { href: '/admin/audit-logs', label: 'Audit Log', icon: LockKeyhole, roles: ['owner', 'admin'] },
-    { href: '/admin/branches-warehouses', label: 'Cabang & Gudang', icon: Building2, roles: ['owner', 'admin'] },
-    { href: '/admin/backups', label: 'Backup & Restore', icon: Archive, roles: ['owner', 'admin'] },
-    { href: '/admin/pro/notifications', label: 'Notifikasi Otomatis', icon: Bell, pro: true },
-    { href: '/admin/pro/digital-payments', label: 'Pembayaran Digital', icon: CreditCard, pro: true },
-    { href: '/admin/cms/posts', label: 'Konten Situs', icon: Globe },
-    { href: '/admin/settings', label: 'Pengaturan Aplikasi', icon: Settings },
-    { href: '/admin/system-update', label: 'Update GitHub', icon: Download },
+    { href: '/admin/stock-movements', label: 'Kartu Stok', icon: QrCode, advanced: true },
+    { href: '/admin/mechanics', label: 'Data Mekanik', icon: Users, advanced: true },
+    { href: '/admin/mechanic-ops', label: 'Operasional Mekanik', icon: UserCheck, roles: ['owner', 'admin'], advanced: true },
+    { href: '/admin/reports', label: 'Laporan', icon: BarChart3, advanced: true },
+    { href: '/admin/finance', label: 'Buku Kas & Laba Rugi', icon: Landmark, roles: ['owner', 'admin'], advanced: true },
+    { href: '/admin/expenses', label: 'Pengeluaran Bengkel', icon: Wallet, advanced: true },
+    { href: '/admin/suppliers', label: 'Supplier', icon: Truck, advanced: true },
+    { href: '/admin/purchase-orders', label: 'Pengadaan Barang (PO)', icon: ShoppingBag, advanced: true },
+    { href: '/admin/returns', label: 'Retur & Refund', icon: RotateCcw, roles: ['owner', 'admin', 'cashier', 'purchasing'], advanced: true },
+    { href: '/admin/warranty-claims', label: 'Klaim Garansi', icon: ShieldCheck, advanced: true },
+    { href: '/admin/crm/follow-ups', label: 'CRM Follow-up', icon: UserCheck, advanced: true },
+    { href: '/admin/audit-logs', label: 'Audit Log', icon: LockKeyhole, roles: ['owner', 'admin'], advanced: true },
+    { href: '/admin/branches-warehouses', label: 'Cabang & Gudang', icon: Building2, roles: ['owner', 'admin'], advanced: true },
+    { href: '/admin/backups', label: 'Backup & Restore', icon: Archive, roles: ['owner', 'admin'], advanced: true },
+    { href: '/admin/pro/notifications', label: 'Notifikasi Otomatis', icon: Bell, pro: true, advanced: true },
+    { href: '/admin/pro/digital-payments', label: 'Pembayaran Digital', icon: CreditCard, pro: true, advanced: true },
+    { href: '/admin/cms/posts', label: 'Konten Situs', icon: Globe, advanced: true },
+    { href: '/admin/settings', label: 'Pengaturan Aplikasi', icon: Settings, advanced: true },
+    { href: '/admin/system-update', label: 'Update GitHub', icon: Download, advanced: true },
 ];
 
 export default function AdminLayout({ children, title }) {
@@ -68,6 +70,14 @@ export default function AdminLayout({ children, title }) {
     const user = auth?.user;
     const [collapsed, setCollapsed] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [simpleMode, setSimpleMode] = useState(() => {
+        const saved = localStorage.getItem('admin_simple_mode');
+        return saved !== null ? JSON.parse(saved) : true;
+    });
+
+    useEffect(() => {
+        localStorage.setItem('admin_simple_mode', JSON.stringify(simpleMode));
+    }, [simpleMode]);
 
     const isActive = (href) => {
         if (href === '/admin' && url === '/admin') return true;
@@ -77,6 +87,7 @@ export default function AdminLayout({ children, title }) {
 
     const canSee = (item) => {
         if (item.href === '/admin/system-update' && user?.role !== 'admin' && user?.role !== 'owner') return false;
+        if (simpleMode && item.advanced) return false;
         if (!item.roles) return true;
         return item.roles.includes(user?.role) || user?.role === 'admin';
     };
@@ -126,6 +137,59 @@ export default function AdminLayout({ children, title }) {
                         );
                     })}
                 </nav>
+
+                <div style={{
+                    padding: '0.75rem 0.25rem',
+                    borderTop: '1px solid var(--color-sidebar-border)',
+                    marginTop: 'auto',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.5rem',
+                    boxSizing: 'border-box',
+                }}>
+                    {!collapsed ? (
+                        <button
+                            type="button"
+                            onClick={() => setSimpleMode(!simpleMode)}
+                            className="admin-nav-link"
+                            style={{
+                                width: '100%',
+                                justifyContent: 'flex-start',
+                                background: simpleMode ? 'var(--color-primary-alpha)' : 'transparent',
+                                border: '1px dashed rgba(161, 161, 170, 0.2)',
+                                cursor: 'pointer',
+                                padding: '0.5rem 0.75rem',
+                                color: simpleMode ? 'var(--color-primary-light)' : 'var(--color-sidebar-text)',
+                            }}
+                        >
+                            {simpleMode ? <EyeOff size={18} /> : <Eye size={18} />}
+                            <span style={{ fontSize: '0.8rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left', lineHeight: '1.2' }}>
+                                <span style={{ fontWeight: 600 }}>{simpleMode ? 'Mode Sederhana' : 'Mode Lengkap'}</span>
+                                <span style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)', fontWeight: 400 }}>
+                                    {simpleMode ? 'Menu disederhanakan' : 'Semua menu aktif'}
+                                </span>
+                            </span>
+                        </button>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={() => setSimpleMode(!simpleMode)}
+                            className="admin-nav-link"
+                            style={{
+                                justifyContent: 'center',
+                                background: simpleMode ? 'var(--color-primary-alpha)' : 'transparent',
+                                border: '1px dashed rgba(161, 161, 170, 0.2)',
+                                cursor: 'pointer',
+                                padding: '0.625rem 0',
+                                width: '100%',
+                                color: simpleMode ? 'var(--color-primary-light)' : 'var(--color-sidebar-text)',
+                            }}
+                            title={simpleMode ? 'Mode Sederhana (Klik untuk Mode Lengkap)' : 'Mode Lengkap (Klik untuk Mode Sederhana)'}
+                        >
+                            {simpleMode ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                    )}
+                </div>
             </aside>
 
             <div className="admin-main-content">
