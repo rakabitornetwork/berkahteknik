@@ -121,6 +121,16 @@ class GitDeployService
             return $this->result(false, $logs, 'Sudah pada commit yang sama dengan '.$remote.'/'.$branch.'. Tidak ada update untuk dipasang.');
         }
 
+        // Bersihkan file yang ada di ignore_dirty_paths sebelum pull,
+        // agar file seperti public/build/manifest.json tidak memblokir merge.
+        $ignoredDirty = $this->getIgnoredLocalChangePaths();
+        if ($ignoredDirty !== []) {
+            $checkoutArgs = implode(' ', array_map('escapeshellarg', $ignoredDirty));
+            $checkout = $this->runGit('checkout -- '.$checkoutArgs);
+            $logs[] = $this->logEntry('Bersihkan file ignored yang berubah ('.count($ignoredDirty).' file)', $checkout);
+            // Tidak fatal jika gagal — lanjut coba pull
+        }
+
         $pull = $this->runGit('pull --ff-only '.$remote.' '.$branch.' --tags');
         $logs[] = $this->logEntry('Git pull', $pull);
         if (! $pull['success']) {
