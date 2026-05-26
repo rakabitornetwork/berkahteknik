@@ -21,6 +21,7 @@ use App\Http\Controllers\Public\PublicPostController;
 use App\Http\Controllers\CmsPostController;
 use App\Http\Controllers\LandingSettingController;
 use App\Http\Controllers\SystemUpdateController;
+use App\Http\Controllers\OperationsController;
 
 // ─── Halaman publik (landing & konten) ───────────────────────────────────────
 Route::get('/', [LandingController::class, 'index'])->name('home');
@@ -48,6 +49,9 @@ Route::prefix('portal')->name('portal.')->group(function () {
         // Bookings
         Route::get('/bookings/create',   [PortalDashboardController::class, 'createBooking'])->name('bookings.create');
         Route::post('/bookings',          [PortalDashboardController::class, 'storeBooking'])->name('bookings.store');
+        Route::patch('/bookings/{id}/cancel', [PortalDashboardController::class, 'cancelBooking'])->name('bookings.cancel');
+        Route::patch('/bookings/{id}/reschedule', [PortalDashboardController::class, 'rescheduleBooking'])->name('bookings.reschedule');
+        Route::post('/services/{id}/warranty-claims', [PortalDashboardController::class, 'storeWarrantyClaim'])->name('warranty-claims.store');
     });
 });
 
@@ -75,6 +79,10 @@ Route::prefix('admin')->middleware(['auth', 'admin.role'])->name('admin.')->grou
     // Pengaturan Aplikasi
     Route::get('/settings', [SettingController::class, 'edit'])->name('settings.edit');
     Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
+
+    // Fitur Pro (terlihat, terkunci)
+    Route::get('/pro/notifications', [OperationsController::class, 'proNotifications'])->name('pro.notifications');
+    Route::get('/pro/digital-payments', [OperationsController::class, 'proDigitalPayments'])->name('pro.digital-payments');
 
     // Update dari GitHub (hanya role admin)
     Route::middleware('admin.role')->prefix('system-update')->name('system-update.')->group(function () {
@@ -176,4 +184,36 @@ Route::prefix('admin')->middleware(['auth', 'admin.role'])->name('admin.')->grou
     Route::resource('suppliers', SupplierController::class);
     Route::resource('purchase-orders', PurchaseOrderController::class);
     Route::patch('purchase-orders/{purchaseOrder}/status', [PurchaseOrderController::class, 'updateStatus'])->name('purchase-orders.status');
+
+    // Paket fitur operasional bengkel
+    Route::get('/bookings', [OperationsController::class, 'bookings'])->name('bookings.index');
+    Route::patch('/bookings/{service}/approve', [OperationsController::class, 'approveBooking'])->name('bookings.approve');
+    Route::patch('/bookings/{service}/reject', [OperationsController::class, 'rejectBooking'])->name('bookings.reject');
+    Route::patch('/bookings/{service}/cancel', [OperationsController::class, 'cancelBooking'])->name('bookings.cancel');
+    Route::patch('/bookings/reschedule', [OperationsController::class, 'rescheduleBooking'])->name('bookings.reschedule');
+
+    Route::get('/service-payments', [OperationsController::class, 'servicePayments'])->name('service-payments.index');
+    Route::post('/service-payments', [OperationsController::class, 'storeServicePayment'])->name('service-payments.store');
+    Route::get('/finance', [OperationsController::class, 'finance'])->name('finance.index');
+    Route::get('/stock-movements', [OperationsController::class, 'stockMovements'])->name('stock-movements.index');
+    Route::get('/returns', [OperationsController::class, 'returns'])->name('returns.index');
+    Route::post('/returns', [OperationsController::class, 'storeReturn'])->name('returns.store');
+
+    Route::get('/warranty-claims', [OperationsController::class, 'warrantyClaims'])->name('warranty-claims.index');
+    Route::post('/warranty-claims', [OperationsController::class, 'storeWarrantyClaim'])->name('warranty-claims.store');
+    Route::patch('/warranty-claims/{claim}/approve', [OperationsController::class, 'approveWarrantyClaim'])->name('warranty-claims.approve');
+    Route::patch('/warranty-claims/{claim}/resolve', [OperationsController::class, 'resolveWarrantyClaim'])->name('warranty-claims.resolve');
+
+    Route::get('/mechanic-ops', [OperationsController::class, 'mechanicOps'])->name('mechanic-ops.index');
+    Route::post('/mechanic-ops/attendance', [OperationsController::class, 'storeAttendance'])->name('mechanic-ops.attendance');
+    Route::post('/mechanic-ops/commissions/generate', [OperationsController::class, 'generateCommissions'])->name('mechanic-ops.commissions.generate');
+    Route::get('/audit-logs', [OperationsController::class, 'auditLogs'])->name('audit-logs.index');
+    Route::get('/crm/follow-ups', [OperationsController::class, 'crm'])->name('crm.follow-ups.index');
+    Route::post('/crm/follow-ups', [OperationsController::class, 'storeFollowUp'])->name('crm.follow-ups.store');
+    Route::get('/branches-warehouses', [OperationsController::class, 'branchesWarehouses'])->name('branches-warehouses.index');
+    Route::post('/branches', [OperationsController::class, 'storeBranch'])->name('branches.store');
+    Route::post('/warehouses', [OperationsController::class, 'storeWarehouse'])->name('warehouses.store');
+    Route::get('/backups', [OperationsController::class, 'backups'])->name('backups.index');
+    Route::post('/backups', [OperationsController::class, 'createBackup'])->name('backups.store');
+    Route::get('/exports/{type}', [OperationsController::class, 'export'])->name('exports.download');
 });

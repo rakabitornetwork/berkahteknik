@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin.role' => \App\Http\Middleware\EnsureAdminRole::class,
             'mechanic.role' => \App\Http\Middleware\EnsureMechanicRole::class,
+            'permission' => \App\Http\Middleware\EnsureRolePermission::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

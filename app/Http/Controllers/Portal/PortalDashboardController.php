@@ -166,4 +166,69 @@ class PortalDashboardController extends Controller
         return redirect()->route('portal.dashboard')
             ->with('success', 'Booking servis berhasil diajukan. Silakan tunggu konfirmasi admin.');
     }
+
+    public function cancelBooking(int $id)
+    {
+        $customer = Auth::guard('customer')->user();
+        $service = \App\Models\Service::where('status', 'booking')
+            ->whereHas('vehicle', fn($q) => $q->where('customer_id', $customer->id))
+            ->findOrFail($id);
+
+        $service->update([
+            'booking_status' => 'cancelled',
+            'booking_cancelled_at' => now(),
+            'booking_notes' => 'Dibatalkan pelanggan dari portal.',
+        ]);
+
+        return redirect()->route('portal.dashboard')
+            ->with('success', 'Booking berhasil dibatalkan.');
+    }
+
+    public function rescheduleBooking(Request $request, int $id)
+    {
+        $customer = Auth::guard('customer')->user();
+        $validated = $request->validate([
+            'scheduled_at' => 'required|date|after:today',
+        ]);
+
+        $service = \App\Models\Service::where('status', 'booking')
+            ->whereHas('vehicle', fn($q) => $q->where('customer_id', $customer->id))
+            ->findOrFail($id);
+
+        $service->update([
+            'scheduled_at' => $validated['scheduled_at'],
+            'booking_status' => 'reschedule_requested',
+            'booking_notes' => 'Pelanggan mengajukan perubahan jadwal.',
+        ]);
+
+        return redirect()->route('portal.dashboard')
+            ->with('success', 'Permintaan ubah jadwal berhasil dikirim.');
+    }
+
+    public function storeWarrantyClaim(Request $request, int $id)
+    {
+        $customer = Auth::guard('customer')->user();
+        $validated = $request->validate([
+            'complaint' => 'required|string',
+        ]);
+
+        $service = \App\Models\Service::whereHas('vehicle', fn($q) => $q->where('customer_id', $customer->id))
+            ->findOrFail($id);
+
+        if (! $service->has_active_warranty) {
+            return back()->with('error', 'Garansi servis ini tidak aktif.');
+        }
+
+        \Illuminate\Support\Facades\DB::table('warranty_claims')->insert([
+            'service_id' => $service->id,
+            'customer_id' => $customer->id,
+            'status' => 'submitted',
+            'complaint' => $validated['complaint'],
+            'claimed_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return back()->with('success', 'Klaim garansi berhasil diajukan.');
+    }
 }

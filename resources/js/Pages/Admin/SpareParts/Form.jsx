@@ -7,6 +7,7 @@ export default function SparePartForm({ sparePart }) {
     const isEditing = !!sparePart;
     const { data, setData, post, put, processing, errors } = useForm({
         code:        sparePart?.code        || '',
+        barcode:     sparePart?.barcode     || '',
         name:        sparePart?.name        || '',
         unit:        sparePart?.unit        || 'pcs',
         stock:       sparePart?.stock       || 0,
@@ -52,6 +53,13 @@ export default function SparePartForm({ sparePart }) {
                                     {units.map(u => <option key={u} value={u}>{u}</option>)}
                                 </select>
                             </div>
+                        </div>
+
+                        <div>
+                            <label className="form-label">Barcode / QR Code</label>
+                            <input type="text" value={data.barcode} onChange={e => setData('barcode', e.target.value)}
+                                className="form-input" placeholder="Scan atau isi kode barcode" />
+                            {errors.barcode && <div style={{ color: 'var(--color-danger)', fontSize: '0.75rem', marginTop: '0.25rem' }}>{errors.barcode}</div>}
                         </div>
 
                         <div>

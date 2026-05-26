@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Expense;
+use App\Services\OperationalJournal;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -64,7 +65,7 @@ class ExpenseController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, OperationalJournal $journal)
     {
         $validated = $request->validate([
             'expense_date' => 'required|date',
@@ -73,7 +74,9 @@ class ExpenseController extends Controller
             'description'  => 'nullable|string',
         ]);
 
-        Expense::create($validated);
+        $expense = Expense::create($validated);
+        $journal->cash('expense', 'operational_expense', (float) $expense->amount, $expense, $expense->category.' - '.($expense->description ?: 'Pengeluaran bengkel'), $expense->expense_date);
+        $journal->audit('create', 'expense', $expense, 'Pengeluaran bengkel dicatat.');
 
         return redirect()->route('admin.expenses.index')
             ->with('success', 'Pengeluaran baru berhasil dicatat.');

@@ -11,6 +11,7 @@ class Expense extends Model
         'category',
         'amount',
         'description',
+        'branch_id',
     ];
 
     protected $casts = [

@@ -6,7 +6,9 @@ use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
 use App\Models\Supplier;
 use App\Models\SparePart;
+use App\Services\OperationalJournal;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class PurchaseOrderController extends Controller
@@ -147,26 +149,38 @@ class PurchaseOrderController extends Controller
     /**
      * Update status of purchase order (e.g., mark as completed).
      */
-    public function updateStatus(Request $request, PurchaseOrder $purchaseOrder)
+    public function updateStatus(Request $request, PurchaseOrder $purchaseOrder, OperationalJournal $journal)
     {
         $validated = $request->validate([
             'status' => 'required|in:pending,completed,cancelled',
         ]);
 
-        $purchaseOrder->status = $validated['status'];
-        $purchaseOrder->save();
+        DB::transaction(function () use ($purchaseOrder, $validated, $journal) {
+            $previousStatus = $purchaseOrder->status;
+            if ($previousStatus === 'completed' && $validated['status'] === 'completed') {
+                return;
+            }
 
-        if ($validated['status'] === 'completed') {
-            // Auto‑add stock and update buy_price
-            foreach ($purchaseOrder->items as $item) {
-                $spare = SparePart::find($item->spare_part_id);
-                if ($spare) {
-                    $spare->stock += $item->quantity;
-                    $spare->buy_price = $item->unit_price; // set latest purchase price
-                    $spare->save();
+            $purchaseOrder->status = $validated['status'];
+            if ($validated['status'] === 'completed') {
+                $purchaseOrder->completed_at = now();
+            }
+            $purchaseOrder->save();
+
+            if ($validated['status'] === 'completed') {
+                foreach ($purchaseOrder->items as $item) {
+                    $spare = SparePart::lockForUpdate()->find($item->spare_part_id);
+                    if ($spare) {
+                        $before = $spare->stock;
+                        $spare->stock += $item->quantity;
+                        $spare->buy_price = $item->unit_price;
+                        $spare->save();
+                        $journal->stock($spare, 'in', $item->quantity, $before, $spare->stock, $purchaseOrder, 'Penerimaan PO '.$purchaseOrder->po_number, $item->unit_price);
+                    }
                 }
             }
-        }
+            $journal->audit('status', 'purchase_order', $purchaseOrder, 'Status PO diperbarui ke '.$validated['status']);
+        });
 
         return redirect()->route('admin.purchase-orders.show', $purchaseOrder)->with('success', 'Status updated successfully.');
     }

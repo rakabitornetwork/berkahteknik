@@ -1,5 +1,5 @@
-import React from 'react';
-import { Head, Link } from '@inertiajs/react';
+import React, { useState } from 'react';
+import { Head, Link, router } from '@inertiajs/react';
 import PortalLayout from '../../Layouts/PortalLayout';
 import StatusBadge from '../../Components/StatusBadge';
 import { CheckCircle, Clock, Check, Wrench, ArrowLeft } from 'lucide-react';
@@ -40,6 +40,8 @@ function Tracker({ status }) {
 
 export default function PortalServiceDetail({ service, customer }) {
     const isBooking = service.status === 'booking';
+    const [newSchedule, setNewSchedule] = useState('');
+    const [claimText, setClaimText] = useState('');
 
     return (
         <PortalLayout customer={customer}>
@@ -91,6 +93,17 @@ export default function PortalServiceDetail({ service, customer }) {
                                     <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 500, marginBottom: '0.25rem' }}>KELUHAN KENDARAAN</div>
                                     <div style={{ fontSize: '0.9rem', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{service.description}</div>
                                 </div>
+                            </div>
+                            <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)', display: 'grid', gap: '0.75rem' }}>
+                                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                    <button type="button" className="btn btn-outline" onClick={() => router.patch(`/portal/bookings/${service.id}/cancel`)}>
+                                        Batalkan Booking
+                                    </button>
+                                </div>
+                                <form onSubmit={e => { e.preventDefault(); router.patch(`/portal/bookings/${service.id}/reschedule`, { scheduled_at: newSchedule }); }} style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                    <input className="form-input" type="datetime-local" value={newSchedule} onChange={e => setNewSchedule(e.target.value)} required style={{ maxWidth: '240px' }} />
+                                    <button type="submit" className="btn btn-primary">Ajukan Ubah Jadwal</button>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -154,6 +167,12 @@ export default function PortalServiceDetail({ service, customer }) {
                                     </p>
                                     {service.warranty_notes && <p style={{ marginTop: '0.75rem', color: 'var(--color-text-muted)' }}>{service.warranty_notes}</p>}
                                 </div>
+                                {service.has_active_warranty && (
+                                    <form onSubmit={e => { e.preventDefault(); router.post(`/portal/services/${service.id}/warranty-claims`, { complaint: claimText }); }} style={{ marginTop: '1rem', display: 'grid', gap: '0.5rem' }}>
+                                        <textarea className="form-input" rows={3} value={claimText} onChange={e => setClaimText(e.target.value)} placeholder="Jelaskan keluhan untuk klaim garansi..." required />
+                                        <button type="submit" className="btn btn-primary" style={{ justifySelf: 'start' }}>Ajukan Klaim Garansi</button>
+                                    </form>
+                                )}
                             </div>
                         )}
 
