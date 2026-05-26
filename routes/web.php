@@ -13,6 +13,8 @@ use App\Http\Controllers\Portal\CustomerAuthController;
 use App\Http\Controllers\Portal\PortalDashboardController;
 use App\Http\Controllers\AdminProfileController;
 use App\Http\Controllers\WorkOrderController;
+use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\Public\LandingController;
 use App\Http\Controllers\Public\PublicPostController;
@@ -54,8 +56,16 @@ Route::get('/admin/login',   [AdminAuthController::class, 'showLoginForm'])->nam
 Route::post('/admin/login',  [AdminAuthController::class, 'login']);
 Route::post('/admin/logout', [AdminAuthController::class, 'logout'])->name('logout')->middleware('auth');
 
+// ─── Mechanic Panel (Protected) ────────────────────────────────────────────────
+Route::prefix('mechanic')->middleware(['auth', 'mechanic.role'])->name('mechanic.')->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\MechanicDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/services/{service}', [App\Http\Controllers\MechanicDashboardController::class, 'show'])->name('services.show');
+    Route::patch('/services/{service}/status', [App\Http\Controllers\MechanicDashboardController::class, 'updateStatus'])->name('services.status');
+    Route::post('/services/{service}/notes', [App\Http\Controllers\MechanicDashboardController::class, 'updateNotes'])->name('services.notes');
+});
+
 // ─── Admin Panel (Protected) ──────────────────────────────────────────────────
-Route::prefix('admin')->middleware('auth')->name('admin.')->group(function () {
+Route::prefix('admin')->middleware(['auth', 'admin.role'])->name('admin.')->group(function () {
 
     Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
 
@@ -152,4 +162,18 @@ Route::prefix('admin')->middleware('auth')->name('admin.')->group(function () {
         'show'    => 'sales.show',
         'destroy' => 'sales.destroy',
     ]);
+
+    // Pengeluaran Operasional
+    Route::resource('expenses', App\Http\Controllers\ExpenseController::class)->except(['show'])->names([
+        'index'   => 'expenses.index',
+        'create'  => 'expenses.create',
+        'store'   => 'expenses.store',
+        'edit'    => 'expenses.edit',
+        'update'  => 'expenses.update',
+        'destroy' => 'expenses.destroy',
+    ]);
+    // Supplier & Purchase Orders
+    Route::resource('suppliers', SupplierController::class);
+    Route::resource('purchase-orders', PurchaseOrderController::class);
+    Route::patch('purchase-orders/{purchaseOrder}/status', [PurchaseOrderController::class, 'updateStatus'])->name('purchase-orders.status');
 });

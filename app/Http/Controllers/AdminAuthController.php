@@ -23,6 +23,11 @@ class AdminAuthController extends Controller
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
+            $user = Auth::user();
+            if ($user->role === 'mechanic') {
+                return redirect()->intended('/mechanic/dashboard');
+            }
+
             return redirect()->intended('/admin');
         }
 
