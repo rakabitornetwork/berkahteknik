@@ -14,6 +14,7 @@ export default function ServiceShow({ service }) {
     const paidTotal = payments.reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
     const balanceDue = Math.max(0, grandTotal - paidTotal);
     const [paymentForm, setPaymentForm] = useState({ amount: balanceDue || '', payment_method: 'cash', notes: '' });
+    const [cashReceived, setCashReceived] = useState('');
 
     const handleDelete = () => {
         const label = service.spk_number || `Servis #${String(service.id).padStart(4, '0')}`;
@@ -214,16 +215,57 @@ export default function ServiceShow({ service }) {
                             </table>
                         )}
                         {balanceDue > 0 && service.status === 'selesai' && (
-                            <form onSubmit={e => { e.preventDefault(); router.post('/admin/service-payments', { service_id: service.id, ...paymentForm }); }} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.5fr auto', gap: '0.5rem', alignItems: 'center' }}>
-                                <input className="form-input" type="number" min="1" value={paymentForm.amount} onChange={e => setPaymentForm({ ...paymentForm, amount: e.target.value })} placeholder="Nominal" required />
-                                <select className="form-input" value={paymentForm.payment_method} onChange={e => setPaymentForm({ ...paymentForm, payment_method: e.target.value })}>
-                                    <option value="cash">Tunai</option>
-                                    <option value="transfer">Transfer</option>
-                                    <option value="qris">QRIS</option>
-                                </select>
-                                <input className="form-input" value={paymentForm.notes} onChange={e => setPaymentForm({ ...paymentForm, notes: e.target.value })} placeholder="Catatan pembayaran" />
-                                <button className="btn btn-primary" type="submit">Catat Bayar</button>
-                            </form>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1rem', padding: '1rem', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)' }}>
+                                <h5 style={{ margin: 0, fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-primary)' }}>Catat Pembayaran Cepat</h5>
+                                <form onSubmit={e => { e.preventDefault(); router.post('/admin/service-payments', { service_id: service.id, ...paymentForm }); }} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1.5fr auto', gap: '0.5rem', alignItems: 'center' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                            <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>NOMINAL BAYAR (KAS)</span>
+                                            <input className="form-input" type="number" min="1" value={paymentForm.amount} onChange={e => setPaymentForm({ ...paymentForm, amount: e.target.value })} placeholder="Nominal" required />
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                            <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>METODE</span>
+                                            <select className="form-input" value={paymentForm.payment_method} onChange={e => { setPaymentForm({ ...paymentForm, payment_method: e.target.value }); setCashReceived(''); }}>
+                                                <option value="cash">Tunai</option>
+                                                <option value="transfer">Transfer</option>
+                                                <option value="qris">QRIS</option>
+                                            </select>
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                            <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>CATATAN</span>
+                                            <input className="form-input" value={paymentForm.notes} onChange={e => setPaymentForm({ ...paymentForm, notes: e.target.value })} placeholder="Catatan pembayaran" />
+                                        </div>
+                                        <div style={{ display: 'flex', alignSelf: 'end' }}>
+                                            <button className="btn btn-primary" type="submit" style={{ height: '2.5rem' }}>Catat Bayar</button>
+                                        </div>
+                                    </div>
+
+                                    {paymentForm.payment_method === 'cash' && (
+                                        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', background: 'rgba(59, 130, 246, 0.05)', padding: '0.75rem 1rem', borderRadius: 'var(--radius-md)', border: '1px dashed rgba(59, 130, 246, 0.2)', marginTop: '0.25rem' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>UANG FISIK DITERIMA:</span>
+                                                <input 
+                                                    className="form-input" 
+                                                    type="number" 
+                                                    value={cashReceived} 
+                                                    onChange={e => setCashReceived(e.target.value)} 
+                                                    placeholder="Contoh: 100000" 
+                                                    style={{ width: '150px', height: '2.2rem', fontSize: '0.85rem', padding: '0.25rem 0.5rem' }} 
+                                                />
+                                            </div>
+                                            {Number(cashReceived) > 0 && (
+                                                <div style={{ fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                                                    <span style={{ color: 'var(--color-text-muted)', fontWeight: 500 }}>UANG KEMBALIAN:</span>
+                                                    <span style={{ color: Number(cashReceived) - Number(paymentForm.amount) >= 0 ? 'var(--color-success)' : 'var(--color-danger)' }}>
+                                                        {fmt(Math.max(0, Number(cashReceived) - Number(paymentForm.amount)))}
+                                                        {Number(cashReceived) - Number(paymentForm.amount) < 0 && ' (Kurang)'}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </form>
+                            </div>
                         )}
                     </div>
 
