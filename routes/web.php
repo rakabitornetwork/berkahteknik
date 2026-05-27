@@ -192,7 +192,6 @@ Route::prefix('admin')->middleware(['auth', 'admin.role'])->name('admin.')->grou
     Route::patch('/bookings/{service}/cancel', [OperationsController::class, 'cancelBooking'])->name('bookings.cancel');
     Route::patch('/bookings/reschedule', [OperationsController::class, 'rescheduleBooking'])->name('bookings.reschedule');
 
-    Route::get('/service-payments', [OperationsController::class, 'servicePayments'])->name('service-payments.index');
     Route::post('/service-payments', [OperationsController::class, 'storeServicePayment'])->name('service-payments.store');
     Route::get('/finance', [OperationsController::class, 'finance'])->name('finance.index');
     Route::get('/stock-movements', [OperationsController::class, 'stockMovements'])->name('stock-movements.index');

@@ -39,7 +39,6 @@ const navItems = [
     { href: '/admin/services', label: 'Manajemen Servis', icon: Wrench },
     { href: '/admin/bookings', label: 'Booking Servis', icon: CalendarClock },
     { href: '/admin/work-orders', label: 'Surat Perintah Kerja', icon: FileText },
-    { href: '/admin/service-payments', label: 'Pembayaran Servis', icon: CreditCard, roles: ['owner', 'admin', 'cashier'] },
     { href: '/admin/sales', label: 'Penjualan (POS)', icon: ShoppingCart },
     { href: '/admin/customers', label: 'Pelanggan', icon: Users },
     { href: '/admin/spare-parts', label: 'Spare Part & Stok', icon: Package },
