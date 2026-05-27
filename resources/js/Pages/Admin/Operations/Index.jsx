@@ -6,8 +6,22 @@ import Pagination from '../../../Components/Pagination';
 const resolveUrl = (template, row) => template.replace('{id}', row.id);
 
 function DynamicForm({ form }) {
-    const initial = Object.fromEntries((form.fields || []).map(field => [field.name, field.default || '']));
-    const [data, setData] = useState(initial);
+    const [data, setData] = useState({});
+
+    React.useEffect(() => {
+        const initial = Object.fromEntries((form.fields || []).map(field => [field.name, field.default || '']));
+        setData(initial);
+    }, [form]);
+
+    const handleChange = (name, value) => {
+        setData(prev => {
+            const next = { ...prev, [name]: value };
+            if (name === 'service_id' && form.serviceBalances && form.serviceBalances[value] !== undefined) {
+                next.amount = form.serviceBalances[value];
+            }
+            return next;
+        });
+    };
 
     const submit = (e) => {
         e.preventDefault();
@@ -25,7 +39,7 @@ function DynamicForm({ form }) {
                         <textarea
                             className="form-input"
                             value={data[field.name] || ''}
-                            onChange={e => setData(prev => ({ ...prev, [field.name]: e.target.value }))}
+                            onChange={e => handleChange(field.name, e.target.value)}
                             required={field.required}
                             rows={3}
                         />
@@ -33,7 +47,7 @@ function DynamicForm({ form }) {
                         <select
                             className="form-input"
                             value={data[field.name] || ''}
-                            onChange={e => setData(prev => ({ ...prev, [field.name]: e.target.value }))}
+                            onChange={e => handleChange(field.name, e.target.value)}
                             required={field.required}
                         >
                             <option value="">Pilih...</option>
@@ -46,7 +60,7 @@ function DynamicForm({ form }) {
                             className="form-input"
                             type={field.type || 'text'}
                             value={data[field.name] || ''}
-                            onChange={e => setData(prev => ({ ...prev, [field.name]: e.target.value }))}
+                            onChange={e => handleChange(field.name, e.target.value)}
                             required={field.required}
                         />
                     )}

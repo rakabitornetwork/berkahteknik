@@ -146,6 +146,37 @@ class OperationsController extends Controller
                 'notes' => $row->notes ?: '-',
             ]);
 
+<<<<<<< Updated upstream
+=======
+        $unpaidServicesModels = Service::with(['vehicle.customer', 'spareParts'])
+            ->where('status', 'selesai')
+            ->where('payment_status', 'belum_lunas')
+            ->orderBy('completed_at', 'desc')
+            ->get();
+
+        $unpaidServices = $unpaidServicesModels->mapWithKeys(function ($service) {
+            $label = ($service->spk_number ? $service->spk_number . ' - ' : '') . 
+                     ($service->vehicle?->customer?->name ?? 'Tanpa Pelanggan') . 
+                     ' (' . ($service->vehicle?->license_plate ?? '') . ')';
+            return [$service->id => $label];
+        })->toArray();
+
+        $serviceBalances = [];
+        foreach ($unpaidServicesModels as $service) {
+            $paidTotal = DB::table('service_payments')
+                ->where('service_id', $service->id)
+                ->sum('amount');
+            $balanceDue = max(0, $service->total_cost - $paidTotal);
+            $serviceBalances[$service->id] = $balanceDue;
+        }
+
+        $defaultServiceId = $request->get('service_id', '');
+        $defaultAmount = '';
+        if ($defaultServiceId && isset($serviceBalances[$defaultServiceId])) {
+            $defaultAmount = $serviceBalances[$defaultServiceId];
+        }
+
+>>>>>>> Stashed changes
         return $this->tablePage('Pembayaran Servis', 'Catat pembayaran sebagian/lunas untuk invoice servis.', [
             ['key' => 'service', 'label' => 'Servis'],
             ['key' => 'date', 'label' => 'Tanggal'],
@@ -158,9 +189,15 @@ class OperationsController extends Controller
                 'title' => 'Catat Pembayaran Servis',
                 'action' => '/admin/service-payments',
                 'method' => 'post',
+                'serviceBalances' => $serviceBalances,
                 'fields' => [
+<<<<<<< Updated upstream
                     ['name' => 'service_id', 'label' => 'ID Servis', 'type' => 'number', 'required' => true],
                     ['name' => 'amount', 'label' => 'Nominal', 'type' => 'number', 'required' => true],
+=======
+                    ['name' => 'service_id', 'label' => 'Pilih Servis', 'type' => 'select', 'options' => $unpaidServices, 'default' => $defaultServiceId, 'required' => true],
+                    ['name' => 'amount', 'label' => 'Nominal', 'type' => 'number', 'default' => $defaultAmount, 'required' => true],
+>>>>>>> Stashed changes
                     ['name' => 'payment_method', 'label' => 'Metode Bayar', 'type' => 'select', 'options' => ['cash' => 'Tunai', 'transfer' => 'Transfer', 'qris' => 'QRIS']],
                     ['name' => 'payment_date', 'label' => 'Tanggal Bayar', 'type' => 'date'],
                     ['name' => 'notes', 'label' => 'Catatan', 'type' => 'textarea'],
