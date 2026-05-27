@@ -241,12 +241,7 @@ export default function ServiceShow({ service }) {
                                 <Check size={16} /> Tandai Selesai
                             </button>
                         )}
-                        {service.payment_status === 'belum_lunas' && service.status === 'selesai' && (
-                            <button onClick={() => router.put(`/admin/services/${service.id}`, { ...service, payment_status: 'lunas', status: 'selesai' })}
-                                className="btn btn-outline" style={{ fontSize: '0.85rem', borderColor: 'var(--color-success)', color: 'var(--color-success)', display: 'inline-flex', alignItems: 'center', gap: '0.375rem' }}>
-                                <CreditCard size={16} /> Tandai Lunas
-                            </button>
-                        )}
+
                         <button
                             type="button"
                             onClick={handleDelete}
