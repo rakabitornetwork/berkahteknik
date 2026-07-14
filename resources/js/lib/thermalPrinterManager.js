@@ -3,10 +3,24 @@ import { loadThermalDevice, saveThermalDevice } from './thermalPrinterStorage';
 
 class ThermalPrinterManager {
     constructor() {
-        this.printer = new WebBluetoothReceiptPrinter();
+        this.printer = null;
         this.device = null;
         this.listeners = new Set();
         this._connectPromise = null;
+    }
+
+    _ensurePrinter() {
+        if (this.printer) {
+            return this.printer;
+        }
+
+        if (!this.isSupported()) {
+            throw new Error(
+                'Browser tidak mendukung Web Bluetooth. Gunakan Chrome atau Edge di HTTPS / localhost, dan aktifkan Bluetooth.',
+            );
+        }
+
+        this.printer = new WebBluetoothReceiptPrinter();
 
         this.printer.addEventListener('connected', (device) => {
             this.device = device;
@@ -18,6 +32,8 @@ class ThermalPrinterManager {
             this.device = null;
             this._notify();
         });
+
+        return this.printer;
     }
 
     _notify() {
@@ -49,6 +65,8 @@ class ThermalPrinterManager {
             return Promise.resolve(this.device);
         }
 
+        const printer = this._ensurePrinter();
+
         return new Promise((resolve, reject) => {
             const timer = setTimeout(() => {
                 clearInterval(poll);
@@ -67,23 +85,19 @@ class ThermalPrinterManager {
                 }
             }, 80);
 
-            this.printer.addEventListener('connected', done);
+            printer.addEventListener('connected', done);
         });
     }
 
     async connect() {
-        if (!this.isSupported()) {
-            throw new Error(
-                'Browser tidak mendukung Web Bluetooth. Gunakan Chrome atau Edge di HTTPS / localhost, dan aktifkan Bluetooth.',
-            );
-        }
+        const printer = this._ensurePrinter();
 
         if (this._connectPromise) {
             return this._connectPromise;
         }
 
         this._connectPromise = (async () => {
-            await this.printer.connect();
+            await printer.connect();
             return this._waitForConnected();
         })();
 
@@ -103,7 +117,8 @@ class ThermalPrinterManager {
         }
 
         try {
-            await this.printer.reconnect(saved);
+            const printer = this._ensurePrinter();
+            await printer.reconnect(saved);
             await this._waitForConnected(5000);
             return !!this.device;
         } catch {
@@ -126,10 +141,16 @@ class ThermalPrinterManager {
 
     async print(data) {
         await this.ensureConnected();
-        await this.printer.print(data);
+        await this._ensurePrinter().print(data);
     }
 
     async disconnect() {
+        if (!this.printer) {
+            this.device = null;
+            this._notify();
+            return;
+        }
+
         await this.printer.disconnect();
         this.device = null;
         this._notify();
