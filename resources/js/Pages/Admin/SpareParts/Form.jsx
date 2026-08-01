@@ -1,14 +1,17 @@
 import React from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import AdminLayout from '../../../Layouts/AdminLayout';
+import MasterDataTabs from '../MasterData/MasterDataTabs';
+import { UNIT_OPTIONS } from '../../../constants/units';
 import { ArrowLeft } from 'lucide-react';
 
-export default function SparePartForm({ sparePart }) {
+export default function SparePartForm({ sparePart, productTypes = [] }) {
     const isEditing = !!sparePart;
     const { data, setData, post, put, processing, errors } = useForm({
         code:        sparePart?.code        || '',
         barcode:     sparePart?.barcode     || '',
         name:        sparePart?.name        || '',
+        product_type_id: sparePart?.product_type_id || '',
         unit:        sparePart?.unit        || 'pcs',
         stock:       sparePart?.stock       || 0,
         min_stock:   sparePart?.min_stock   || 5,
@@ -26,17 +29,16 @@ export default function SparePartForm({ sparePart }) {
         }
     };
 
-    const units = ['pcs', 'liter', 'set', 'meter', 'kg'];
-
     return (
-        <AdminLayout title={isEditing ? 'Edit Spare Part' : 'Tambah Spare Part'}>
-            <Head title={isEditing ? 'Edit Spare Part' : 'Tambah Spare Part'} />
+        <AdminLayout title={isEditing ? 'Edit Data Produk' : 'Tambah Data Produk'}>
+            <Head title={isEditing ? 'Edit Data Produk' : 'Tambah Data Produk'} />
+            <MasterDataTabs />
 
             <div style={{ maxWidth: '600px' }}>
                 <div className="glass-panel" style={{ padding: '2rem' }}>
                     <div style={{ marginBottom: '1.5rem' }}>
                         <Link href="/admin/spare-parts" style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}><ArrowLeft size={14} /> Kembali</Link>
-                        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginTop: '0.5rem' }}>{isEditing ? 'Edit Spare Part' : 'Tambah Spare Part Baru'}</h2>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginTop: '0.5rem' }}>{isEditing ? 'Edit Data Produk' : 'Tambah Data Produk'}</h2>
                     </div>
 
                     <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -50,7 +52,7 @@ export default function SparePartForm({ sparePart }) {
                             <div>
                                 <label className="form-label">Satuan <span style={{ color: 'var(--color-danger)' }}>*</span></label>
                                 <select value={data.unit} onChange={e => setData('unit', e.target.value)} className="form-input">
-                                    {units.map(u => <option key={u} value={u}>{u}</option>)}
+                                    {UNIT_OPTIONS.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
                                 </select>
                             </div>
                         </div>
@@ -67,6 +69,21 @@ export default function SparePartForm({ sparePart }) {
                             <input type="text" value={data.name} onChange={e => setData('name', e.target.value)}
                                 className="form-input" placeholder="Contoh: Kompresor AC Denso" />
                             {errors.name && <div style={{ color: 'var(--color-danger)', fontSize: '0.75rem', marginTop: '0.25rem' }}>{errors.name}</div>}
+                        </div>
+
+                        <div>
+                            <label className="form-label">Kategori Produk</label>
+                            <select className="form-input" value={data.product_type_id} onChange={e => setData('product_type_id', e.target.value)}>
+                                <option value="">-- Tanpa kategori --</option>
+                                {productTypes.map(pt => (
+                                    <option key={pt.id} value={pt.id}>{pt.name}</option>
+                                ))}
+                            </select>
+                            {productTypes.length === 0 && (
+                                <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
+                                    Belum ada kategori produk. Tambahkan di tab Kategori Produk.
+                                </div>
+                            )}
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>

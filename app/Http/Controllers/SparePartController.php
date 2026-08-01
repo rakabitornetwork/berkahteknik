@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ProductType;
 use App\Models\SparePart;
 use App\Services\OperationalJournal;
+use App\Support\Units;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -11,7 +13,8 @@ class SparePartController extends Controller
 {
     public function index(Request $request)
     {
-        $spareParts = SparePart::when($request->search, fn($q) =>
+        $spareParts = SparePart::with('productType')
+            ->when($request->search, fn($q) =>
                 $q->where('name', 'like', "%{$request->search}%")
                   ->orWhere('code', 'like', "%{$request->search}%"))
             ->latest()
@@ -26,7 +29,9 @@ class SparePartController extends Controller
 
     public function create()
     {
-        return Inertia::render('Admin/SpareParts/Form');
+        return Inertia::render('Admin/SpareParts/Form', [
+            'productTypes' => ProductType::where('is_active', true)->orderBy('name')->get(['id', 'name']),
+        ]);
     }
 
     public function store(Request $request)
@@ -35,7 +40,8 @@ class SparePartController extends Controller
             'code'        => 'required|string|unique:spare_parts,code',
             'barcode'     => 'nullable|string|unique:spare_parts,barcode',
             'name'        => 'required|string|max:150',
-            'unit'        => 'required|string|in:pcs,liter,set,meter,kg',
+            'product_type_id' => 'nullable|exists:product_types,id',
+            'unit'        => Units::validationRule(),
             'stock'       => 'required|integer|min:0',
             'min_stock'   => 'required|integer|min:0',
             'buy_price'   => 'required|numeric|min:0',
@@ -53,6 +59,7 @@ class SparePartController extends Controller
     {
         return Inertia::render('Admin/SpareParts/Form', [
             'sparePart' => $sparePart,
+            'productTypes' => ProductType::where('is_active', true)->orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -62,7 +69,8 @@ class SparePartController extends Controller
             'code'        => "required|string|unique:spare_parts,code,{$sparePart->id}",
             'barcode'     => "nullable|string|unique:spare_parts,barcode,{$sparePart->id}",
             'name'        => 'required|string|max:150',
-            'unit'        => 'required|string|in:pcs,liter,set,meter,kg',
+            'product_type_id' => 'nullable|exists:product_types,id',
+            'unit'        => Units::validationRule(),
             'stock'       => 'required|integer|min:0',
             'min_stock'   => 'required|integer|min:0',
             'buy_price'   => 'required|numeric|min:0',

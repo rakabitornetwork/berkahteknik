@@ -17,7 +17,7 @@ function FormSection({ title, children }) {
     );
 }
 
-export default function ServiceForm({ service, customers, technicians, spareParts }) {
+export default function ServiceForm({ service, customers, technicians, spareParts, serviceCategories = [], workTypes = [] }) {
     const { shop } = usePage().props;
     const isEditing = !!service;
     const [selectedCustomer, setSelectedCustomer] = useState(
@@ -29,11 +29,20 @@ export default function ServiceForm({ service, customers, technicians, sparePart
             quantity: p.pivot.quantity,
         })) || []
     );
+    const [workItems, setWorkItems] = useState(
+        service?.work_items?.map(item => ({
+            work_type_id: item.work_type_id || '',
+            name: item.name,
+            quantity: item.quantity,
+            unit: (item.unit || 'job').toLowerCase(),
+        })) || []
+    );
 
     const { data, setData, post, put, processing, errors } = useForm({
         vehicle_id:   service?.vehicle_id || '',
         user_id:      service?.user_id || '',
         service_name: service?.service_name || '',
+        service_category_id: service?.service_category_id || '',
         description:  service?.description || '',
         work_instructions: service?.work_instructions || '',
         diagnosis:    service?.diagnosis || '',
@@ -43,10 +52,31 @@ export default function ServiceForm({ service, customers, technicians, sparePart
         status:       service?.status || 'antri',
         payment_status: service?.payment_status || 'belum_lunas',
         parts:        parts,
+        work_items:   workItems,
         warranty_months: service?.warranty_months ?? '',
         warranty_notes: service?.warranty_notes || '',
         warranty_terms: service?.warranty_terms || '',
     });
+
+    const applyServiceCategory = (categoryId) => {
+        if (!categoryId) {
+            setData('service_category_id', '');
+            return;
+        }
+        const category = serviceCategories.find(c => String(c.id) === String(categoryId));
+        if (!category) {
+            setData('service_category_id', categoryId);
+            return;
+        }
+        setData({
+            ...data,
+            service_category_id: categoryId,
+            service_name: category.name,
+            service_fee: (!isEditing || Number(data.service_fee) === 0)
+                ? (category.default_fee ?? 0)
+                : data.service_fee,
+        });
+    };
 
     const customerVehicles = customers?.find(c => c.id == selectedCustomer)?.vehicles || [];
 
@@ -66,6 +96,36 @@ export default function ServiceForm({ service, customers, technicians, sparePart
         const newParts = data.parts.map((p, i) => i === idx ? { ...p, [field]: value } : p);
         setParts(newParts);
         setData('parts', newParts);
+    };
+
+    const addWorkItem = () => {
+        const next = [...data.work_items, { work_type_id: '', name: '', quantity: 1, unit: 'job' }];
+        setWorkItems(next);
+        setData('work_items', next);
+    };
+
+    const removeWorkItem = (idx) => {
+        const next = data.work_items.filter((_, i) => i !== idx);
+        setWorkItems(next);
+        setData('work_items', next);
+    };
+
+    const updateWorkItem = (idx, field, value) => {
+        const next = data.work_items.map((item, i) => {
+            if (i !== idx) return item;
+            if (field === 'work_type_id') {
+                const workType = workTypes.find(wt => String(wt.id) === String(value));
+                return {
+                    ...item,
+                    work_type_id: value,
+                    name: workType?.name || item.name,
+                    unit: (workType?.unit || item.unit || 'job').toLowerCase(),
+                };
+            }
+            return { ...item, [field]: value };
+        });
+        setWorkItems(next);
+        setData('work_items', next);
     };
 
     const submit = (e) => {
@@ -116,12 +176,6 @@ export default function ServiceForm({ service, customers, technicians, sparePart
 
                         <FormSection title="Informasi Servis">
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                <div>
-                                    <label className="form-label">Jenis Jasa <span style={{ color: 'var(--color-danger)' }}>*</span></label>
-                                    <input type="text" className="form-input" value={data.service_name} onChange={e => setData('service_name', e.target.value)} 
-                                        placeholder="Contoh: Pemasangan Kompresor Baru" required />
-                                    {errors.service_name && <div style={{ color: 'var(--color-danger)', fontSize: '0.75rem', marginTop: '0.25rem' }}>{errors.service_name}</div>}
-                                </div>
                                 <div>
                                     <label className="form-label">Keluhan Pelanggan <span style={{ color: 'var(--color-danger)' }}>*</span></label>
                                     <textarea value={data.description} onChange={e => setData('description', e.target.value)}
@@ -189,7 +243,7 @@ export default function ServiceForm({ service, customers, technicians, sparePart
                         </FormSection>
 
                         {!isEditing && (
-                            <FormSection title="Spare Part yang Dipakai">
+                            <FormSection title="Item Sparepart">
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.75rem' }}>
                                     {data.parts.map((part, idx) => (
                                         <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 80px auto', gap: '0.5rem', alignItems: 'center' }}>
@@ -211,6 +265,99 @@ export default function ServiceForm({ service, customers, technicians, sparePart
                                 </button>
                             </FormSection>
                         )}
+
+                        <FormSection title="Item Pengerjaan">
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                                {data.work_items.map((item, idx) => (
+                                    <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 70px 56px auto', gap: '0.5rem', alignItems: 'center' }}>
+                                        <select
+                                            className="form-input"
+                                            value={item.work_type_id}
+                                            onChange={e => updateWorkItem(idx, 'work_type_id', e.target.value)}
+                                        >
+                                            <option value="">-- Pilih jenis pengerjaan --</option>
+                                            {workTypes.map(wt => (
+                                                <option key={wt.id} value={wt.id}>{wt.name} ({wt.unit})</option>
+                                            ))}
+                                        </select>
+                                        <input
+                                            type="text"
+                                            className="form-input"
+                                            value={item.name}
+                                            onChange={e => updateWorkItem(idx, 'name', e.target.value)}
+                                            placeholder="Nama pengerjaan"
+                                        />
+                                        <input
+                                            type="number"
+                                            className="form-input"
+                                            value={item.quantity}
+                                            min={1}
+                                            onChange={e => updateWorkItem(idx, 'quantity', e.target.value)}
+                                            placeholder="Qty"
+                                        />
+                                        <input
+                                            type="text"
+                                            className="form-input"
+                                            value={(item.unit || 'job').toLowerCase()}
+                                            readOnly
+                                            title="Satuan"
+                                            style={{ textAlign: 'center', fontWeight: 700, textTransform: 'capitalize' }}
+                                        />
+                                        <button type="button" onClick={() => removeWorkItem(idx)}
+                                            style={{ color: 'var(--color-danger)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', lineHeight: 1 }}>×</button>
+                                    </div>
+                                ))}
+                                {data.work_items.length === 0 && (
+                                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
+                                        Belum ada item pengerjaan.
+                                    </div>
+                                )}
+                                {workTypes.length === 0 && (
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                                        Belum ada master Jenis Pengerjaan. Tambahkan di menu Jenis Pengerjaan.
+                                    </div>
+                                )}
+                            </div>
+                            <button type="button" onClick={addWorkItem} className="btn btn-outline" style={{ fontSize: '0.8rem' }}>
+                                + Tambah Item Pengerjaan
+                            </button>
+                        </FormSection>
+
+                        <FormSection title="Jasa">
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                <div>
+                                    <label className="form-label">Kategori Jasa</label>
+                                    <select
+                                        className="form-input"
+                                        value={data.service_category_id}
+                                        onChange={e => applyServiceCategory(e.target.value)}
+                                    >
+                                        <option value="">-- Pilih kategori (opsional) --</option>
+                                        {serviceCategories.map(cat => (
+                                            <option key={cat.id} value={cat.id}>
+                                                {cat.name} · {cat.unit} · Rp {Number(cat.default_fee || 0).toLocaleString('id-ID')}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    {serviceCategories.length === 0 && (
+                                        <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
+                                            Belum ada master Kategori Jasa. Tambahkan di menu Kategori Jasa.
+                                        </div>
+                                    )}
+                                </div>
+                                <div>
+                                    <label className="form-label">Jenis Jasa <span style={{ color: 'var(--color-danger)' }}>*</span></label>
+                                    <input type="text" className="form-input" value={data.service_name} onChange={e => setData('service_name', e.target.value)}
+                                        placeholder="Contoh: Pemasangan Kompresor Baru" required />
+                                    {errors.service_name && <div style={{ color: 'var(--color-danger)', fontSize: '0.75rem', marginTop: '0.25rem' }}>{errors.service_name}</div>}
+                                </div>
+                                <div>
+                                    <label className="form-label">Biaya Jasa (Rp)</label>
+                                    <input type="number" value={data.service_fee} onChange={e => setData('service_fee', e.target.value)}
+                                        className="form-input" placeholder="0" min={0} />
+                                </div>
+                            </div>
+                        </FormSection>
 
                         <FormSection title="Garansi">
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -239,14 +386,6 @@ export default function ServiceForm({ service, customers, technicians, sparePart
                                         <strong>Kebijakan umum:</strong><br />{shop.warranty_policy}
                                     </div>
                                 )}
-                            </div>
-                        </FormSection>
-
-                        <FormSection title="Biaya">
-                            <div>
-                                <label className="form-label">Biaya Jasa (Rp)</label>
-                                <input type="number" value={data.service_fee} onChange={e => setData('service_fee', e.target.value)}
-                                    className="form-input" placeholder="0" min={0} />
                             </div>
                         </FormSection>
 

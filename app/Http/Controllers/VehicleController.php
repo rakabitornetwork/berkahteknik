@@ -30,6 +30,8 @@ class VehicleController extends Controller
             'brand'         => 'required|string|max:50',
             'model'         => 'required|string|max:50',
             'year'          => 'nullable|integer|min:1990|max:' . (date('Y') + 1),
+            'color'         => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'color_name'    => 'nullable|string|max:50',
         ]);
 
         Vehicle::create($validated);
@@ -54,6 +56,8 @@ class VehicleController extends Controller
             'brand'         => 'required|string|max:50',
             'model'         => 'required|string|max:50',
             'year'          => 'nullable|integer|min:1990|max:' . (date('Y') + 1),
+            'color'         => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'color_name'    => 'nullable|string|max:50',
         ]);
 
         $vehicle->update($validated);

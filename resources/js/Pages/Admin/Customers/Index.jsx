@@ -13,13 +13,13 @@ export default function CustomersIndex({ customers, filters }) {
     };
 
     return (
-        <AdminLayout title="Manajemen Pelanggan">
-            <Head title="Pelanggan" />
+        <AdminLayout title="Pelanggan Servis">
+            <Head title="Pelanggan Servis" />
 
             <div className="glass-panel" style={{ padding: '1.25rem' }}>
                 {/* Header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
-                    <h2 style={{ fontSize: '0.875rem', fontWeight: 600, margin: 0 }}>Daftar Pelanggan</h2>
+                    <h2 style={{ fontSize: '0.875rem', fontWeight: 600, margin: 0 }}>Pelanggan Servis Kendaraan</h2>
                     <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', width: '100%', maxWidth: 'max-content' }}>
                         <form onSubmit={handleSearch} style={{ display: 'flex', gap: '0.5rem', flex: '1 1 auto', minWidth: '200px' }}>
                             <input value={search} onChange={e => setSearch(e.target.value)}

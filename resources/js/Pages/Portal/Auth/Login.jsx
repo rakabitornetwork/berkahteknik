@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useForm } from '@inertiajs/react';
-import AuthScreen from '../../../Components/AuthScreen';
+import AuthScreen, { AuthField } from '../../../Components/AuthScreen';
 
 export default function PortalLogin() {
     const { data, setData, post, processing, errors } = useForm({
@@ -16,77 +16,62 @@ export default function PortalLogin() {
 
     return (
         <AuthScreen
+            variant="portal"
             headTitle="Login Pelanggan"
-            title="Portal Pelanggan"
-            subtitle="Masuk untuk memantau status servis AC kendaraan Anda."
+            title="Selamat datang kembali"
+            subtitle="Masuk untuk melihat status servis, booking jadwal, dan riwayat kendaraan Anda."
             backHref="/"
             backLabel="Kembali ke beranda"
         >
-            <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                <div>
-                    <label className="form-label" htmlFor="phone">Nomor Telepon</label>
+            <form onSubmit={submit} className="auth-form">
+                <AuthField label="Nomor telepon" htmlFor="phone" error={errors.phone}>
                     <input
                         id="phone"
                         type="tel"
                         name="phone"
                         value={data.phone}
-                        className="form-input"
+                        className="auth-input"
                         placeholder="Contoh: 08123456789"
                         autoComplete="tel"
                         autoFocus
                         onChange={(e) => setData('phone', e.target.value)}
                     />
-                    {errors.phone && (
-                        <div style={{ color: 'var(--color-danger)', fontSize: '0.75rem', marginTop: '0.25rem' }}>{errors.phone}</div>
-                    )}
-                </div>
+                </AuthField>
 
-                <div>
-                    <label className="form-label" htmlFor="password">Password</label>
+                <AuthField label="Password" htmlFor="password" error={errors.password}>
                     <input
                         id="password"
                         type="password"
                         name="password"
                         value={data.password}
-                        className="form-input"
+                        className="auth-input"
                         placeholder="Password Anda"
                         autoComplete="current-password"
                         onChange={(e) => setData('password', e.target.value)}
                     />
-                    {errors.password && (
-                        <div style={{ color: 'var(--color-danger)', fontSize: '0.75rem', marginTop: '0.25rem' }}>{errors.password}</div>
-                    )}
-                </div>
+                </AuthField>
 
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <input
-                        id="remember"
-                        type="checkbox"
-                        name="remember"
-                        checked={data.remember}
-                        onChange={(e) => setData('remember', e.target.checked)}
-                        style={{ marginRight: '0.5rem' }}
-                    />
-                    <label htmlFor="remember" style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-                        Ingat Saya
+                <div className="auth-row">
+                    <label className="auth-check" htmlFor="remember">
+                        <input
+                            id="remember"
+                            type="checkbox"
+                            name="remember"
+                            checked={data.remember}
+                            onChange={(e) => setData('remember', e.target.checked)}
+                        />
+                        Ingat saya
                     </label>
                 </div>
 
-                <button
-                    type="submit"
-                    className="btn btn-primary"
-                    style={{ width: '100%', padding: '0.75rem', fontSize: '1rem', marginTop: '0.5rem' }}
-                    disabled={processing}
-                >
-                    {processing ? 'Memproses...' : 'Login Sekarang'}
+                <button type="submit" className="auth-submit" disabled={processing}>
+                    {processing ? 'Memproses...' : 'Masuk ke Portal'}
                 </button>
             </form>
 
-            <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
+            <div className="auth-footer">
                 Belum punya akun?{' '}
-                <Link href="/portal/register" style={{ color: 'var(--color-primary)', fontWeight: 600, textDecoration: 'none' }}>
-                    Daftar di sini
-                </Link>
+                <Link href="/portal/register">Daftar di sini</Link>
             </div>
         </AuthScreen>
     );

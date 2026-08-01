@@ -1,6 +1,7 @@
 import React from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import PortalLayout from '../../Layouts/PortalLayout';
+import ColorPalettePicker from '../../Components/ColorPalettePicker';
 import { ArrowLeft } from 'lucide-react';
 
 export default function VehicleForm({ customer }) {
@@ -9,6 +10,8 @@ export default function VehicleForm({ customer }) {
         brand: '',
         model: '',
         year: '',
+        color: '',
+        color_name: '',
     });
 
     const submit = (e) => {
@@ -98,6 +101,16 @@ export default function VehicleForm({ customer }) {
                             />
                             {errors.year && <div style={{ color: 'var(--color-danger)', fontSize: '0.75rem', marginTop: '0.25rem' }}>{errors.year}</div>}
                         </div>
+
+                        <ColorPalettePicker
+                            value={data.color}
+                            name={data.color_name}
+                            onChange={({ color, color_name }) => {
+                                setData('color', color);
+                                setData('color_name', color_name);
+                            }}
+                            error={errors.color}
+                        />
 
                         <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
                             <button type="submit" className="btn btn-primary" disabled={processing} style={{ flex: 1 }}>

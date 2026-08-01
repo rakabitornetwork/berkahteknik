@@ -1,163 +1,413 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { ArrowRight, Car, Home, Package, MapPin, Phone, MessageCircle, Mail } from 'lucide-react';
+import {
+    ArrowRight, Car, Package, MapPin, Phone, MessageCircle, Mail,
+    Wrench, Shield, Clock, Snowflake, CheckCircle2, Thermometer, Fan,
+} from 'lucide-react';
 import PublicLayout, { portalCtaUrl } from '../../Layouts/PublicLayout';
 
 const TYPE_LABELS = { berita: 'Berita', promo: 'Promo', informasi: 'Informasi' };
-const ICONS = { car: Car, home: Home, package: Package };
+const ICONS = {
+    car: Car,
+    package: Package,
+    wrench: Wrench,
+    shield: Shield,
+    clock: Clock,
+    snowflake: Snowflake,
+    check: CheckCircle2,
+    thermometer: Thermometer,
+    fan: Fan,
+};
 
-function ServiceIcon({ name }) {
+function ServiceIcon({ name, size = 20 }) {
     const Icon = ICONS[name] || Package;
-    return <Icon size={22} />;
+    return <Icon size={size} strokeWidth={1.5} className="lp-service-icon" />;
 }
 
 function formatDate(d) {
     if (!d) return '';
-    return new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    return new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function useReveal() {
+    const ref = useRef(null);
+
+    useEffect(() => {
+        const el = ref.current;
+        if (!el) return undefined;
+
+        const io = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    el.classList.add('is-visible');
+                    io.disconnect();
+                }
+            },
+            { threshold: 0.12, rootMargin: '0px 0px -8% 0px' },
+        );
+
+        io.observe(el);
+        return () => io.disconnect();
+    }, []);
+
+    return ref;
+}
+
+function Reveal({ className = '', children }) {
+    const ref = useReveal();
+    return (
+        <div ref={ref} className={`lp-reveal ${className}`.trim()}>
+            {children}
+        </div>
+    );
+}
+
+function SectionHead({ copy, fallbackKicker, fallbackTitle, fallbackLead }) {
+    const kicker = copy?.kicker || fallbackKicker;
+    const title = copy?.title || fallbackTitle;
+    const lead = copy?.lead ?? fallbackLead;
+
+    return (
+        <div className="lp-section-head">
+            {kicker && <p className="lp-kicker">{kicker}</p>}
+            {title && <h2 className="lp-h2">{title}</h2>}
+            {lead ? <p className="lp-lead">{lead}</p> : null}
+        </div>
+    );
 }
 
 export default function Landing({ landing, latestPosts }) {
     const { shop, auth } = usePage().props;
-    const ctaUrl = portalCtaUrl(auth, landing?.hero_cta_url);
-    const ctaLabel = landing?.hero_cta_label || 'Lacak Servis Kendaraan';
+    const brand = shop?.legal_name || shop?.app_name || 'Bengkel AC';
+    const sections = landing?.sections || {};
+    const copy = landing?.copy || {};
+
+    const heroCtaUrl = portalCtaUrl(auth, landing?.hero_cta_url);
+    const heroCtaLabel = landing?.hero_cta_label || 'Lacak Servis Kendaraan';
+    const bandCtaUrl = portalCtaUrl(auth, landing?.cta_url || landing?.hero_cta_url);
+    const bandCtaLabel = landing?.cta_label || heroCtaLabel;
+
+    const heroTitle = landing?.hero_title || shop?.tagline || 'Servis AC profesional & terpercaya';
+    const heroSub = landing?.hero_subtitle || 'Perawatan dan perbaikan AC mobil dengan standar kerja rapi, transparan, dan bergaransi.';
+
+    const showHighlights = sections.highlights !== false && landing?.highlights?.length > 0;
+    const showServices = sections.services !== false && landing?.services?.length > 0;
+    const showProcess = sections.process !== false && landing?.process?.length > 0;
+    const showAbout = sections.about !== false && (landing?.about_title || landing?.about_body);
+    const showWarranty = sections.warranty !== false && (landing?.warranty_title || landing?.warranty_body);
+    const showTestimonials = sections.testimonials !== false && landing?.testimonials?.length > 0;
+    const showHours = sections.hours !== false && landing?.hours?.length > 0;
+    const showPosts = sections.posts !== false && landing?.show_latest_posts && latestPosts?.length > 0;
+    const showCta = sections.cta !== false;
+    const showContact = sections.contact !== false && (shop?.address || shop?.phone || shop?.whatsapp_url || shop?.email);
+
+    useEffect(() => {
+        if (window.location.hash !== '#berita-promo') return undefined;
+        const timer = window.setTimeout(() => {
+            document.getElementById('berita-promo')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 80);
+        return () => window.clearTimeout(timer);
+    }, [showPosts]);
 
     return (
-        <PublicLayout>
+        <PublicLayout variant="landing">
             <Head title={shop?.app_name || 'Bengkel AC'} />
 
-            <section className="landing-hero">
-                <div className="landing-hero-inner" style={{ maxWidth: 1100, margin: '0 auto', padding: '3rem 1.25rem 4rem', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '2.5rem', alignItems: 'center' }}>
-                    <div>
-                        <p style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--color-primary)', marginBottom: '0.75rem' }}>
-                            {shop?.tagline || 'Bengkel AC Terpercaya'}
-                        </p>
-                        <h1 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', fontWeight: 700, lineHeight: 1.15, marginBottom: '1rem', letterSpacing: '-0.02em' }}>
-                            {landing?.hero_title || shop?.legal_name}
-                        </h1>
-                        <p style={{ fontSize: '1rem', color: 'var(--color-text-muted)', lineHeight: 1.65, marginBottom: '1.75rem', maxWidth: '32rem' }}>
-                            {landing?.hero_subtitle}
-                        </p>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
-                            <Link href={ctaUrl} className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.65rem 1.25rem' }}>
-                                {ctaLabel} <ArrowRight size={18} />
-                            </Link>
-                            <Link href="/konten" className="btn btn-outline" style={{ padding: '0.65rem 1.25rem' }}>
-                                Berita & Promo
-                            </Link>
-                        </div>
+            <div className="lp">
+                <section className="lp-hero" aria-label="Beranda">
+                    <div className="lp-hero-media" aria-hidden="true">
+                        <img
+                            src={landing?.hero_image_url}
+                            alt=""
+                            width={3840}
+                            height={2560}
+                            decoding="async"
+                            fetchPriority="high"
+                        />
                     </div>
-                    {landing?.hero_image_url ? (
-                        <img src={landing.hero_image_url} alt="" style={{ width: '100%', borderRadius: 'var(--radius-lg)', objectFit: 'cover', maxHeight: 360, border: '1px solid var(--color-border)' }} />
-                    ) : (
-                        <div className="glass-panel" style={{ aspectRatio: '4/3', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)' }}>
-                            <FanPlaceholder />
-                        </div>
-                    )}
-                </div>
-            </section>
-
-            {landing?.services?.length > 0 && (
-                <section style={{ padding: '3rem 1.25rem', borderTop: '1px solid var(--color-border)' }}>
-                    <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-                        <h2 style={{ fontSize: '1.35rem', fontWeight: 700, marginBottom: '1.5rem', textAlign: 'center' }}>Layanan Kami</h2>
-                        <div className="landing-services-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
-                            {landing.services.map((svc, i) => (
-                                <div key={i} className="glass-panel" style={{ padding: '1.25rem' }}>
-                                    <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-md)', background: 'var(--color-primary-alpha)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.75rem' }}>
-                                        <ServiceIcon name={svc.icon} />
-                                    </div>
-                                    <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.35rem' }}>{svc.title}</h3>
-                                    <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', lineHeight: 1.55, margin: 0 }}>{svc.description}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </section>
-            )}
-
-            {(landing?.about_title || landing?.about_body) && (
-                <section style={{ padding: '3rem 1.25rem', background: 'rgba(255,255,255,0.02)' }}>
-                    <div style={{ maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: landing?.about_image_url ? '1fr 1fr' : '1fr', gap: '2rem', alignItems: 'center' }}>
-                        <div>
-                            <h2 style={{ fontSize: '1.35rem', fontWeight: 700, marginBottom: '1rem' }}>{landing.about_title}</h2>
-                            <div style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', lineHeight: 1.7, whiteSpace: 'pre-line' }}>{landing.about_body}</div>
-                        </div>
-                        {landing.about_image_url && (
-                            <img src={landing.about_image_url} alt="" style={{ width: '100%', borderRadius: 'var(--radius-lg)', objectFit: 'cover', maxHeight: 320, border: '1px solid var(--color-border)' }} />
-                        )}
-                    </div>
-                </section>
-            )}
-
-            {landing?.show_latest_posts && latestPosts?.length > 0 && (
-                <section style={{ padding: '3rem 1.25rem', borderTop: '1px solid var(--color-border)' }}>
-                    <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
-                            <h2 style={{ fontSize: '1.35rem', fontWeight: 700, margin: 0 }}>Berita & Informasi Terbaru</h2>
-                            <Link href="/konten" style={{ fontSize: '0.85rem', color: 'var(--color-primary)', fontWeight: 500 }}>Lihat semua →</Link>
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
-                            {latestPosts.map((post) => (
-                                <Link key={post.id} href={`/konten/${post.slug}`} className="glass-panel" style={{ padding: 0, overflow: 'hidden', textDecoration: 'none', display: 'block', transition: 'border-color var(--transition-fast)' }}>
-                                    {post.cover_url && (
-                                        <img src={post.cover_url} alt="" style={{ width: '100%', height: 140, objectFit: 'cover' }} />
-                                    )}
-                                    <div style={{ padding: '1rem' }}>
-                                        <span style={{ fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', color: 'var(--color-primary)' }}>{TYPE_LABELS[post.type]}</span>
-                                        <h3 style={{ fontSize: '0.95rem', fontWeight: 600, margin: '0.35rem 0', color: 'var(--color-text-main)' }}>{post.title}</h3>
-                                        <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', margin: 0, lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                                            {post.excerpt}
-                                        </p>
-                                        <p style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>{formatDate(post.published_at)}</p>
-                                    </div>
+                    <div className="lp-hero-inner">
+                        <div className="lp-hero-copy">
+                            <p className="lp-brand">{brand}</p>
+                            <h1 className="lp-hero-title">{heroTitle}</h1>
+                            <p className="lp-hero-sub">{heroSub}</p>
+                            <div className="lp-cta-group">
+                                <Link href={heroCtaUrl} className="lp-btn lp-btn-primary">
+                                    {heroCtaLabel} <ArrowRight size={18} strokeWidth={2} />
                                 </Link>
-                            ))}
+                                <a
+                                    href="#berita-promo"
+                                    className="lp-btn lp-btn-ghost"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        document.getElementById('berita-promo')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                    }}
+                                >
+                                    Berita & Promo
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </section>
-            )}
 
-            <section className="landing-cta-band" style={{ padding: '3rem 1.25rem', borderTop: '1px solid var(--color-border)' }}>
-                <div className="glass-panel" style={{ maxWidth: 1100, margin: '0 auto', padding: '2rem', textAlign: 'center' }}>
-                    <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>Pantau Servis Kendaraan Anda</h2>
-                    <p style={{ color: 'var(--color-text-muted)', marginBottom: '1.25rem', fontSize: '0.9rem' }}>
-                        Login ke portal pelanggan untuk melihat status perbaikan AC mobil secara real-time.
-                    </p>
-                    <Link href={ctaUrl} className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
-                        {ctaLabel} <ArrowRight size={18} />
-                    </Link>
-                </div>
-            </section>
+                {showHighlights && (
+                    <section className="lp-section lp-highlights">
+                        <div className="lp-section-inner">
+                            <Reveal>
+                                <SectionHead copy={copy.highlights} fallbackKicker="Keunggulan" fallbackTitle="Mengapa memilih bengkel kami" />
+                            </Reveal>
+                            <Reveal>
+                                <div className="lp-highlight-grid">
+                                    {landing.highlights.map((item, i) => (
+                                        <article key={i} className="lp-highlight-item">
+                                            <ServiceIcon name={item.icon} size={22} />
+                                            <h3>{item.title}</h3>
+                                            <p>{item.description}</p>
+                                        </article>
+                                    ))}
+                                </div>
+                            </Reveal>
+                        </div>
+                    </section>
+                )}
 
-            <section style={{ padding: '2rem 1.25rem 3rem' }}>
-                <div className="glass-panel" style={{ maxWidth: 1100, margin: '0 auto', padding: '1.5rem' }}>
-                    <h2 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '1rem' }}>Hubungi Kami</h2>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-                        {shop?.address && (
-                            <span style={{ display: 'inline-flex', alignItems: 'flex-start', gap: '0.5rem' }}>
-                                <MapPin size={16} style={{ flexShrink: 0, marginTop: 2 }} />
-                                {shop.maps_url ? <a href={shop.maps_url} target="_blank" rel="noreferrer" style={{ color: 'var(--color-primary)' }}>{shop.address}</a> : shop.address}
-                            </span>
-                        )}
-                        {shop?.phone && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}><Phone size={16} /> {shop.phone}</span>}
-                        {shop?.whatsapp_url && (
-                            <a href={shop.whatsapp_url} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-success)' }}>
-                                <MessageCircle size={16} /> WhatsApp
-                            </a>
-                        )}
-                        {shop?.email && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}><Mail size={16} /> {shop.email}</span>}
-                    </div>
-                </div>
-            </section>
+                {showServices && (
+                    <section className="lp-section lp-services">
+                        <div className="lp-section-inner">
+                            <Reveal>
+                                <SectionHead copy={copy.services} fallbackKicker="Layanan" fallbackTitle="Keahlian yang kami andalkan" />
+                            </Reveal>
+                            <Reveal>
+                                <ul className="lp-service-list">
+                                    {landing.services.map((svc, i) => (
+                                        <li key={i} className="lp-service-item">
+                                            <ServiceIcon name={svc.icon} size={24} />
+                                            <div className="lp-service-body">
+                                                <h3>{svc.title}</h3>
+                                                <p>{svc.description}</p>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </Reveal>
+                        </div>
+                    </section>
+                )}
+
+                {showProcess && (
+                    <section className="lp-section lp-process">
+                        <div className="lp-section-inner">
+                            <Reveal>
+                                <SectionHead copy={copy.process} fallbackKicker="Alur servis" fallbackTitle="Proses yang transparan" />
+                            </Reveal>
+                            <Reveal>
+                                <ol className="lp-process-list">
+                                    {landing.process.map((step, i) => (
+                                        <li key={i} className="lp-process-item">
+                                            <span className="lp-process-num">{String(i + 1).padStart(2, '0')}</span>
+                                            <div>
+                                                <h3>{step.title}</h3>
+                                                <p>{step.description}</p>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ol>
+                            </Reveal>
+                        </div>
+                    </section>
+                )}
+
+                {showAbout && (
+                    <section className="lp-section lp-about">
+                        <div className="lp-section-inner lp-about-grid has-image">
+                            <Reveal>
+                                <div className="lp-section-head" style={{ marginBottom: '1rem', textAlign: 'left' }}>
+                                    <p className="lp-kicker">Tentang kami</p>
+                                    <h2 className="lp-h2">{landing.about_title || 'Cerita di balik bengkel'}</h2>
+                                </div>
+                                <div className="lp-about-body">{landing.about_body}</div>
+                            </Reveal>
+                            <Reveal>
+                                <div className="lp-about-visual">
+                                    <img
+                                        src={landing.about_image_url}
+                                        alt=""
+                                        width={3840}
+                                        height={2160}
+                                        loading="lazy"
+                                        decoding="async"
+                                    />
+                                </div>
+                            </Reveal>
+                        </div>
+                    </section>
+                )}
+
+                {showWarranty && (
+                    <section className="lp-section lp-warranty">
+                        <div className="lp-section-inner lp-warranty-inner">
+                            <Reveal>
+                                <p className="lp-kicker">Garansi</p>
+                                <h2 className="lp-h2">{landing.warranty_title || 'Garansi pekerjaan yang jelas'}</h2>
+                                <div className="lp-warranty-body" style={{ marginTop: '1rem' }}>{landing.warranty_body}</div>
+                            </Reveal>
+                        </div>
+                    </section>
+                )}
+
+                {showTestimonials && (
+                    <section className="lp-section lp-testimonials">
+                        <div className="lp-section-inner">
+                            <Reveal>
+                                <SectionHead copy={copy.testimonials} fallbackKicker="Testimoni" fallbackTitle="Dipercaya pemilik kendaraan" />
+                            </Reveal>
+                            <Reveal>
+                                <div className="lp-testimonial-grid">
+                                    {landing.testimonials.map((item, i) => (
+                                        <blockquote key={i} className="lp-testimonial-item">
+                                            <p>“{item.quote}”</p>
+                                            <footer>
+                                                <strong>{item.name}</strong>
+                                                {item.vehicle ? <span>{item.vehicle}</span> : null}
+                                            </footer>
+                                        </blockquote>
+                                    ))}
+                                </div>
+                            </Reveal>
+                        </div>
+                    </section>
+                )}
+
+                {showHours && (
+                    <section className="lp-section lp-hours">
+                        <div className="lp-section-inner lp-hours-grid">
+                            <Reveal>
+                                <SectionHead copy={copy.hours} fallbackKicker="Jam operasional" fallbackTitle="Kapan kami siap melayani" />
+                            </Reveal>
+                            <Reveal>
+                                <ul className="lp-hours-list">
+                                    {landing.hours.map((row, i) => (
+                                        <li key={i}>
+                                            <span>{row.day}</span>
+                                            <strong>{row.time}</strong>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </Reveal>
+                        </div>
+                    </section>
+                )}
+
+                {showPosts && (
+                    <section id="berita-promo" className="lp-section lp-posts">
+                        <div className="lp-section-inner">
+                            <Reveal>
+                                <div className="lp-posts-head">
+                                    <SectionHead copy={copy.posts} fallbackKicker="Wawasan" fallbackTitle="Berita & informasi terbaru" />
+                                    <Link href="/konten" className="lp-text-link">Lihat semua</Link>
+                                </div>
+                            </Reveal>
+                            <Reveal>
+                                <div className="lp-post-list">
+                                    {latestPosts.map((post) => (
+                                        <Link key={post.id} href={`/konten/${post.slug}`} className="lp-post-row">
+                                            {post.cover_url ? (
+                                                <img src={post.cover_url} alt="" className="lp-post-thumb" />
+                                            ) : (
+                                                <span className="lp-post-thumb lp-post-thumb--empty" aria-hidden="true" />
+                                            )}
+                                            <div>
+                                                <p className="lp-post-meta">{TYPE_LABELS[post.type] || post.type}</p>
+                                                <h3>{post.title}</h3>
+                                                <p>{post.excerpt}</p>
+                                            </div>
+                                            <span className="lp-post-date">{formatDate(post.published_at)}</span>
+                                        </Link>
+                                    ))}
+                                </div>
+                            </Reveal>
+                        </div>
+                    </section>
+                )}
+
+                {showCta && (
+                    <section className="lp-section lp-cta-band">
+                        <div className="lp-section-inner">
+                            <Reveal>
+                                <p className="lp-kicker">Portal pelanggan</p>
+                                <h2 className="lp-h2">{landing.cta_title || 'Pantau progres servis secara langsung'}</h2>
+                                <p className="lp-lead">
+                                    {landing.cta_body || 'Masuk ke portal untuk melihat status perbaikan, riwayat kendaraan, dan pembaruan dari bengkel.'}
+                                </p>
+                            </Reveal>
+                            <Reveal>
+                                <Link href={bandCtaUrl} className="lp-btn lp-btn-primary">
+                                    {bandCtaLabel} <ArrowRight size={18} />
+                                </Link>
+                            </Reveal>
+                        </div>
+                    </section>
+                )}
+
+                {showContact && (
+                    <section className="lp-section lp-contact">
+                        <div className="lp-section-inner">
+                            <Reveal>
+                                <div className="lp-section-head">
+                                    <p className="lp-kicker">Kontak</p>
+                                    <h2 className="lp-h2">{landing.contact_title || 'Hubungi kami'}</h2>
+                                    <p className="lp-lead">
+                                        {landing.contact_lead || 'Siap membantu konsultasi, booking, dan pertanyaan seputar servis AC mobil.'}
+                                    </p>
+                                </div>
+                            </Reveal>
+                            <Reveal>
+                                <div className="lp-contact-grid">
+                                    {shop?.address && (
+                                        <div className="lp-contact-item">
+                                            <MapPin size={18} strokeWidth={1.5} />
+                                            <div>
+                                                <strong>Alamat</strong>
+                                                {shop.maps_url ? (
+                                                    <a href={shop.maps_url} target="_blank" rel="noreferrer">{shop.address}</a>
+                                                ) : (
+                                                    <span>{shop.address}</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {shop?.phone && (
+                                        <div className="lp-contact-item">
+                                            <Phone size={18} strokeWidth={1.5} />
+                                            <div>
+                                                <strong>Telepon</strong>
+                                                <span>{shop.phone}</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {shop?.whatsapp_url && (
+                                        <div className="lp-contact-item">
+                                            <MessageCircle size={18} strokeWidth={1.5} />
+                                            <div>
+                                                <strong>WhatsApp</strong>
+                                                <a href={shop.whatsapp_url} target="_blank" rel="noreferrer">Chat sekarang</a>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {shop?.email && (
+                                        <div className="lp-contact-item">
+                                            <Mail size={18} strokeWidth={1.5} />
+                                            <div>
+                                                <strong>Email</strong>
+                                                <a href={`mailto:${shop.email}`}>{shop.email}</a>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </Reveal>
+                        </div>
+                    </section>
+                )}
+            </div>
         </PublicLayout>
-    );
-}
-
-function FanPlaceholder() {
-    return (
-        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" opacity="0.4">
-            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
-            <circle cx="12" cy="12" r="3" />
-        </svg>
     );
 }

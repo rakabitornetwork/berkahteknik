@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use App\Models\Service;
+use App\Models\ServiceCategory;
 use App\Models\SparePart;
 use App\Models\User;
 use App\Models\Vehicle;
+use App\Models\WorkType;
 use App\Services\OperationalJournal;
+use App\Support\Units;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -38,6 +41,8 @@ class ServiceController extends Controller
             'customers'   => Customer::with('vehicles')->get(),
             'technicians' => User::where('role', 'mechanic')->get(['id', 'name']),
             'spareParts'  => SparePart::where('stock', '>', 0)->get(),
+            'serviceCategories' => ServiceCategory::where('is_active', true)->orderBy('name')->get(['id', 'name', 'unit', 'default_fee']),
+            'workTypes' => WorkType::where('is_active', true)->orderBy('name')->get(['id', 'name', 'unit']),
         ]);
     }
 
@@ -47,6 +52,7 @@ class ServiceController extends Controller
             'vehicle_id'   => 'required|exists:vehicles,id',
             'user_id'      => 'nullable|exists:users,id',
             'service_name' => 'required|string|max:255',
+            'service_category_id' => 'nullable|exists:service_categories,id',
             'description'  => 'required|string',
             'work_instructions' => 'nullable|string',
             'is_bring_own_part' => 'boolean',
@@ -54,6 +60,11 @@ class ServiceController extends Controller
             'parts'        => 'nullable|array',
             'parts.*.spare_part_id' => 'exists:spare_parts,id',
             'parts.*.quantity'      => 'integer|min:1',
+            'work_items'   => 'nullable|array',
+            'work_items.*.work_type_id' => 'nullable|exists:work_types,id',
+            'work_items.*.name' => 'nullable|string|max:255',
+            'work_items.*.quantity' => 'nullable|integer|min:1',
+            'work_items.*.unit' => Units::validationRule(false),
             'warranty_months' => 'nullable|integer|min:0|max:120',
             'warranty_notes' => 'nullable|string',
             'warranty_terms' => 'nullable|string',
@@ -64,6 +75,7 @@ class ServiceController extends Controller
                 'vehicle_id'  => $validated['vehicle_id'],
                 'user_id'     => $validated['user_id'] ?? null,
                 'service_name'=> $validated['service_name'],
+                'service_category_id' => $validated['service_category_id'] ?? null,
                 'description' => $validated['description'],
                 'work_instructions' => $validated['work_instructions'] ?? null,
                 'is_bring_own_part' => $validated['is_bring_own_part'] ?? false,
@@ -87,6 +99,9 @@ class ServiceController extends Controller
                     $journal->stock($sparePart, 'out', $part['quantity'], $before, $sparePart->stock, $service, 'Pemakaian spare part servis', $sparePart->buy_price);
                 }
             }
+
+            $this->syncWorkItems($service, $validated['work_items'] ?? []);
+
             $journal->audit('create', 'service', $service, 'Servis baru dibuat.');
         });
 
@@ -96,7 +111,7 @@ class ServiceController extends Controller
 
     public function show(Service $service)
     {
-        $service->load(['vehicle.customer', 'technician', 'spareParts', 'payments']);
+        $service->load(['vehicle.customer', 'technician', 'spareParts', 'workItems', 'payments']);
 
         return Inertia::render('Admin/Services/Show', [
             'service' => $service,
@@ -105,13 +120,15 @@ class ServiceController extends Controller
 
     public function edit(Service $service)
     {
-        $service->load(['vehicle', 'spareParts']);
+        $service->load(['vehicle', 'spareParts', 'workItems']);
 
         return Inertia::render('Admin/Services/Form', [
             'service'     => $service,
             'customers'   => Customer::with('vehicles')->get(),
             'technicians' => User::where('role', 'mechanic')->get(['id', 'name']),
             'spareParts'  => SparePart::all(),
+            'serviceCategories' => ServiceCategory::where('is_active', true)->orderBy('name')->get(['id', 'name', 'unit', 'default_fee']),
+            'workTypes' => WorkType::where('is_active', true)->orderBy('name')->get(['id', 'name', 'unit']),
         ]);
     }
 
@@ -121,6 +138,7 @@ class ServiceController extends Controller
             'user_id'        => 'nullable|exists:users,id',
             'status'         => 'required|in:booking,antri,dikerjakan,selesai',
             'service_name'   => 'required|string|max:255',
+            'service_category_id' => 'nullable|exists:service_categories,id',
             'description'    => 'required|string',
             'diagnosis'      => 'nullable|string',
             'work_instructions' => 'nullable|string',
@@ -128,15 +146,26 @@ class ServiceController extends Controller
             'is_bring_own_part' => 'boolean',
             'service_fee'    => 'nullable|numeric|min:0',
             'payment_status' => 'nullable|in:belum_lunas,lunas',
+            'work_items'     => 'nullable|array',
+            'work_items.*.work_type_id' => 'nullable|exists:work_types,id',
+            'work_items.*.name' => 'nullable|string|max:255',
+            'work_items.*.quantity' => 'nullable|integer|min:1',
+            'work_items.*.unit' => Units::validationRule(false),
             'warranty_months' => 'nullable|integer|min:0|max:120',
             'warranty_notes' => 'nullable|string',
             'warranty_terms' => 'nullable|string',
             'warranty_starts_at' => 'nullable|date',
         ]);
 
+        $workItems = $validated['work_items'] ?? [];
+        unset($validated['work_items']);
+
         $this->applyStatusSideEffects($validated, $service);
 
-        $service->update($validated);
+        DB::transaction(function () use ($service, $validated, $workItems) {
+            $service->update($validated);
+            $this->syncWorkItems($service, $workItems);
+        });
 
         return redirect()->route('admin.services.show', $service)
             ->with('success', 'Data servis berhasil diperbarui.');
@@ -177,12 +206,42 @@ class ServiceController extends Controller
 
     public function invoice(Service $service)
     {
-        $service->load(['vehicle.customer', 'technician', 'spareParts', 'payments']);
+        $service->load(['vehicle.customer', 'technician', 'spareParts', 'workItems', 'payments']);
 
         return Inertia::render('Admin/Services/InvoicePrint', [
             'service' => $service,
             'shop' => app(\App\Services\ShopSettingService::class)->forFrontend(),
         ]);
+    }
+
+    private function syncWorkItems(Service $service, array $workItems): void
+    {
+        $service->workItems()->delete();
+
+        foreach ($workItems as $item) {
+            $workTypeId = $item['work_type_id'] ?? null;
+            $name = trim((string) ($item['name'] ?? ''));
+            $unit = Units::normalize($item['unit'] ?? null, 'job');
+
+            if ($workTypeId) {
+                $workType = WorkType::find($workTypeId);
+                if ($workType) {
+                    $name = $name !== '' ? $name : $workType->name;
+                    $unit = Units::normalize($workType->unit ?: $unit, 'job');
+                }
+            }
+
+            if ($name === '') {
+                continue;
+            }
+
+            $service->workItems()->create([
+                'work_type_id' => $workTypeId ?: null,
+                'name' => $name,
+                'quantity' => max(1, (int) ($item['quantity'] ?? 1)),
+                'unit' => $unit,
+            ]);
+        }
     }
 
     private function applyStatusSideEffects(array &$data, Service $service): void

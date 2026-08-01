@@ -195,6 +195,10 @@ export default function InvoicePrint({ service, shop }) {
                                 <Field label="No. HP" value={service.vehicle?.customer?.phone} />
                                 <Field label="Kendaraan" value={`${service.vehicle?.brand} ${service.vehicle?.model}`} />
                                 <Field label="Plat Nomor" value={service.vehicle?.license_plate} bold />
+                                <Field
+                                    label="Warna"
+                                    value={service.vehicle?.color_name || service.vehicle?.color || '-'}
+                                />
                             </Section>
 
                             <Section title="Detail Transaksi">
@@ -224,15 +228,13 @@ export default function InvoicePrint({ service, shop }) {
                             </Section>
                         </div>
 
-                        {/* Billing Details Table */}
-                        <Section title="Rincian Suku Cadang & Biaya Jasa">
+                        {/* Item Sparepart */}
+                        <Section title="Item Sparepart">
                             <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '0.75rem' }}>
                                 <thead>
                                     <tr>
-                                        <th style={thStyle}>Nama Suku Cadang</th>
+                                        <th style={thStyle}>Nama Sparepart</th>
                                         <th style={{ ...thStyle, textAlign: 'center', width: '3rem' }}>Qty</th>
-                                        <th style={{ ...thStyle, textAlign: 'right', width: '7rem' }}>Harga</th>
-                                        <th style={{ ...thStyle, textAlign: 'right', width: '8rem' }}>Subtotal</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -240,23 +242,57 @@ export default function InvoicePrint({ service, shop }) {
                                         <tr key={i}>
                                             <td style={tdStyle}>{p.name}</td>
                                             <td style={{ ...tdStyle, textAlign: 'center' }}>{p.pivot.quantity} {p.unit}</td>
-                                            <td style={{ ...tdStyle, textAlign: 'right' }}>{fmt(p.pivot.unit_price)}</td>
-                                            <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 600 }}>{fmt(p.pivot.quantity * p.pivot.unit_price)}</td>
                                         </tr>
                                     )) : (
                                         <tr>
-                                            <td colSpan={4} style={{ ...tdStyle, color: '#94a3b8', fontStyle: 'italic', textAlign: 'center', padding: '0.75rem' }}>
-                                                Tidak ada penggantian suku cadang
+                                            <td colSpan={2} style={{ ...tdStyle, color: '#94a3b8', fontStyle: 'italic', textAlign: 'center', padding: '0.75rem' }}>
+                                                Tidak ada penggantian sparepart
                                             </td>
                                         </tr>
                                     )}
-                                    <tr style={{ background: '#f8fafc' }}>
-                                        <td colSpan={3} style={{ ...tdStyle, textAlign: 'right', fontWeight: 600, borderTop: '1.5px solid #cbd5e1', color: '#475569' }}>BIAYA JASA SERVIS</td>
-                                        <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 600, borderTop: '1.5px solid #cbd5e1', color: '#475569' }}>{fmt(service.service_fee)}</td>
+                                </tbody>
+                            </table>
+                        </Section>
+
+                        {/* Item Pengerjaan */}
+                        <Section title="Item Pengerjaan">
+                            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '0.75rem' }}>
+                                <thead>
+                                    <tr>
+                                        <th style={thStyle}>Nama Pengerjaan</th>
+                                        <th style={{ ...thStyle, textAlign: 'center', width: '3rem' }}>Qty</th>
+                                        <th style={{ ...thStyle, textAlign: 'center', width: '3.5rem' }}>Satuan</th>
                                     </tr>
+                                </thead>
+                                <tbody>
+                                    {service.work_items?.length > 0 ? service.work_items.map((item, i) => (
+                                        <tr key={item.id || i}>
+                                            <td style={tdStyle}>{item.name}</td>
+                                            <td style={{ ...tdStyle, textAlign: 'center' }}>{item.quantity}</td>
+                                            <td style={{ ...tdStyle, textAlign: 'center', fontFamily: 'monospace', fontWeight: 700 }}>{item.unit || 'JOB'}</td>
+                                        </tr>
+                                    )) : (
+                                        <tr>
+                                            <td colSpan={3} style={{ ...tdStyle, color: '#94a3b8', fontStyle: 'italic', textAlign: 'center', padding: '0.75rem' }}>
+                                                Tidak ada item pengerjaan
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </Section>
+
+                        {/* Jasa */}
+                        <Section title="Jasa">
+                            <div style={{ background: '#f8fafc', padding: '0.65rem 0.75rem', borderRadius: '6px', border: '1px solid #e2e8f0', marginBottom: '0.75rem' }}>
+                                <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.15rem' }}>Jenis Jasa</div>
+                                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f766e' }}>{service.service_name || '-'}</div>
+                            </div>
+                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                <tbody>
                                     <tr style={{ background: '#f0fdfa' }}>
-                                        <td colSpan={3} style={{ ...tdStyle, textAlign: 'right', fontWeight: 800, fontSize: '0.85rem', color: '#0f766e', borderTop: '2px solid #0f766e' }}>TOTAL TAGIHAN</td>
-                                        <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 800, fontSize: '0.85rem', color: '#0f766e', borderTop: '2px solid #0f766e' }}>{fmt(grandTotal)}</td>
+                                        <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 800, fontSize: '0.85rem', color: '#0f766e', borderTop: '2px solid #0f766e' }}>TOTAL TAGIHAN</td>
+                                        <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 800, fontSize: '0.85rem', color: '#0f766e', borderTop: '2px solid #0f766e', width: '8rem' }}>{fmt(grandTotal)}</td>
                                     </tr>
                                 </tbody>
                             </table>

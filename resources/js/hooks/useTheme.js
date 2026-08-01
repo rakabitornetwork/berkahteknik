@@ -2,12 +2,16 @@ const STORAGE_KEY = 'berkahteknik_theme';
 
 export function getStoredTheme() {
     if (typeof window === 'undefined') {
-        return 'dark';
+        return 'light';
     }
 
     const stored = localStorage.getItem(STORAGE_KEY);
 
-    return stored === 'light' ? 'light' : 'dark';
+    if (stored === 'dark' || stored === 'light') {
+        return stored;
+    }
+
+    return 'light';
 }
 
 export function applyTheme(theme) {

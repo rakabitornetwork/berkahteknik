@@ -110,6 +110,13 @@ export default function PortalDashboard({ customer, vehicles, activeService }) {
                                     background: activeVehicle === v.id ? 'var(--color-primary)' : 'white',
                                     color: activeVehicle === v.id ? 'white' : 'var(--color-text-muted)',
                                 }}>
+                                {v.color && (
+                                    <span style={{
+                                        width: '0.65rem', height: '0.65rem', borderRadius: '9999px',
+                                        background: v.color, border: '1px solid rgba(0,0,0,0.2)',
+                                        display: 'inline-block', marginRight: '0.35rem', verticalAlign: 'middle',
+                                    }} />
+                                )}
                                 {v.brand} {v.model} · {v.license_plate}
                             </button>
                         ))}

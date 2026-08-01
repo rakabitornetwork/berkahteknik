@@ -11,7 +11,7 @@ class Service extends Model
         'vehicle_id', 'user_id', 'status', 'description',
         'diagnosis', 'work_instructions', 'mechanic_notes',
         'service_fee', 'payment_status', 'started_at', 'completed_at',
-        'is_bring_own_part', 'service_name', 'spk_number', 'spk_issued_at',
+        'is_bring_own_part', 'service_name', 'service_category_id', 'spk_number', 'spk_issued_at',
         'warranty_months', 'warranty_notes', 'warranty_terms', 'warranty_starts_at',
         'scheduled_at', 'branch_id', 'booking_status', 'booking_notes', 'booking_cancelled_at',
     ];
@@ -74,6 +74,16 @@ class Service extends Model
         return $this->belongsToMany(SparePart::class, 'service_spare_parts')
                     ->withPivot('quantity', 'unit_price')
                     ->withTimestamps();
+    }
+
+    public function workItems()
+    {
+        return $this->hasMany(ServiceWorkItem::class);
+    }
+
+    public function serviceCategory()
+    {
+        return $this->belongsTo(ServiceCategory::class);
     }
 
     public function payments()

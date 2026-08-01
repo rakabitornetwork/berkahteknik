@@ -1,0 +1,9 @@
+HTTP/1.1 419 unknown status
+Date: Sat, 01 Aug 2026 17:40:20 GMT
+Server: Apache/2.4.66 (Win64) OpenSSL/3.0.16 mod_fcgid/2.3.10-dev
+X-Powered-By: PHP/8.4.12
+Cache-Control: no-cache, private
+Set-Cookie: berkah_teknik_session=eyJpdiI6InhSNEpQWEJYK2dtTUVkcWFJV0R5dkE9PSIsInZhbHVlIjoidFcrQ2RBQ2lVNnFrY3U0WEhDSXRLNStBWk1ZenR4UWtOcXNWZlRYWGZYOUF1QmY1UFR0aUo1enJQclBJb2NpTFltY0J4enBTbmcycTFRdHFwVVNLQVNyYXU1YWFwRVRwMW1adjFKREdQeUZmaUV5NE92VzdRUzNYNXVRMGwwRWUiLCJtYWMiOiIyMDZmNDM1YzgxMTVmYjQ5MzNlZGUwODY0MzkwODgzMjE1MGNiYjlmZTEwYTg3YzZkNWMzZWZlYWUxMDQ1YWYwIiwidGFnIjoiIn0%3D; expires=Sat, 01 Aug 2026 19:40:20 GMT; Max-Age=7200; path=/; httponly; samesite=lax
+Transfer-Encoding: chunked
+Content-Type: text/html; charset=utf-8
+

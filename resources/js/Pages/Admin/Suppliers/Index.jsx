@@ -3,6 +3,7 @@ import { router, Link } from '@inertiajs/react';
 import { Plus, Edit, Trash2, Truck } from 'lucide-react';
 import AdminLayout from '../../../Layouts/AdminLayout';
 import Pagination from '../../../Components/Pagination';
+import MasterDataTabs from '../MasterData/MasterDataTabs';
 
 export default function Index({ suppliers }) {
     const handleDelete = (id) => {
@@ -12,14 +13,15 @@ export default function Index({ suppliers }) {
     };
 
     return (
-        <AdminLayout title="Manajemen Supplier">
-            <div style={{ padding: '1.5rem' }}>
+        <AdminLayout title="Master Data · Supplier">
+            <div style={{ padding: '0.25rem 0' }}>
+                <MasterDataTabs />
                 {/* Header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                         <Truck size={22} style={{ color: 'var(--color-primary)' }} />
                         <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-text-main)' }}>
-                            Daftar Supplier
+                            Data Supplier
                         </h2>
                     </div>
                     <Link

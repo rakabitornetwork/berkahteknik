@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '../../../Layouts/AdminLayout';
 import Pagination from '../../../Components/Pagination';
+import MasterDataTabs from '../MasterData/MasterDataTabs';
 import { AlertTriangle, CheckCircle, Edit, Trash2 } from 'lucide-react';
 
 const fmt = (n) => `Rp ${Number(n).toLocaleString('id-ID')}`;
@@ -15,12 +16,13 @@ export default function SparePartsIndex({ spareParts, filters }) {
     };
 
     return (
-        <AdminLayout title="Spare Part & Stok">
-            <Head title="Spare Part" />
+        <AdminLayout title="Master Data · Produk">
+            <Head title="Data Produk" />
+            <MasterDataTabs />
 
             <div className="glass-panel" style={{ padding: '1.25rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
-                    <h2 style={{ fontSize: '0.875rem', fontWeight: 600, margin: 0 }}>Katalog Spare Part AC</h2>
+                    <h2 style={{ fontSize: '0.875rem', fontWeight: 600, margin: 0 }}>Data Produk (Spare Part)</h2>
                     <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', width: '100%', maxWidth: 'max-content' }}>
                         <form onSubmit={handleSearch} style={{ display: 'flex', gap: '0.5rem', flex: '1 1 auto', minWidth: '200px' }}>
                             <input value={search} onChange={e => setSearch(e.target.value)}
@@ -38,6 +40,7 @@ export default function SparePartsIndex({ spareParts, filters }) {
                             <tr>
                                 <th>Kode</th>
                                 <th>Nama Spare Part</th>
+                                <th>Kategori Produk</th>
                                 <th>Satuan</th>
                                 <th style={{ textAlign: 'right' }}>Stok</th>
                                 <th style={{ textAlign: 'right' }}>Harga Beli</th>
@@ -51,6 +54,7 @@ export default function SparePartsIndex({ spareParts, filters }) {
                                 <tr key={sp.id}>
                                     <td style={{ fontFamily: 'monospace', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>{sp.code}</td>
                                     <td style={{ fontWeight: 500 }}>{sp.name}</td>
+                                    <td style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{sp.product_type?.name || '—'}</td>
                                     <td style={{ fontSize: '0.875rem' }}>{sp.unit}</td>
                                     <td style={{ textAlign: 'right', fontWeight: 700, fontSize: '1rem' }}>{sp.stock}</td>
                                     <td style={{ textAlign: 'right', fontSize: '0.875rem' }}>{fmt(sp.buy_price)}</td>
@@ -79,7 +83,7 @@ export default function SparePartsIndex({ spareParts, filters }) {
                                     </td>
                                 </tr>
                             )) : (
-                                <tr><td colSpan="8" style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--color-text-muted)' }}>Tidak ada spare part.</td></tr>
+                                <tr><td colSpan="9" style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--color-text-muted)' }}>Tidak ada spare part.</td></tr>
                             )}
                         </tbody>
                     </table>

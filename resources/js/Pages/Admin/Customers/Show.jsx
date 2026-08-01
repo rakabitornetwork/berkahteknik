@@ -72,9 +72,12 @@ export default function CustomerShow({ customer }) {
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                 <div style={{
                                     width: '46px', height: '46px', borderRadius: '12px',
-                                    background: 'linear-gradient(135deg, var(--color-primary-alpha), rgba(0,91,150,0.15))',
+                                    background: vehicle.color || 'linear-gradient(135deg, var(--color-primary-alpha), rgba(0,91,150,0.15))',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem',
-                                    flexShrink: 0, color: 'var(--color-primary-dark)'
+                                    flexShrink: 0,
+                                    color: vehicle.color ? '#fff' : 'var(--color-primary-dark)',
+                                    border: vehicle.color ? '1px solid rgba(0,0,0,0.12)' : 'none',
+                                    textShadow: vehicle.color ? '0 1px 2px rgba(0,0,0,0.35)' : 'none',
                                 }}><Car size={24} /></div>
                                 <div>
                                     <div style={{ fontWeight: 700, fontSize: '1.05rem' }}>
@@ -91,6 +94,21 @@ export default function CustomerShow({ customer }) {
                                         }}>
                                             {vehicle.license_plate}
                                         </span>
+                                        {(vehicle.color_name || vehicle.color) && (
+                                            <span style={{
+                                                display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+                                                background: 'rgba(100,116,139,0.1)', color: 'var(--color-text-muted)',
+                                                padding: '0.125rem 0.5rem', borderRadius: '9999px',
+                                                fontSize: '0.75rem', fontWeight: 600,
+                                            }}>
+                                                <span style={{
+                                                    width: '0.65rem', height: '0.65rem', borderRadius: '9999px',
+                                                    background: vehicle.color || '#94a3b8',
+                                                    border: '1px solid rgba(0,0,0,0.15)',
+                                                }} />
+                                                {vehicle.color_name || vehicle.color}
+                                            </span>
+                                        )}
                                         <span style={{
                                             background: 'rgba(100,116,139,0.1)', color: 'var(--color-text-muted)',
                                             padding: '0.125rem 0.5rem', borderRadius: '9999px',

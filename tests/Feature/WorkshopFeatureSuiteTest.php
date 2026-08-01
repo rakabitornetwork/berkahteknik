@@ -43,7 +43,7 @@ class WorkshopFeatureSuiteTest extends TestCase
     {
         foreach ([
             'admin.bookings.index',
-            'admin.service-payments.index',
+            'admin.service-payments.store',
             'admin.finance.index',
             'admin.stock-movements.index',
             'admin.returns.index',

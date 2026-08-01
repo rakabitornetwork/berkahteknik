@@ -14,6 +14,13 @@ use App\Http\Controllers\Portal\PortalDashboardController;
 use App\Http\Controllers\AdminProfileController;
 use App\Http\Controllers\WorkOrderController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\ServiceCategoryController;
+use App\Http\Controllers\ProductTypeController;
+use App\Http\Controllers\WorkTypeController;
+use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\PositionController;
+use App\Http\Controllers\EmployeeSalaryController;
+use App\Http\Controllers\SparepartCustomerController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\Public\LandingController;
@@ -27,6 +34,7 @@ use App\Http\Controllers\OperationsController;
 Route::get('/', [LandingController::class, 'index'])->name('home');
 Route::get('/konten', [PublicPostController::class, 'index'])->name('posts.index');
 Route::get('/konten/{slug}', [PublicPostController::class, 'show'])->name('posts.show');
+Route::get('/syarat-ketentuan', fn () => Inertia::render('Public/Terms'))->name('terms');
 
 // ─── Portal Pelanggan: Auth ───────────────────────────────────────────────────
 Route::prefix('portal')->name('portal.')->group(function () {
@@ -152,13 +160,25 @@ Route::prefix('admin')->middleware(['auth', 'admin.role'])->name('admin.')->grou
     ]);
     Route::patch('spare-parts/{sparePart}/stock', [SparePartController::class, 'adjustStock'])->name('spare-parts.stock');
 
-    // Mekanik
-    Route::resource('mechanics', App\Http\Controllers\MechanicController::class)->except(['create', 'show', 'edit'])->names([
-        'index'   => 'mechanics.index',
-        'store'   => 'mechanics.store',
-        'update'  => 'mechanics.update',
-        'destroy' => 'mechanics.destroy',
-    ]);
+    // Data Karyawan (menggantikan Data Mekanik)
+    Route::redirect('mechanics', '/admin/karyawan');
+    Route::prefix('karyawan')->name('karyawan.')->group(function () {
+        Route::get('/jabatan', [PositionController::class, 'index'])->name('jabatan.index');
+        Route::post('/jabatan', [PositionController::class, 'store'])->name('jabatan.store');
+        Route::put('/jabatan/{jabatan}', [PositionController::class, 'update'])->name('jabatan.update');
+        Route::delete('/jabatan/{jabatan}', [PositionController::class, 'destroy'])->name('jabatan.destroy');
+
+        Route::get('/gaji', [EmployeeSalaryController::class, 'index'])->name('gaji.index');
+        Route::post('/gaji', [EmployeeSalaryController::class, 'store'])->name('gaji.store');
+        Route::get('/gaji/{gaji}/slip', [EmployeeSalaryController::class, 'slip'])->name('gaji.slip');
+        Route::put('/gaji/{gaji}', [EmployeeSalaryController::class, 'update'])->name('gaji.update');
+        Route::delete('/gaji/{gaji}', [EmployeeSalaryController::class, 'destroy'])->name('gaji.destroy');
+
+        Route::get('/', [EmployeeController::class, 'index'])->name('index');
+        Route::post('/', [EmployeeController::class, 'store'])->name('store');
+        Route::put('/{karyawan}', [EmployeeController::class, 'update'])->name('update');
+        Route::delete('/{karyawan}', [EmployeeController::class, 'destroy'])->name('destroy');
+    });
 
     // Penjualan Langsung (POS)
     Route::patch('sales/{sale}/pay', [App\Http\Controllers\SaleController::class, 'pay'])->name('sales.pay');
@@ -183,6 +203,18 @@ Route::prefix('admin')->middleware(['auth', 'admin.role'])->name('admin.')->grou
     // Supplier & Purchase Orders
     Route::resource('suppliers', SupplierController::class);
     Route::resource('purchase-orders', PurchaseOrderController::class);
+
+    // Master data katalog
+    Route::resource('service-categories', ServiceCategoryController::class)->except(['show']);
+    Route::resource('product-types', ProductTypeController::class)->except(['show']);
+    Route::resource('work-types', WorkTypeController::class)->except(['show']);
+    Route::prefix('master-data')->name('master-data.')->group(function () {
+        Route::redirect('/', '/admin/suppliers');
+        Route::get('/pelanggan-sparepart', [SparepartCustomerController::class, 'index'])->name('pelanggan-sparepart.index');
+        Route::post('/pelanggan-sparepart', [SparepartCustomerController::class, 'store'])->name('pelanggan-sparepart.store');
+        Route::put('/pelanggan-sparepart/{pelanggan_sparepart}', [SparepartCustomerController::class, 'update'])->name('pelanggan-sparepart.update');
+        Route::delete('/pelanggan-sparepart/{pelanggan_sparepart}', [SparepartCustomerController::class, 'destroy'])->name('pelanggan-sparepart.destroy');
+    });
     Route::patch('purchase-orders/{purchaseOrder}/status', [PurchaseOrderController::class, 'updateStatus'])->name('purchase-orders.status');
 
     // Paket fitur operasional bengkel

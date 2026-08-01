@@ -1,0 +1,9 @@
+Default landing images (Unsplash License — https://unsplash.com/license)
+
+hero-default.jpg
+  Source: Unsplash — modern car interior with dashboard and air vents
+  https://unsplash.com/photos/modern-car-interior-with-dashboard-and-air-vents-6ocH6mcmplw
+
+about-default.jpg
+  Source: Unsplash — automotive service / mechanic workshop atmosphere
+  https://unsplash.com/photos/shallow-focus-photo-of-man-working-on-vehicle-engine-1486262715619-67b85e0b08d3

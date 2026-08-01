@@ -4,7 +4,6 @@ import {
     LayoutDashboard,
     Wrench,
     Users,
-    Package,
     BarChart3,
     LogOut,
     Menu,
@@ -14,7 +13,6 @@ import {
     Settings,
     Globe,
     Download,
-    Truck,
     Wallet,
     CalendarClock,
     Bell,
@@ -29,7 +27,9 @@ import {
     CreditCard,
     Eye,
     EyeOff,
+    Database,
 } from 'lucide-react';
+import { MASTER_DATA_PREFIXES } from '../Pages/Admin/MasterData/MasterDataTabs';
 import CompanyBranding from '../Components/CompanyBranding';
 import AppFooter from '../Components/AppFooter';
 import ThemeToggle from '../Components/ThemeToggle';
@@ -40,15 +40,14 @@ const navItems = [
     { href: '/admin/bookings', label: 'Booking Servis', icon: CalendarClock },
     { href: '/admin/work-orders', label: 'Surat Perintah Kerja', icon: FileText },
     { href: '/admin/sales', label: 'Penjualan (POS)', icon: ShoppingCart },
-    { href: '/admin/customers', label: 'Pelanggan', icon: Users },
-    { href: '/admin/spare-parts', label: 'Spare Part & Stok', icon: Package },
+    { href: '/admin/customers', label: 'Pelanggan Servis', icon: Users },
+    { href: '/admin/master-data', label: 'Master Data', icon: Database, activePrefixes: MASTER_DATA_PREFIXES },
     { href: '/admin/stock-movements', label: 'Kartu Stok', icon: QrCode, advanced: true },
-    { href: '/admin/mechanics', label: 'Data Mekanik', icon: Users },
+    { href: '/admin/karyawan', label: 'Data Karyawan', icon: Users },
     { href: '/admin/mechanic-ops', label: 'Operasional Mekanik', icon: UserCheck, roles: ['owner', 'admin'], advanced: true },
     { href: '/admin/reports', label: 'Laporan', icon: BarChart3 },
     { href: '/admin/finance', label: 'Buku Kas & Laba Rugi', icon: Landmark, roles: ['owner', 'admin'], advanced: true },
     { href: '/admin/expenses', label: 'Pengeluaran Bengkel', icon: Wallet, advanced: true },
-    { href: '/admin/suppliers', label: 'Supplier', icon: Truck, advanced: true },
     { href: '/admin/purchase-orders', label: 'Pengadaan Barang (PO)', icon: ShoppingBag, advanced: true },
     { href: '/admin/returns', label: 'Retur & Refund', icon: RotateCcw, roles: ['owner', 'admin', 'cashier', 'purchasing'], advanced: true },
     { href: '/admin/warranty-claims', label: 'Klaim Garansi', icon: ShieldCheck, advanced: true },
@@ -78,7 +77,12 @@ export default function AdminLayout({ children, title }) {
         localStorage.setItem('admin_simple_mode', JSON.stringify(simpleMode));
     }, [simpleMode]);
 
-    const isActive = (href) => {
+    const isActive = (item) => {
+        const href = typeof item === 'string' ? item : item.href;
+        const prefixes = typeof item === 'object' ? item.activePrefixes : null;
+        if (prefixes?.length) {
+            return prefixes.some((prefix) => url === prefix || url?.startsWith(`${prefix}/`) || url?.startsWith(`${prefix}?`));
+        }
         if (href === '/admin' && url === '/admin') return true;
         if (href !== '/admin' && url?.startsWith(href)) return true;
         return false;
@@ -93,17 +97,17 @@ export default function AdminLayout({ children, title }) {
 
     useEffect(() => {
         setMobileOpen(false);
-    }, [usePage().url]);
+    }, [url]);
+
+    const pageTitle = title || 'Dashboard';
 
     return (
         <div className="admin-layout-container">
             {mobileOpen && (
                 <div
+                    className="admin-mobile-overlay"
                     onClick={() => setMobileOpen(false)}
-                    style={{
-                        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
-                        zIndex: 30, backdropFilter: 'blur(4px)',
-                    }}
+                    aria-hidden="true"
                 />
             )}
 
@@ -113,20 +117,28 @@ export default function AdminLayout({ children, title }) {
                 </div>
 
                 <nav className="admin-nav">
-                    {navItems.filter(canSee).map(item => {
-                        const active = isActive(item.href);
+                    {navItems.filter(canSee).map((item) => {
+                        const active = isActive(item);
                         return (
                             <Link
                                 key={item.href}
-                                href={item.href}
+                                href={item.href === '/admin/master-data' ? '/admin/suppliers' : item.href}
                                 className={`admin-nav-link${active ? ' is-active' : ''}`}
                             >
                                 <item.icon size={20} strokeWidth={active ? 2 : 1.75} style={{ flexShrink: 0 }} />
                                 {!collapsed && (
-                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', minWidth: 0 }}>
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', minWidth: 0 }}>
                                         <span>{item.label}</span>
                                         {item.pro && (
-                                            <span style={{ fontSize: '0.62rem', fontWeight: 800, color: 'var(--color-warning)', border: '1px solid rgba(245,158,11,0.45)', borderRadius: '999px', padding: '0.05rem 0.35rem' }}>
+                                            <span style={{
+                                                fontSize: '0.68rem',
+                                                fontWeight: 700,
+                                                color: 'var(--color-warning)',
+                                                border: '1px solid rgba(217,119,6,0.35)',
+                                                borderRadius: '6px',
+                                                padding: '0.08rem 0.4rem',
+                                                letterSpacing: '0.02em',
+                                            }}>
                                                 PRO
                                             </span>
                                         )}
@@ -137,15 +149,7 @@ export default function AdminLayout({ children, title }) {
                     })}
                 </nav>
 
-                <div style={{
-                    padding: '0.75rem 0.25rem',
-                    borderTop: '1px solid var(--color-sidebar-border)',
-                    marginTop: 'auto',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.5rem',
-                    boxSizing: 'border-box',
-                }}>
+                <div className="admin-sidebar-footer">
                     {!collapsed ? (
                         <button
                             type="button"
@@ -155,16 +159,15 @@ export default function AdminLayout({ children, title }) {
                                 width: '100%',
                                 justifyContent: 'flex-start',
                                 background: simpleMode ? 'var(--color-primary-alpha)' : 'transparent',
-                                border: '1px dashed rgba(161, 161, 170, 0.2)',
+                                border: '1px dashed var(--color-border)',
                                 cursor: 'pointer',
-                                padding: '0.5rem 0.75rem',
-                                color: simpleMode ? 'var(--color-primary-light)' : 'var(--color-sidebar-text)',
+                                color: simpleMode ? 'var(--color-primary)' : 'var(--color-sidebar-text)',
                             }}
                         >
                             {simpleMode ? <EyeOff size={18} /> : <Eye size={18} />}
-                            <span style={{ fontSize: '0.8rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left', lineHeight: '1.2' }}>
+                            <span style={{ fontSize: '0.85rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left', lineHeight: 1.3 }}>
                                 <span style={{ fontWeight: 600 }}>{simpleMode ? 'Mode Sederhana' : 'Mode Lengkap'}</span>
-                                <span style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)', fontWeight: 400 }}>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 400 }}>
                                     {simpleMode ? 'Menu disederhanakan' : 'Semua menu aktif'}
                                 </span>
                             </span>
@@ -177,11 +180,11 @@ export default function AdminLayout({ children, title }) {
                             style={{
                                 justifyContent: 'center',
                                 background: simpleMode ? 'var(--color-primary-alpha)' : 'transparent',
-                                border: '1px dashed rgba(161, 161, 170, 0.2)',
+                                border: '1px dashed var(--color-border)',
                                 cursor: 'pointer',
-                                padding: '0.625rem 0',
+                                padding: '0.72rem 0',
                                 width: '100%',
-                                color: simpleMode ? 'var(--color-primary-light)' : 'var(--color-sidebar-text)',
+                                color: simpleMode ? 'var(--color-primary)' : 'var(--color-sidebar-text)',
                             }}
                             title={simpleMode ? 'Mode Sederhana (Klik untuk Mode Lengkap)' : 'Mode Lengkap (Klik untuk Mode Sederhana)'}
                         >
@@ -192,58 +195,43 @@ export default function AdminLayout({ children, title }) {
             </aside>
 
             <div className="admin-main-content">
-                <header style={{
-                    height: '54px', padding: '0 1rem',
-                    background: 'var(--color-bg)',
-                    borderBottom: '1px solid var(--color-border)',
-                    display: 'flex', justifyContent: 'space-between',
-                    alignItems: 'center', flexShrink: 0, boxSizing: 'border-box',
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
+                <header className="admin-header">
+                    <div className="admin-header-left">
                         <button
                             type="button"
-                            className="mobile-only"
+                            className="mobile-only admin-header-icon-btn"
                             onClick={() => setMobileOpen(true)}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)' }}
+                            aria-label="Buka menu"
                         >
                             <Menu size={20} strokeWidth={2} />
                         </button>
                         <button
                             type="button"
-                            className="desktop-only"
+                            className="desktop-only admin-header-icon-btn"
                             onClick={() => setCollapsed(!collapsed)}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)' }}
+                            aria-label={collapsed ? 'Perluas sidebar' : 'Ciutkan sidebar'}
                         >
                             <Menu size={20} strokeWidth={2} />
                         </button>
 
-                        <h1 style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-main)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                            {title || 'Dashboard'}
-                        </h1>
+                        <h1 className="admin-header-title">{pageTitle}</h1>
                     </div>
 
-                    <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '1.25rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
-                            <ThemeToggle />
-                            <Link
-                                href="/admin/profile"
-                                style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', justifyContent: 'center', textDecoration: 'none' }}
-                                title="Pengaturan Profil"
-                            >
-                                <div style={{ fontWeight: 600, fontSize: '0.8rem', color: 'var(--color-text-main)', lineHeight: 1.2 }}>{user?.name || 'Administrator'}</div>
-                                <div style={{ color: 'var(--color-primary)', fontSize: '0.7rem', fontWeight: 500 }}>Edit Profil &rarr;</div>
-                            </Link>
-                            <Link href="/admin/logout" method="post" as="button" title="Logout"
-                                style={{
-                                    background: 'transparent', border: '1px solid var(--color-border)', cursor: 'pointer', color: 'var(--color-text-muted)',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.4rem', borderRadius: '50%', transition: 'all var(--transition-fast)',
-                                }}
-                                onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-danger)'; e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.3)'; e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)'; }}
-                                onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-muted)'; e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.backgroundColor = 'transparent'; }}
-                            >
-                                <LogOut size={14} strokeWidth={2.5} />
-                            </Link>
-                        </div>
+                    <div className="admin-header-right">
+                        <ThemeToggle />
+                        <Link href="/admin/profile" className="admin-header-user" title="Pengaturan Profil">
+                            <strong>{user?.name || 'Administrator'}</strong>
+                            <span>Edit profil</span>
+                        </Link>
+                        <Link
+                            href="/admin/logout"
+                            method="post"
+                            as="button"
+                            title="Logout"
+                            className="admin-header-logout"
+                        >
+                            <LogOut size={16} strokeWidth={2.25} />
+                        </Link>
                     </div>
                 </header>
 

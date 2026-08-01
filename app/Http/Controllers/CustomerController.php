@@ -12,9 +12,12 @@ class CustomerController extends Controller
 {
     public function index(Request $request)
     {
-        $customers = Customer::withCount('vehicles')
-            ->when($request->search, fn($q) => $q->where('name', 'like', "%{$request->search}%")
-                ->orWhere('phone', 'like', "%{$request->search}%"))
+        $customers = Customer::servis()
+            ->withCount('vehicles')
+            ->when($request->search, fn ($q) => $q->where(function ($inner) use ($request) {
+                $inner->where('name', 'like', "%{$request->search}%")
+                    ->orWhere('phone', 'like', "%{$request->search}%");
+            }))
             ->latest()
             ->paginate(15)
             ->withQueryString();
@@ -44,6 +47,8 @@ class CustomerController extends Controller
         } else {
             unset($validated['password']);
         }
+
+        $validated['customer_type'] = Customer::TYPE_SERVIS;
 
         Customer::create($validated);
 

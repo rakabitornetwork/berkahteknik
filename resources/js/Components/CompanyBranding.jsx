@@ -1,10 +1,10 @@
 import React from 'react';
 import { usePage } from '@inertiajs/react';
-import { Fan } from 'lucide-react';
 
 export default function CompanyBranding({ variant = 'default', collapsed = false, className = '' }) {
     const shop = usePage().props.shop || {};
     const name = shop.short_name || shop.app_name || 'AC Berkah';
+    const initial = name.slice(0, 2).toUpperCase();
 
     if (variant === 'portal') {
         return (
@@ -12,26 +12,67 @@ export default function CompanyBranding({ variant = 'default', collapsed = false
                 {shop.logo_url ? (
                     <img src={shop.logo_url} alt={name} style={{ width: 36, height: 36, borderRadius: 10, objectFit: 'contain' }} />
                 ) : (
-                    <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-light))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 800, fontSize: '0.9rem' }}>
-                        AC
+                    <div style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: 10,
+                        background: 'linear-gradient(145deg, var(--color-primary-light), var(--color-primary) 55%, var(--color-primary-dark))',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        fontFamily: 'var(--font-display)',
+                        fontWeight: 700,
+                        fontSize: '0.85rem',
+                    }}>
+                        {initial}
                     </div>
                 )}
-                <span style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--color-text-main)' }}>{name}</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1.1rem', letterSpacing: '-0.02em', color: 'var(--color-text-main)' }}>{name}</span>
             </div>
         );
     }
 
     return (
-        <div className={`company-branding ${className}`.trim()} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', overflow: 'hidden' }}>
+        <div className={`company-branding ${className}`.trim()} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', overflow: 'hidden', width: '100%' }}>
             {shop.logo_url ? (
-                <img src={shop.logo_url} alt={name} style={{ width: 28, height: 28, borderRadius: 6, objectFit: 'contain', flexShrink: 0 }} />
+                <img src={shop.logo_url} alt={name} style={{ width: 34, height: 34, borderRadius: 10, objectFit: 'contain', flexShrink: 0 }} />
             ) : (
-                <span style={{ color: '#fbbf24', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
-                    <Fan size={22} strokeWidth={2.5} />
-                </span>
+                <div
+                    style={{
+                        width: 34,
+                        height: 34,
+                        borderRadius: 10,
+                        background: 'linear-gradient(145deg, #14948a, #0f766e 55%, #0b5f59)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        fontFamily: 'var(--font-display)',
+                        fontWeight: 700,
+                        fontSize: '0.8rem',
+                        flexShrink: 0,
+                    }}
+                    aria-hidden="true"
+                >
+                    {initial}
+                </div>
             )}
             {!collapsed && (
-                <span style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--color-sidebar-active-text)', whiteSpace: 'nowrap' }}>{name}</span>
+                <span
+                    style={{
+                        fontFamily: 'var(--font-display)',
+                        fontWeight: 600,
+                        fontSize: '1.05rem',
+                        letterSpacing: '-0.02em',
+                        color: 'var(--color-sidebar-active-text)',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                    }}
+                >
+                    {name}
+                </span>
             )}
         </div>
     );

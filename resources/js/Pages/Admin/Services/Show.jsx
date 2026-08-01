@@ -68,6 +68,22 @@ export default function ServiceShow({ service }) {
                         <InfoRow label="Kendaraan" value={`${service.vehicle?.brand} ${service.vehicle?.model}`} />
                         <InfoRow label="Plat Nomor" value={service.vehicle?.license_plate} bold />
                         <InfoRow label="Tahun" value={service.vehicle?.year || '-'} />
+                        <InfoRow
+                            label="Warna"
+                            value={
+                                service.vehicle?.color ? (
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                                        <span style={{
+                                            width: '0.85rem', height: '0.85rem', borderRadius: '9999px',
+                                            background: service.vehicle.color,
+                                            border: '1px solid rgba(0,0,0,0.15)',
+                                            display: 'inline-block',
+                                        }} />
+                                        {service.vehicle.color_name || service.vehicle.color}
+                                    </span>
+                                ) : '-'
+                            }
+                        />
                     </div>
 
                     {/* Penanganan */}
@@ -144,17 +160,17 @@ export default function ServiceShow({ service }) {
                     </div>
                 </div>
 
-                {/* Spare Parts & Invoice */}
+                {/* Item Sparepart */}
                 <div className="glass-panel" style={{ padding: '1.25rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem' }}>
-                        <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-primary)', margin: 0 }}>Spare Part & Rincian Biaya</h3>
+                        <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-primary)', margin: 0 }}>Item Sparepart</h3>
                         {(service.is_bring_own_part === 1 || service.is_bring_own_part === true) && (
                             <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-info)', background: 'rgba(14, 165, 233, 0.1)', padding: '0.25rem 0.5rem', borderRadius: '4px', border: '1px solid rgba(14, 165, 233, 0.3)' }}>
                                 [Catatan Resmi: Pelanggan Menggunakan Spare Part Bawaan Sendiri]
                             </span>
                         )}
                     </div>
-                    <table className="hd-table" style={{ marginBottom: '1rem' }}>
+                    <table className="hd-table">
                         <thead>
                             <tr>
                                 <th>Nama Spare Part</th>
@@ -174,17 +190,48 @@ export default function ServiceShow({ service }) {
                             )) : (
                                 <tr><td colSpan="4" style={{ color: 'var(--color-text-muted)', fontStyle: 'italic' }}>Tidak ada spare part</td></tr>
                             )}
-                            <tr style={{ borderTop: '2px solid var(--color-border)' }}>
-                                <td colSpan="3" style={{ textAlign: 'right', fontWeight: 500, paddingTop: '0.75rem' }}>Biaya Jasa</td>
-                                <td style={{ textAlign: 'right', paddingTop: '0.75rem' }}>{fmt(service.service_fee)}</td>
-                            </tr>
-                            <tr>
-                                <td colSpan="3" style={{ textAlign: 'right', fontWeight: 700, fontSize: '1rem', color: 'var(--color-primary-dark)' }}>TOTAL</td>
-                                <td style={{ textAlign: 'right', fontWeight: 700, fontSize: '1rem', color: 'var(--color-primary-dark)' }}>{fmt(grandTotal)}</td>
-                            </tr>
                         </tbody>
                     </table>
+                </div>
 
+                {/* Item Pengerjaan */}
+                <div className="glass-panel" style={{ padding: '1.25rem' }}>
+                    <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-primary)', marginBottom: '1rem' }}>Item Pengerjaan</h3>
+                    <table className="hd-table">
+                        <thead>
+                            <tr>
+                                <th>Nama Pengerjaan</th>
+                                <th style={{ textAlign: 'center', width: '5rem' }}>Qty</th>
+                                <th style={{ textAlign: 'center', width: '5rem' }}>Satuan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {service.work_items?.length > 0 ? service.work_items.map((item, i) => (
+                                <tr key={item.id || i}>
+                                    <td>{item.name}</td>
+                                    <td style={{ textAlign: 'center' }}>{item.quantity}</td>
+                                    <td style={{ textAlign: 'center', fontFamily: 'monospace', fontWeight: 700 }}>{item.unit || 'JOB'}</td>
+                                </tr>
+                            )) : (
+                                <tr><td colSpan="3" style={{ color: 'var(--color-text-muted)', fontStyle: 'italic' }}>Tidak ada item pengerjaan</td></tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Jasa & Total */}
+                <div className="glass-panel" style={{ padding: '1.25rem' }}>
+                    <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-primary)', marginBottom: '1rem' }}>Jasa</h3>
+                    <InfoRow label="Jenis Jasa" value={service.service_name || '-'} bold />
+                    <InfoRow label="Biaya Jasa" value={fmt(service.service_fee)} />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem 0 0', marginTop: '0.75rem', borderTop: '2px solid var(--color-border)', fontSize: '1rem', fontWeight: 700, color: 'var(--color-primary-dark)' }}>
+                        <span>TOTAL</span>
+                        <span>{fmt(grandTotal)}</span>
+                    </div>
+                </div>
+
+                {/* Pembayaran & Aksi */}
+                <div className="glass-panel" style={{ padding: '1.25rem' }}>
                     <div style={{ marginBottom: '1rem', padding: '1rem', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)' }}>
                         <h4 style={{ margin: '0 0 0.75rem', fontSize: '0.9rem', fontWeight: 700 }}>Riwayat Pembayaran Servis</h4>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginBottom: '0.75rem' }}>

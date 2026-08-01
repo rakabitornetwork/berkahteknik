@@ -28,6 +28,8 @@ class PortalDashboardController extends Controller
                     'model'         => $v->model,
                     'license_plate' => $v->license_plate,
                     'year'          => $v->year,
+                    'color'         => $v->color,
+                    'color_name'    => $v->color_name,
                     'services'      => $v->services->map(function ($s) {
                         $partsTotal = $s->spareParts->sum(fn($p) => $p->pivot->quantity * $p->pivot->unit_price);
                         return [
@@ -122,6 +124,8 @@ class PortalDashboardController extends Controller
             'brand'         => 'required|string|max:50',
             'model'         => 'required|string|max:50',
             'year'          => 'nullable|integer|min:1990|max:' . (date('Y') + 1),
+            'color'         => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'color_name'    => 'nullable|string|max:50',
         ]);
 
         $validated['customer_id'] = $customer->id;

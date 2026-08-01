@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { router, Link } from '@inertiajs/react';
 import { Save, ArrowLeft } from 'lucide-react';
 import AdminLayout from '../../../Layouts/AdminLayout';
+import MasterDataTabs from '../MasterData/MasterDataTabs';
 
 export default function Form({ supplier = null, errors = {} }) {
     const isEditing = !!supplier;
@@ -28,8 +29,9 @@ export default function Form({ supplier = null, errors = {} }) {
     };
 
     return (
-        <AdminLayout title={isEditing ? 'Edit Supplier' : 'Tambah Supplier'}>
-            <div style={{ padding: '1.5rem' }}>
+        <AdminLayout title={isEditing ? 'Edit Data Supplier' : 'Tambah Data Supplier'}>
+            <div style={{ padding: '0.25rem 0' }}>
+                <MasterDataTabs />
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
                     <Link
                         href={route('admin.suppliers.index')}

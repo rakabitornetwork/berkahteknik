@@ -6,7 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class SparePart extends Model
 {
-    protected $fillable = ['code', 'barcode', 'name', 'unit', 'stock', 'min_stock', 'buy_price', 'sell_price', 'description', 'warehouse_id'];
+    protected $fillable = ['code', 'barcode', 'name', 'product_type_id', 'unit', 'stock', 'min_stock', 'buy_price', 'sell_price', 'description', 'warehouse_id'];
+
+    public function productType()
+    {
+        return $this->belongsTo(ProductType::class);
+    }
 
     public function services()
     {

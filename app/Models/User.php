@@ -19,11 +19,23 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'phone',
         'password',
         'username',
         'photo',
         'role',
+        'position_id',
+        'base_salary',
+        'transport_allowance',
+        'tenure_allowance',
+        'thr',
+        'ktp_photo_path',
         'attendance_qr_token',
+    ];
+
+    protected $appends = [
+        'total_salary',
+        'ktp_photo_url',
     ];
 
     /**
@@ -46,6 +58,34 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'base_salary' => 'float',
+            'transport_allowance' => 'float',
+            'tenure_allowance' => 'float',
+            'thr' => 'float',
         ];
     }
+
+    public function position()
+    {
+        return $this->belongsTo(Position::class);
+    }
+
+    public function salaries()
+    {
+        return $this->hasMany(EmployeeSalary::class, 'user_id');
+    }
+
+    public function getTotalSalaryAttribute(): float
+    {
+        return (float) $this->base_salary
+            + (float) $this->transport_allowance
+            + (float) $this->tenure_allowance
+            + (float) $this->thr;
+    }
+
+    public function getKtpPhotoUrlAttribute(): ?string
+    {
+        return $this->ktp_photo_path ? '/storage/'.$this->ktp_photo_path : null;
+    }
 }
+
