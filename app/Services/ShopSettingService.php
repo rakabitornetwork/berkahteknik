@@ -24,8 +24,12 @@ class ShopSettingService
             'address' => $s->address,
             'latitude' => $s->latitude,
             'longitude' => $s->longitude,
-            'logo_url' => $s->logo_path ? Storage::disk('public')->url($s->logo_path) : null,
-            'favicon_url' => $s->favicon_path ? Storage::disk('public')->url($s->favicon_path) : null,
+            'logo_url' => $s->logo_path
+                ? Storage::disk('public')->url($s->logo_path)
+                : asset('images/brand/logo.svg'),
+            'favicon_url' => $s->favicon_path
+                ? Storage::disk('public')->url($s->favicon_path)
+                : asset('images/brand/favicon.svg'),
             'footer_text' => $s->footer_text,
             'receipt_footer' => $s->receipt_footer,
             'warranty_policy' => $s->warranty_policy,

@@ -2,6 +2,7 @@ import React from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
+import DocumentIcons from './DocumentIcons';
 
 const VISUAL = {
     admin: {
@@ -39,6 +40,7 @@ export default function AuthScreen({
     return (
         <div className={`auth-screen auth-screen--${variant}`}>
             <Head title={headTitle} />
+            <DocumentIcons />
 
             <aside className="auth-visual" aria-hidden="false">
                 <img

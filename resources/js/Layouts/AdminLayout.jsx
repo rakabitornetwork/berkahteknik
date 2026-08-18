@@ -33,6 +33,7 @@ import { MASTER_DATA_PREFIXES } from '../Pages/Admin/MasterData/MasterDataTabs';
 import CompanyBranding from '../Components/CompanyBranding';
 import AppFooter from '../Components/AppFooter';
 import ThemeToggle from '../Components/ThemeToggle';
+import DocumentIcons from '../Components/DocumentIcons';
 
 const navItems = [
     { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -103,6 +104,7 @@ export default function AdminLayout({ children, title }) {
 
     return (
         <div className="admin-layout-container">
+            <DocumentIcons />
             {mobileOpen && (
                 <div
                     className="admin-mobile-overlay"

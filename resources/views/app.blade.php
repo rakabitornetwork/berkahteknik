@@ -4,7 +4,19 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title inertia>{{ \App\Models\ShopSetting::current()->app_name ?: config('app.name', 'Bengkel AC Mobil') }}</title>
+        @php
+            $shopSetting = \App\Models\ShopSetting::current();
+            $appTitle = $shopSetting->app_name ?: config('app.name', 'Bengkel AC Mobil');
+            $faviconHref = $shopSetting->favicon_path
+                ? \Illuminate\Support\Facades\Storage::disk('public')->url($shopSetting->favicon_path)
+                : asset('images/brand/favicon.svg');
+            $appleHref = $shopSetting->logo_path
+                ? \Illuminate\Support\Facades\Storage::disk('public')->url($shopSetting->logo_path)
+                : asset('images/brand/apple-touch-icon.png');
+        @endphp
+        <title inertia>{{ $appTitle }}</title>
+        <link rel="icon" href="{{ $faviconHref }}">
+        <link rel="apple-touch-icon" href="{{ $appleHref }}">
 
         <script>
             (function () {

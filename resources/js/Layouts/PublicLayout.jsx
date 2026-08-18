@@ -4,6 +4,7 @@ import { Menu, X } from 'lucide-react';
 import CompanyBranding from '../Components/CompanyBranding';
 import AppFooter from '../Components/AppFooter';
 import ThemeToggle from '../Components/ThemeToggle';
+import DocumentIcons from '../Components/DocumentIcons';
 
 export function portalCtaUrl(auth, landingCtaUrl) {
     if (auth?.customer) {
@@ -129,6 +130,7 @@ export default function PublicLayout({ children, variant = 'default' }) {
             className={`public-site${isLanding ? ' public-site--landing' : ''}`}
             style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: isLanding ? undefined : 'var(--color-bg)' }}
         >
+            <DocumentIcons />
             <header
                 ref={headerRef}
                 className="public-site-header"

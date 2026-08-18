@@ -4,10 +4,12 @@ import { User, LogOut, Wrench } from 'lucide-react';
 import CompanyBranding from '../Components/CompanyBranding';
 import AppFooter from '../Components/AppFooter';
 import ThemeToggle from '../Components/ThemeToggle';
+import DocumentIcons from '../Components/DocumentIcons';
 
 export default function MechanicLayout({ children, mechanic }) {
     return (
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--color-bg)' }}>
+            <DocumentIcons />
             <nav
                 className="portal-header"
                 style={{
