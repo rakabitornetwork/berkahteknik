@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title inertia>{{ config('app.name', 'Bengkel AC Mobil') }}</title>
+        <title inertia>{{ \App\Models\ShopSetting::current()->app_name ?: config('app.name', 'Bengkel AC Mobil') }}</title>
 
         <script>
             (function () {

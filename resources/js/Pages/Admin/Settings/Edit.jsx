@@ -99,7 +99,6 @@ export default function SettingsEdit({ settings }) {
     const { data, setData, post, processing, errors, recentlySuccessful } = useForm({
         app_name: settings.app_name || '',
         legal_name: settings.legal_name || '',
-        short_name: settings.short_name || '',
         tagline: settings.tagline || '',
         owner_name: settings.owner_name || '',
         phone: settings.phone || '',
@@ -194,9 +193,6 @@ export default function SettingsEdit({ settings }) {
                             </Field>
                             <Field label="Nama Legal / Nota" error={errors.legal_name}>
                                 <input className="form-input" value={data.legal_name} onChange={e => setData('legal_name', e.target.value)} required />
-                            </Field>
-                            <Field label="Nama Singkat (Navbar)" error={errors.short_name}>
-                                <input className="form-input" value={data.short_name} onChange={e => setData('short_name', e.target.value)} required />
                             </Field>
                             <Field label="Tagline">
                                 <input className="form-input" value={data.tagline} onChange={e => setData('tagline', e.target.value)} />

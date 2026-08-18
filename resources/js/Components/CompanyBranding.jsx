@@ -3,7 +3,7 @@ import { usePage } from '@inertiajs/react';
 
 export default function CompanyBranding({ variant = 'default', collapsed = false, className = '' }) {
     const shop = usePage().props.shop || {};
-    const name = shop.short_name || shop.app_name || 'AC Berkah';
+    const name = shop.app_name || shop.legal_name || 'Berkah Teknik AC';
     const initial = name.slice(0, 2).toUpperCase();
 
     if (variant === 'portal') {

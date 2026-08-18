@@ -12,7 +12,6 @@ return new class extends Migration
             $table->id();
             $table->string('app_name')->default('Berkah Teknik AC');
             $table->string('legal_name')->default('Berkah Teknik AC');
-            $table->string('short_name')->default('AC Berkah');
             $table->string('tagline')->nullable();
             $table->string('owner_name')->nullable();
             $table->string('phone')->nullable();

@@ -32,7 +32,7 @@ export default function AuthScreen({
     maxWidth,
 }) {
     const { shop } = usePage().props;
-    const brand = shop?.short_name || shop?.legal_name || shop?.app_name || 'AC Berkah';
+    const brand = shop?.app_name || shop?.legal_name || 'Berkah Teknik AC';
     const initial = brand.slice(0, 2).toUpperCase();
     const visual = VISUAL[variant] || VISUAL.portal;
 

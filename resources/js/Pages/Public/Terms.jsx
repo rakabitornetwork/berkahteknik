@@ -4,7 +4,7 @@ import PublicLayout from '../../Layouts/PublicLayout';
 
 export default function Terms() {
     const shop = usePage().props.shop || {};
-    const brand = shop.short_name || shop.legal_name || shop.app_name || 'Bengkel AC';
+    const brand = shop.app_name || shop.legal_name || 'Bengkel AC';
 
     return (
         <PublicLayout>

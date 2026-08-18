@@ -11,7 +11,6 @@ class ShopSetting extends Model
     protected $fillable = [
         'app_name',
         'legal_name',
-        'short_name',
         'tagline',
         'owner_name',
         'phone',
@@ -86,7 +85,6 @@ class ShopSetting extends Model
         return static::create([
             'app_name' => config('app.name', 'Berkah Teknik AC'),
             'legal_name' => config('app.name', 'Berkah Teknik AC'),
-            'short_name' => 'AC Berkah',
             'tagline' => 'Melayani dengan Sepenuh Hati',
             'footer_text' => '© '.date('Y').' Berkah Teknik AC — Melayani dengan Sepenuh Hati',
             'receipt_footer' => 'Terima kasih atas pembelian Anda! Barang yang sudah dibeli tidak dapat ditukar atau dikembalikan.',

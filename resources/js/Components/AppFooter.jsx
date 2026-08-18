@@ -5,7 +5,7 @@ import { MapPin, Phone, Mail, MessageCircle } from 'lucide-react';
 export default function AppFooter({ variant = 'portal' }) {
     const shop = usePage().props.shop || {};
     const year = new Date().getFullYear();
-    const brand = shop.short_name || shop.legal_name || shop.app_name || 'Berkah Teknik AC';
+    const brand = shop.app_name || shop.legal_name || 'Berkah Teknik AC';
     const footerLine = shop.footer_text || `© ${year} ${brand}`;
 
     if (variant === 'admin') {

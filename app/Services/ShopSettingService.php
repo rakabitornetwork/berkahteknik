@@ -15,7 +15,6 @@ class ShopSettingService
         return [
             'app_name' => $s->app_name,
             'legal_name' => $s->legal_name,
-            'short_name' => $s->short_name,
             'tagline' => $s->tagline,
             'owner_name' => $s->owner_name,
             'phone' => $s->phone,

@@ -25,7 +25,6 @@ class SettingController extends Controller
         $validated = $request->validate([
             'app_name' => 'required|string|max:255',
             'legal_name' => 'required|string|max:255',
-            'short_name' => 'required|string|max:100',
             'tagline' => 'nullable|string|max:255',
             'owner_name' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:50',

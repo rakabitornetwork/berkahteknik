@@ -16,7 +16,6 @@ class ShopSettingSeeder extends Seeder
         ShopSetting::create([
             'app_name' => config('app.name', 'Berkah Teknik AC'),
             'legal_name' => 'Berkah Teknik AC',
-            'short_name' => 'AC Berkah',
             'tagline' => 'Melayani dengan Sepenuh Hati',
             'owner_name' => null,
             'phone' => null,

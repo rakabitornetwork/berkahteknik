@@ -20,7 +20,7 @@ export default function AdminLogin() {
             variant="admin"
             headTitle="Admin Login"
             title="Masuk ke panel admin"
-            subtitle={`Gunakan akun staf ${shop?.short_name || shop?.app_name || 'bengkel'} untuk mengelola operasional harian.`}
+            subtitle={`Gunakan akun staf ${shop?.app_name || 'bengkel'} untuk mengelola operasional harian.`}
             backHref="/"
             backLabel="Kembali ke beranda"
         >
