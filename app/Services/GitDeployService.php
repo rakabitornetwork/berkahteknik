@@ -159,6 +159,9 @@ class GitDeployService
             if (! $migrate['success']) {
                 return $this->result(false, $logs, 'Migrasi database gagal.');
             }
+
+            $seedSuperadmin = $this->runPhp('db:seed --class=SuperadminSeeder --force');
+            $logs[] = $this->logEntry('Pastikan akun Superadmin', $seedSuperadmin);
         }
 
         if ($runNpm && file_exists($this->basePath.'/package.json')) {
