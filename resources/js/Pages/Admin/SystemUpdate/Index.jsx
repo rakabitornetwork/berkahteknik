@@ -45,7 +45,7 @@ export default function SystemUpdateIndex({ status, config }) {
         confirm: false,
         run_composer: false,
         run_migrate: true,
-        run_npm: true,
+        run_npm: false,
         run_optimize: true,
     });
 
@@ -294,12 +294,13 @@ export default function SystemUpdateIndex({ status, config }) {
                     <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.5rem' }}>Jalankan update</h2>
                     <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: '1rem', lineHeight: 1.55 }}>
                         Akan menarik perubahan dari <strong>origin/{status.branch}</strong> (git pull), lalu menjalankan langkah yang Anda centang di bawah.
+                        Frontend sudah di-build di komputer lokal dan masuk Git, jadi VPS tidak perlu <strong>npm run build</strong>.
                     </p>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem', fontSize: '0.875rem' }}>
                         <CheckOption id="run_composer" label="Composer install" checked={data.run_composer} onChange={(v) => setData('run_composer', v)} />
                         <CheckOption id="run_migrate" label="php artisan migrate" checked={data.run_migrate} onChange={(v) => setData('run_migrate', v)} />
-                        <CheckOption id="run_npm" label="npm install & build" checked={data.run_npm} onChange={(v) => setData('run_npm', v)} />
+                        <CheckOption id="run_npm" label="npm install & build di VPS (opsional, tidak disarankan)" checked={data.run_npm} onChange={(v) => setData('run_npm', v)} />
                         <CheckOption id="run_optimize" label="Cache optimize (config, route, view)" checked={data.run_optimize} onChange={(v) => setData('run_optimize', v)} />
                     </div>
 

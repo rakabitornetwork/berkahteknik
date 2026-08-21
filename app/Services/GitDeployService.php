@@ -92,7 +92,7 @@ class GitDeployService
     {
         $runComposer = $options['composer'] ?? true;
         $runMigrate = $options['migrate'] ?? true;
-        $runNpm = $options['npm'] ?? true;
+        $runNpm = $options['npm'] ?? false;
         $runOptimize = $options['optimize'] ?? true;
 
         $logs = [];
@@ -121,8 +121,7 @@ class GitDeployService
             return $this->result(false, $logs, 'Sudah pada commit yang sama dengan '.$remote.'/'.$branch.'. Tidak ada update untuk dipasang.');
         }
 
-        // Bersihkan file yang ada di ignore_dirty_paths sebelum pull,
-        // agar file seperti public/build/manifest.json tidak memblokir merge.
+        // Bersihkan file ignored yang berubah sebelum pull.
         $ignoredDirty = $this->getIgnoredLocalChangePaths();
         if ($ignoredDirty !== []) {
             $checkoutArgs = implode(' ', array_map('escapeshellarg', $ignoredDirty));
@@ -130,6 +129,9 @@ class GitDeployService
             $logs[] = $this->logEntry('Bersihkan file ignored yang berubah ('.count($ignoredDirty).' file)', $checkout);
             // Tidak fatal jika gagal — lanjut coba pull
         }
+
+        $cleanBuild = $this->prepareIncomingBuildAssets();
+        $logs[] = $this->logEntry('Siapkan public/build dari Git', $cleanBuild);
 
         $pull = $this->runGit('pull --ff-only '.$remote.' '.$branch.' --tags');
         $logs[] = $this->logEntry('Git pull', $pull);
@@ -172,21 +174,37 @@ class GitDeployService
                 ? $this->runShell('npm ci --no-audit --no-fund')
                 : $this->runShell('npm install --no-audit --no-fund');
             $logs[] = $this->logEntry('NPM install', $npmInstall);
-            if (! $npmInstall['success']) {
-                return $this->result(false, $logs, 'NPM install gagal.');
+
+            $npmOk = $npmInstall['success'];
+            if ($npmOk) {
+                $ensurePos = $this->ensurePointOfSalePackages();
+                $logs[] = $this->logEntry('Pastikan paket thermal printer', $ensurePos);
+                $npmOk = $ensurePos['success'];
             }
 
-            $ensurePos = $this->ensurePointOfSalePackages();
-            $logs[] = $this->logEntry('Pastikan paket thermal printer', $ensurePos);
-            if (! $ensurePos['success']) {
-                return $this->result(false, $logs, 'Paket @point-of-sale tidak terpasang. Cek koneksi npm registry di server.');
+            if ($npmOk) {
+                $npmBuild = $this->runShell('npm run build');
+                $logs[] = $this->logEntry('NPM build', $npmBuild);
+                $npmOk = $npmBuild['success'];
             }
 
-            $npmBuild = $this->runShell('npm run build');
-            $logs[] = $this->logEntry('NPM build', $npmBuild);
-            if (! $npmBuild['success']) {
-                return $this->result(false, $logs, 'NPM build gagal.');
+            if (! $npmOk) {
+                if ($this->hasBuiltFrontend()) {
+                    $logs[] = $this->logEntry(
+                        'NPM dilewati, memakai public/build dari Git',
+                        ['success' => true, 'output' => 'npm gagal di VPS. Frontend tetap memakai aset yang sudah di-build di komputer lokal.', 'exit_code' => 0]
+                    );
+                } else {
+                    return $this->result(false, $logs, 'NPM gagal dan public/build/manifest.json tidak ada. Build frontend di komputer lokal, commit folder public/build, lalu update lagi.');
+                }
             }
+        } elseif (! $this->hasBuiltFrontend()) {
+            return $this->result(false, $logs, 'Frontend belum ada di public/build. Jalankan npm run build di komputer lokal, commit hasilnya, lalu update VPS tanpa npm.');
+        } else {
+            $logs[] = $this->logEntry(
+                'Frontend dari Git',
+                ['success' => true, 'output' => 'Memakai public/build yang di-commit dari komputer lokal (tanpa npm di VPS).', 'exit_code' => 0]
+            );
         }
 
         if ($runOptimize) {
@@ -438,6 +456,21 @@ class GitDeployService
             $this->getLocalChangePaths(),
             fn (string $path) => $this->isIgnoredDirtyPath($path)
         ));
+    }
+
+    protected function hasBuiltFrontend(): bool
+    {
+        return is_file($this->basePath.'/public/build/manifest.json');
+    }
+
+    protected function prepareIncomingBuildAssets(): array
+    {
+        $buildPath = $this->basePath.'/public/build';
+        if (! is_dir($buildPath)) {
+            return ['success' => true, 'output' => 'Tidak ada public/build lokal.', 'exit_code' => 0];
+        }
+
+        return $this->runGit('clean -fd -- public/build');
     }
 
     protected function cleanNodeModules(): array

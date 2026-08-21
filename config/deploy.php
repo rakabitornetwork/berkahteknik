@@ -8,7 +8,8 @@ return [
     |--------------------------------------------------------------------------
     |
     | Set DEPLOY_GITHUB_ENABLED=true di .env untuk mengaktifkan menu update.
-    | Hanya user dengan role "admin" yang dapat menjalankan perintah deploy.
+    | Frontend di-build di komputer lokal dan di-commit ke public/build.
+    | VPS cukup git pull; npm run build tidak wajib.
     |
     */
 
@@ -40,7 +41,6 @@ return [
     'ignore_dirty_paths' => [
         'vendor',
         'node_modules',
-        'public/build',
         'public/hot',
         'storage',
         'bootstrap/cache',

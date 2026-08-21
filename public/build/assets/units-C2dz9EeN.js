@@ -1,0 +1,1 @@
+var e=[{value:`pcs`,label:`Pcs`},{value:`liter`,label:`Liter`},{value:`set`,label:`Set`},{value:`meter`,label:`Meter`},{value:`kg`,label:`Kg`},{value:`cc`,label:`Cc`},{value:`job`,label:`Job`}];e.map(e=>e.value);export{e as t};
