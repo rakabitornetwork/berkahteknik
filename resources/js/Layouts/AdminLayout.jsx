@@ -70,6 +70,7 @@ export default function AdminLayout({ children, title }) {
     const user = auth?.user;
     const [collapsed, setCollapsed] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
     const [simpleMode, setSimpleMode] = useState(() => {
         const saved = localStorage.getItem('admin_simple_mode');
         return saved !== null ? JSON.parse(saved) : true;
@@ -99,25 +100,45 @@ export default function AdminLayout({ children, title }) {
     };
 
     useEffect(() => {
-        setMobileOpen(false);
+        const media = window.matchMedia('(max-width: 768px)');
+        const sync = () => setIsMobile(media.matches);
+        sync();
+        media.addEventListener('change', sync);
+        return () => media.removeEventListener('change', sync);
+    }, []);
+
+    const closeMobileMenu = () => setMobileOpen(false);
+
+    useEffect(() => {
+        closeMobileMenu();
     }, [url]);
 
+    useEffect(() => {
+        if (!mobileOpen) return undefined;
+
+        const previous = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+
+        return () => {
+            document.body.style.overflow = previous;
+        };
+    }, [mobileOpen]);
+
     const pageTitle = title || 'Dashboard';
+    const showSidebarLabels = !collapsed || isMobile;
 
     return (
         <div className="admin-layout-container">
             <DocumentIcons />
-            {mobileOpen && (
-                <div
-                    className="admin-mobile-overlay"
-                    onClick={() => setMobileOpen(false)}
-                    aria-hidden="true"
-                />
-            )}
+            <div
+                className={`admin-mobile-overlay${mobileOpen ? ' is-open' : ''}`}
+                onClick={closeMobileMenu}
+                aria-hidden={!mobileOpen}
+            />
 
             <aside className={`admin-sidebar ${collapsed ? 'collapsed' : ''} ${mobileOpen ? 'mobile-open' : ''}`}>
                 <div className="admin-sidebar-brand">
-                    <CompanyBranding collapsed={collapsed} />
+                    <CompanyBranding collapsed={!showSidebarLabels} />
                 </div>
 
                 <nav className="admin-nav">
@@ -130,7 +151,7 @@ export default function AdminLayout({ children, title }) {
                                 className={`admin-nav-link${active ? ' is-active' : ''}`}
                             >
                                 <item.icon size={20} strokeWidth={active ? 2 : 1.75} style={{ flexShrink: 0 }} />
-                                {!collapsed && (
+                                {showSidebarLabels && (
                                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', minWidth: 0 }}>
                                         <span>{item.label}</span>
                                         {item.pro && (
@@ -154,7 +175,7 @@ export default function AdminLayout({ children, title }) {
                 </nav>
 
                 <div className="admin-sidebar-footer">
-                    {!collapsed ? (
+                    {showSidebarLabels ? (
                         <button
                             type="button"
                             onClick={() => setSimpleMode(!simpleMode)}
@@ -205,6 +226,7 @@ export default function AdminLayout({ children, title }) {
                             type="button"
                             className="mobile-only admin-header-icon-btn"
                             onClick={() => setMobileOpen(true)}
+                            aria-expanded={mobileOpen}
                             aria-label="Buka menu"
                         >
                             <Menu size={20} strokeWidth={2} />

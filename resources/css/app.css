@@ -601,10 +601,7 @@ html.light .admin-header-live-dot {
 }
 
 .admin-mobile-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(10, 18, 22, 0.42);
-    z-index: 30;
+    display: none;
 }
 
 .portal-header,
@@ -680,14 +677,45 @@ html.light .admin-sidebar .company-branding__name {
 }
 
 @media (max-width: 768px) {
+    .admin-mobile-overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 30;
+        background: rgba(10, 18, 22, 0.48);
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 0.38s ease, visibility 0s linear 0.38s;
+    }
+
+    .admin-mobile-overlay.is-open {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transition: opacity 0.38s ease, visibility 0s;
+    }
+
     .admin-sidebar {
         position: fixed;
-        left: -300px;
-        height: 100vh;
-        box-shadow: var(--shadow-lg);
-    }
-    .admin-sidebar.mobile-open {
         left: 0;
+        top: 0;
+        height: 100vh;
+        transform: translate3d(-100%, 0, 0);
+        transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+        will-change: transform;
+        pointer-events: none;
+        box-shadow: 12px 0 40px rgba(0, 0, 0, 0.28);
+    }
+
+    .admin-sidebar.mobile-open {
+        transform: translate3d(0, 0, 0);
+        pointer-events: auto;
+    }
+
+    .admin-sidebar,
+    .admin-sidebar.collapsed {
+        width: min(260px, 85vw);
     }
     .admin-main-content {
         padding: 0;
@@ -702,6 +730,14 @@ html.light .admin-sidebar .company-branding__name {
         padding: 1.15rem 1rem 1.75rem;
     }
     .desktop-only { display: none !important; }
+}
+
+@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+    .admin-sidebar,
+    .admin-mobile-overlay,
+    .admin-mobile-overlay.is-open {
+        transition: none;
+    }
 }
 
 @media (min-width: 769px) {
