@@ -61,7 +61,7 @@ const navItems = [
     { href: '/admin/pro/digital-payments', label: 'Pembayaran Digital', icon: CreditCard, pro: true },
     { href: '/admin/cms/posts', label: 'Konten Situs', icon: Globe },
     { href: '/admin/settings', label: 'Pengaturan Aplikasi', icon: Settings },
-    { href: '/admin/system-update', label: 'Update GitHub', icon: Download },
+    { href: '/admin/system-update', label: 'Update Applikasi', icon: Download },
 ];
 
 export default function AdminLayout({ children, title }) {

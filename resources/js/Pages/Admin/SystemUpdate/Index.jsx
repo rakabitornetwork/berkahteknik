@@ -89,8 +89,8 @@ export default function SystemUpdateIndex({ status, config }) {
 
     if (!status?.available) {
         return (
-            <AdminLayout title="Update GitHub">
-                <Head title="Update GitHub" />
+            <AdminLayout title="Update Applikasi">
+                <Head title="Update Applikasi" />
                 <div className="glass-panel" style={{ padding: '1.5rem', color: 'var(--color-text-muted)' }}>
                     {status?.message || 'Repository Git tidak ditemukan di server ini.'}
                 </div>
@@ -109,8 +109,8 @@ export default function SystemUpdateIndex({ status, config }) {
         !status.fetch_error;
 
     return (
-        <AdminLayout title="Update GitHub">
-            <Head title="Update GitHub" />
+        <AdminLayout title="Update Applikasi">
+            <Head title="Update Applikasi" />
 
             <div style={{ maxWidth: 900, display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 {!config.enabled && (
