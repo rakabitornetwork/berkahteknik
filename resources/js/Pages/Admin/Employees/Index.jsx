@@ -124,6 +124,7 @@ export default function EmployeesIndex({ employees, positions = [], filters, rol
     const columns = [
         { header: 'Nama Lengkap', accessor: 'name', cell: r => <span style={{ fontWeight: 600 }}>{r.name}</span> },
         { header: 'Jabatan', accessor: 'position', cell: r => r.position?.name || '—' },
+        { header: 'Email', accessor: 'email', cell: r => r.email || '—' },
         { header: 'No HP', accessor: 'phone', cell: r => r.phone || '—' },
         { header: 'Gaji Pokok', accessor: 'base_salary', cell: r => fmt(r.base_salary) },
         { header: 'Tj. Transport', accessor: 'transport_allowance', cell: r => fmt(r.transport_allowance) },
@@ -152,7 +153,7 @@ export default function EmployeesIndex({ employees, positions = [], filters, rol
                 <form onSubmit={handleSearch} style={{ display: 'flex', gap: '0.5rem', flex: 1, minWidth: '250px', maxWidth: '400px' }}>
                     <div style={{ position: 'relative', width: '100%' }}>
                         <Search size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
-                        <input type="text" className="form-input" placeholder="Cari nama / no HP..." value={search} onChange={(e) => setSearch(e.target.value)} style={{ paddingLeft: '2.25rem', width: '100%' }} />
+                        <input type="text" className="form-input" placeholder="Cari nama / email / no HP..." value={search} onChange={(e) => setSearch(e.target.value)} style={{ paddingLeft: '2.25rem', width: '100%' }} />
                     </div>
                     <button type="submit" className="btn btn-primary" style={{ padding: '0.5rem' }}><Search size={16} /></button>
                 </form>
