@@ -12,7 +12,7 @@ class EnsureAdminRole
     {
         $user = $request->user();
 
-        if (! $user || ! in_array($user->role, ['owner', 'admin', 'cashier', 'purchasing'], true)) {
+        if (! $user || ! in_array($user->role, ['superadmin', 'owner', 'admin', 'cashier', 'purchasing'], true)) {
             abort(403, 'Hanya administrator yang dapat mengakses fitur ini.');
         }
 

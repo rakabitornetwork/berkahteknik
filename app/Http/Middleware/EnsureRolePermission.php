@@ -13,7 +13,7 @@ class EnsureRolePermission
         $role = $request->user()?->role;
         $permissions = config("permissions.roles.$role", []);
 
-        if ($role === 'admin' || in_array('*', $permissions, true) || in_array($permission, $permissions, true)) {
+        if ($role === 'admin' || $role === 'owner' || $role === 'superadmin' || in_array('*', $permissions, true) || in_array($permission, $permissions, true)) {
             return $next($request);
         }
 

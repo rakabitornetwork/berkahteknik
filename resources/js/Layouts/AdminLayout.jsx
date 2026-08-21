@@ -91,10 +91,11 @@ export default function AdminLayout({ children, title }) {
     };
 
     const canSee = (item) => {
-        if (item.href === '/admin/system-update' && user?.role !== 'admin' && user?.role !== 'owner') return false;
+        const isSuper = ['superadmin', 'owner', 'admin'].includes(user?.role);
+        if (item.href === '/admin/system-update' && !isSuper) return false;
         if (simpleMode && item.advanced) return false;
         if (!item.roles) return true;
-        return item.roles.includes(user?.role) || user?.role === 'admin';
+        return item.roles.includes(user?.role) || isSuper;
     };
 
     useEffect(() => {
