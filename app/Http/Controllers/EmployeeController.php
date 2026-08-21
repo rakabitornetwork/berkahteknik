@@ -111,7 +111,7 @@ class EmployeeController extends Controller
             'transport_allowance' => 'nullable|numeric|min:0',
             'tenure_allowance' => 'nullable|numeric|min:0',
             'thr' => 'nullable|numeric|min:0',
-            'ktp_photo' => ($employee ? 'nullable' : 'nullable').'|image|max:4096',
+            'ktp_photo' => 'nullable|image|max:4096',
             'username' => ['nullable', 'string', 'max:255', Rule::unique('users', 'username')->ignore($employeeId)],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($employeeId)],
             'role' => ['required', Rule::in($this->staffRoles)],
@@ -119,6 +119,8 @@ class EmployeeController extends Controller
                 ? ['nullable', 'confirmed', Rules\Password::defaults()]
                 : ['required', 'confirmed', Rules\Password::defaults()],
         ]);
+
+        $username = isset($data['username']) ? trim((string) $data['username']) : '';
 
         return [
             'name' => $data['name'],
@@ -128,7 +130,7 @@ class EmployeeController extends Controller
             'transport_allowance' => $data['transport_allowance'] ?? 0,
             'tenure_allowance' => $data['tenure_allowance'] ?? 0,
             'thr' => $data['thr'] ?? 0,
-            'username' => $data['username'] ?? null,
+            'username' => $username !== '' ? $username : null,
             'email' => $data['email'],
             'role' => $data['role'],
             'password' => $data['password'] ?? null,

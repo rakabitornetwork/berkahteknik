@@ -187,7 +187,7 @@ export default function EmployeesIndex({ employees, positions = [], filters, rol
                             <div>
                                 <label className="form-label">Nama Lengkap *</label>
                                 <input className="form-input" value={data.name} onChange={e => setData('name', e.target.value)} required />
-                                {errors.name && <div style={{ color: 'var(--color-danger)', fontSize: '0.75rem' }}>{errors.name}</div>}
+                                {errors.name && <div style={{ color: 'var(--color-danger)', fontSize: '0.75rem', marginTop: '0.25rem' }}>{errors.name}</div>}
                             </div>
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
@@ -200,10 +200,12 @@ export default function EmployeesIndex({ employees, positions = [], filters, rol
                                     <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
                                         Isi sesuai orang dan job masing-masing di menu Data Jabatan.
                                     </div>
+                                    {errors.position_id && <div style={{ color: 'var(--color-danger)', fontSize: '0.75rem', marginTop: '0.25rem' }}>{errors.position_id}</div>}
                                 </div>
                                 <div>
                                     <label className="form-label">No HP</label>
                                     <input className="form-input" value={data.phone} onChange={e => setData('phone', e.target.value)} placeholder="08xxxxxxxxxx" />
+                                    {errors.phone && <div style={{ color: 'var(--color-danger)', fontSize: '0.75rem', marginTop: '0.25rem' }}>{errors.phone}</div>}
                                 </div>
                             </div>
 
@@ -211,18 +213,22 @@ export default function EmployeesIndex({ employees, positions = [], filters, rol
                                 <div>
                                     <label className="form-label">Gaji Pokok</label>
                                     <input type="number" min={0} className="form-input" value={data.base_salary} onChange={e => setData('base_salary', e.target.value)} />
+                                    {errors.base_salary && <div style={{ color: 'var(--color-danger)', fontSize: '0.75rem', marginTop: '0.25rem' }}>{errors.base_salary}</div>}
                                 </div>
                                 <div>
                                     <label className="form-label">Tunjangan Transportasi</label>
                                     <input type="number" min={0} className="form-input" value={data.transport_allowance} onChange={e => setData('transport_allowance', e.target.value)} />
+                                    {errors.transport_allowance && <div style={{ color: 'var(--color-danger)', fontSize: '0.75rem', marginTop: '0.25rem' }}>{errors.transport_allowance}</div>}
                                 </div>
                                 <div>
                                     <label className="form-label">Tunjangan Masa Kerja</label>
                                     <input type="number" min={0} className="form-input" value={data.tenure_allowance} onChange={e => setData('tenure_allowance', e.target.value)} />
+                                    {errors.tenure_allowance && <div style={{ color: 'var(--color-danger)', fontSize: '0.75rem', marginTop: '0.25rem' }}>{errors.tenure_allowance}</div>}
                                 </div>
                                 <div>
                                     <label className="form-label">THR</label>
                                     <input type="number" min={0} className="form-input" value={data.thr} onChange={e => setData('thr', e.target.value)} />
+                                    {errors.thr && <div style={{ color: 'var(--color-danger)', fontSize: '0.75rem', marginTop: '0.25rem' }}>{errors.thr}</div>}
                                 </div>
                             </div>
 
@@ -250,31 +256,37 @@ export default function EmployeesIndex({ employees, positions = [], filters, rol
                             </div>
 
                             <div style={{ borderTop: '1px dashed var(--color-border)', paddingTop: '0.75rem', marginTop: '0.25rem' }}>
-                                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '0.75rem' }}>AKSES SISTEM</div>
+                                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '0.35rem' }}>AKSES SISTEM</div>
+                                <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginBottom: '0.75rem' }}>
+                                    Email dan username harus unik di seluruh akun (admin, mekanik, kasir, purchasing, karyawan). Username boleh dikosongkan.
+                                </div>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                                     <div>
                                         <label className="form-label">Email *</label>
                                         <input type="email" className="form-input" value={data.email} onChange={e => setData('email', e.target.value)} required />
-                                        {errors.email && <div style={{ color: 'var(--color-danger)', fontSize: '0.75rem' }}>{errors.email}</div>}
+                                        {errors.email && <div style={{ color: 'var(--color-danger)', fontSize: '0.75rem', marginTop: '0.25rem' }}>{errors.email}</div>}
                                     </div>
                                     <div>
                                         <label className="form-label">Peran Akses *</label>
                                         <select className="form-input" value={data.role} onChange={e => setData('role', e.target.value)}>
                                             {roleOptions.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                                         </select>
+                                        {errors.role && <div style={{ color: 'var(--color-danger)', fontSize: '0.75rem', marginTop: '0.25rem' }}>{errors.role}</div>}
                                     </div>
                                     <div>
                                         <label className="form-label">Username</label>
                                         <input className="form-input" value={data.username} onChange={e => setData('username', e.target.value)} />
+                                        {errors.username && <div style={{ color: 'var(--color-danger)', fontSize: '0.75rem', marginTop: '0.25rem' }}>{errors.username}</div>}
                                     </div>
                                     <div>
                                         <label className="form-label">{editing ? 'Password Baru (opsional)' : 'Password *'}</label>
                                         <input type="password" className="form-input" value={data.password} onChange={e => setData('password', e.target.value)} required={!editing} />
-                                        {errors.password && <div style={{ color: 'var(--color-danger)', fontSize: '0.75rem' }}>{errors.password}</div>}
+                                        {errors.password && <div style={{ color: 'var(--color-danger)', fontSize: '0.75rem', marginTop: '0.25rem' }}>{errors.password}</div>}
                                     </div>
                                     <div style={{ gridColumn: '1 / -1' }}>
                                         <label className="form-label">Konfirmasi Password {editing ? '(opsional)' : '*'}</label>
                                         <input type="password" className="form-input" value={data.password_confirmation} onChange={e => setData('password_confirmation', e.target.value)} required={!editing} />
+                                        {errors.password_confirmation && <div style={{ color: 'var(--color-danger)', fontSize: '0.75rem', marginTop: '0.25rem' }}>{errors.password_confirmation}</div>}
                                     </div>
                                 </div>
                             </div>
