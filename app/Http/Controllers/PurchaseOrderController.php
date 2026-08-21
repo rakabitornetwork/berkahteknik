@@ -70,7 +70,7 @@ class PurchaseOrderController extends Controller
         $order->total_amount = $total;
         $order->save();
 
-        return redirect()->route('admin.purchase-orders.index')->with('success', 'Purchase Order created successfully.');
+        return redirect()->route('admin.purchase-orders.index')->with('success', 'Purchase Order berhasil dibuat.');
     }
 
     /**
@@ -134,7 +134,7 @@ class PurchaseOrderController extends Controller
         $purchaseOrder->total_amount = $total;
         $purchaseOrder->save();
 
-        return redirect()->route('admin.purchase-orders.index')->with('success', 'Purchase Order updated successfully.');
+        return redirect()->route('admin.purchase-orders.index')->with('success', 'Purchase Order berhasil diperbarui.');
     }
 
     /**
@@ -143,7 +143,7 @@ class PurchaseOrderController extends Controller
     public function destroy(PurchaseOrder $purchaseOrder)
     {
         $purchaseOrder->delete();
-        return redirect()->route('admin.purchase-orders.index')->with('success', 'Purchase Order deleted successfully.');
+        return redirect()->route('admin.purchase-orders.index')->with('success', 'Purchase Order berhasil dihapus.');
     }
 
     /**
@@ -182,7 +182,7 @@ class PurchaseOrderController extends Controller
             $journal->audit('status', 'purchase_order', $purchaseOrder, 'Status PO diperbarui ke '.$validated['status']);
         });
 
-        return redirect()->route('admin.purchase-orders.show', $purchaseOrder)->with('success', 'Status updated successfully.');
+        return redirect()->route('admin.purchase-orders.show', $purchaseOrder)->with('success', 'Status Purchase Order berhasil diperbarui.');
     }
 }
 ?>

@@ -39,7 +39,7 @@ class SupplierController extends Controller
 
         Supplier::create($validated);
 
-        return redirect()->route('admin.suppliers.index')->with('success', 'Supplier created successfully.');
+        return redirect()->route('admin.suppliers.index')->with('success', 'Supplier berhasil ditambahkan.');
     }
 
     /**
@@ -64,7 +64,7 @@ class SupplierController extends Controller
 
         $supplier->update($validated);
 
-        return redirect()->route('admin.suppliers.index')->with('success', 'Supplier updated successfully.');
+        return redirect()->route('admin.suppliers.index')->with('success', 'Supplier berhasil diperbarui.');
     }
 
     /**
@@ -73,7 +73,7 @@ class SupplierController extends Controller
     public function destroy(Supplier $supplier)
     {
         $supplier->delete();
-        return redirect()->route('admin.suppliers.index')->with('success', 'Supplier deleted successfully.');
+        return redirect()->route('admin.suppliers.index')->with('success', 'Supplier berhasil dihapus.');
     }
 }
 ?>

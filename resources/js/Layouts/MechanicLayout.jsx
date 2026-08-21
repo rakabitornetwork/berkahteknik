@@ -5,6 +5,7 @@ import CompanyBranding from '../Components/CompanyBranding';
 import AppFooter from '../Components/AppFooter';
 import ThemeToggle from '../Components/ThemeToggle';
 import DocumentIcons from '../Components/DocumentIcons';
+import ToastViewport from '../Components/Toast';
 
 export default function MechanicLayout({ children, mechanic }) {
     return (
@@ -55,6 +56,7 @@ export default function MechanicLayout({ children, mechanic }) {
             </main>
 
             <AppFooter variant="portal" />
+            <ToastViewport />
         </div>
     );
 }

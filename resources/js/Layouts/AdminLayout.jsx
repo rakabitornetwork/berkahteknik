@@ -34,6 +34,7 @@ import CompanyBranding from '../Components/CompanyBranding';
 import AppFooter from '../Components/AppFooter';
 import ThemeToggle from '../Components/ThemeToggle';
 import DocumentIcons from '../Components/DocumentIcons';
+import ToastViewport from '../Components/Toast';
 
 const navItems = [
     { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -242,6 +243,7 @@ export default function AdminLayout({ children, title }) {
                 </main>
                 <AppFooter variant="admin" />
             </div>
+            <ToastViewport />
         </div>
     );
 }

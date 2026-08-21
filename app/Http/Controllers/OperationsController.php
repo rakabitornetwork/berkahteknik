@@ -490,7 +490,9 @@ class OperationsController extends Controller
             ->first();
 
         if (! $mechanic) {
-            return back()->withErrors(['qr_payload' => 'QR mekanik tidak valid atau tidak terdaftar.']);
+            return back()
+                ->withErrors(['qr_payload' => 'QR mekanik tidak valid atau tidak terdaftar.'])
+                ->with('error', 'QR mekanik tidak valid atau tidak terdaftar.');
         }
 
         $today = now()->toDateString();
