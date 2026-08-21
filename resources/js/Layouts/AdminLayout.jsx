@@ -224,8 +224,23 @@ export default function AdminLayout({ children, title }) {
                     <div className="admin-header-right">
                         <ThemeToggle />
                         <Link href="/admin/profile" className="admin-header-user" title="Pengaturan Profil">
-                            <strong>{user?.name || 'Administrator'}</strong>
-                            <span>Edit profil</span>
+                            <span className="admin-header-avatar">
+                                {user?.photo_url ? (
+                                    <img src={user.photo_url} alt={user?.name || 'Profil'} />
+                                ) : (
+                                    <span className="admin-header-avatar-fallback">
+                                        {(user?.name || 'A').charAt(0).toUpperCase()}
+                                    </span>
+                                )}
+                            </span>
+                            <span className="admin-header-user-meta">
+                                <strong>{user?.name || 'Administrator'}</strong>
+                                <span className="admin-header-user-edit">Edit profil</span>
+                            </span>
+                            <span className="admin-header-live">
+                                <span className="admin-header-live-dot" aria-hidden="true" />
+                                Live
+                            </span>
                         </Link>
                         <Link
                             href="/admin/logout"

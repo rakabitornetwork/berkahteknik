@@ -36,6 +36,7 @@ class User extends Authenticatable
     protected $appends = [
         'total_salary',
         'ktp_photo_url',
+        'photo_url',
     ];
 
     /**
@@ -81,6 +82,11 @@ class User extends Authenticatable
             + (float) $this->transport_allowance
             + (float) $this->tenure_allowance
             + (float) $this->thr;
+    }
+
+    public function getPhotoUrlAttribute(): ?string
+    {
+        return $this->photo ? '/storage/'.$this->photo : null;
     }
 
     public function getKtpPhotoUrlAttribute(): ?string
