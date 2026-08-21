@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import AdminLayout from '../../../Layouts/AdminLayout';
 import { Download, GitBranch, RefreshCw, AlertTriangle, CheckCircle2, ExternalLink } from 'lucide-react';
@@ -37,7 +37,7 @@ function formatCommitDate(iso) {
 export default function SystemUpdateIndex({ status, config }) {
     const { flash } = usePage().props;
     const deployLogs = flash?.deploy_logs ?? [];
-    const [showLogs, setShowLogs] = useState(deployLogs.length > 0);
+    const [logOpen, setLogOpen] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
     const [discarding, setDiscarding] = useState(false);
 
@@ -45,9 +45,14 @@ export default function SystemUpdateIndex({ status, config }) {
         confirm: false,
         run_composer: false,
         run_migrate: true,
-        run_npm: false,
         run_optimize: true,
     });
+
+    useEffect(() => {
+        if (deployLogs.length > 0 || processing || discarding) {
+            setLogOpen(true);
+        }
+    }, [deployLogs, processing, discarding]);
 
     const submit = (e) => {
         e.preventDefault();
@@ -293,14 +298,13 @@ export default function SystemUpdateIndex({ status, config }) {
                 <form onSubmit={submit} className="glass-panel" style={{ padding: '1.5rem' }}>
                     <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.5rem' }}>Jalankan update</h2>
                     <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: '1rem', lineHeight: 1.55 }}>
-                        Akan menarik perubahan dari <strong>origin/{status.branch}</strong> (git pull), lalu menjalankan langkah yang Anda centang di bawah.
-                        Frontend sudah di-build di komputer lokal dan masuk Git, jadi VPS tidak perlu <strong>npm run build</strong>.
+                        Akan menarik perubahan dari <strong>origin/{status.branch}</strong>, lalu menjalankan langkah yang dicentang.
+                        Frontend memakai <code style={{ fontFamily: 'monospace' }}>public/build</code> dari Git.
                     </p>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem', fontSize: '0.875rem' }}>
                         <CheckOption id="run_composer" label="Composer install" checked={data.run_composer} onChange={(v) => setData('run_composer', v)} />
                         <CheckOption id="run_migrate" label="php artisan migrate" checked={data.run_migrate} onChange={(v) => setData('run_migrate', v)} />
-                        <CheckOption id="run_npm" label="npm install & build di VPS (opsional, tidak disarankan)" checked={data.run_npm} onChange={(v) => setData('run_npm', v)} />
                         <CheckOption id="run_optimize" label="Cache optimize (config, route, view)" checked={data.run_optimize} onChange={(v) => setData('run_optimize', v)} />
                     </div>
 
@@ -327,30 +331,14 @@ export default function SystemUpdateIndex({ status, config }) {
                         </p>
                     )}
                 </form>
-
-                {deployLogs.length > 0 && (
-                    <div className="glass-panel" style={{ padding: '1.5rem' }}>
-                        <button type="button" onClick={() => setShowLogs(!showLogs)} style={{ background: 'none', border: 'none', color: 'var(--color-text-main)', fontWeight: 600, cursor: 'pointer', fontSize: '0.9rem', marginBottom: showLogs ? '1rem' : 0 }}>
-                            {showLogs ? '▼' : '▶'} Log proses update
-                        </button>
-                        {showLogs && (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                {deployLogs.map((log, i) => (
-                                    <div key={i} style={{ borderLeft: `3px solid ${log.success ? 'var(--color-success)' : 'var(--color-danger)'}`, paddingLeft: '0.75rem' }}>
-                                        <div style={{ fontWeight: 600, fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                                            {log.success ? <CheckCircle2 size={14} color="var(--color-success)" /> : <AlertTriangle size={14} color="var(--color-danger)" />}
-                                            {log.step}
-                                        </div>
-                                        {log.output && (
-                                            <pre style={{ margin: '0.35rem 0 0', fontSize: '0.7rem', color: 'var(--color-text-muted)', whiteSpace: 'pre-wrap', wordBreak: 'break-word', maxHeight: 200, overflow: 'auto' }}>{log.output}</pre>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                )}
             </div>
+            {(logOpen && (processing || discarding || deployLogs.length > 0)) && (
+                <DeployTerminal
+                    logs={deployLogs}
+                    running={processing || discarding}
+                    onClose={() => setLogOpen(false)}
+                />
+            )}
         </AdminLayout>
     );
 }
@@ -361,5 +349,60 @@ function CheckOption({ id, label, checked, onChange }) {
             <input id={id} type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
             {label}
         </label>
+    );
+}
+
+function DeployTerminal({ logs = [], running = false, onClose }) {
+    const bodyRef = useRef(null);
+
+    useEffect(() => {
+        if (bodyRef.current) {
+            bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
+        }
+    }, [logs, running]);
+
+    return (
+        <div className="deploy-term-overlay" role="dialog" aria-label="Log update" onClick={running ? undefined : onClose}>
+            <div className="deploy-term" onClick={(e) => e.stopPropagation()}>
+                <div className="deploy-term-bar">
+                    <div className="deploy-term-dots" aria-hidden="true">
+                        <span /><span /><span />
+                    </div>
+                    <div className="deploy-term-title">root@vps — update.log</div>
+                    <button type="button" className="deploy-term-close" onClick={onClose} disabled={running}>
+                        {running ? '…' : 'Tutup'}
+                    </button>
+                </div>
+                <div className="deploy-term-body" ref={bodyRef}>
+                    {logs.map((log, i) => (
+                        <div key={i} className="deploy-term-line">
+                            <div className={`deploy-term-step ${log.success ? 'is-ok' : 'is-fail'}`}>
+                                {log.success ? '[ok]' : '[fail]'} {log.step}
+                            </div>
+                            {log.output ? <pre className="deploy-term-output">{log.output}</pre> : null}
+                        </div>
+                    ))}
+                    {running && (
+                        <div className="deploy-term-line">
+                            <div className="deploy-term-step is-run">
+                                $ menjalankan update<span className="deploy-term-cursor" />
+                            </div>
+                        </div>
+                    )}
+                    {!running && logs.length === 0 && (
+                        <div className="deploy-term-line">
+                            <div className="deploy-term-step is-run">$ menunggu log…</div>
+                        </div>
+                    )}
+                    {!running && logs.length > 0 && (
+                        <div className="deploy-term-line">
+                            <div className={`deploy-term-step ${logs.every((l) => l.success) ? 'is-ok' : 'is-fail'}`}>
+                                $ selesai
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
     );
 }

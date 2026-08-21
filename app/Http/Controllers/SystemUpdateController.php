@@ -36,14 +36,13 @@ class SystemUpdateController extends Controller
             'confirm' => 'accepted',
             'run_composer' => 'boolean',
             'run_migrate' => 'boolean',
-            'run_npm' => 'boolean',
             'run_optimize' => 'boolean',
         ]);
 
         $result = $deploy->deploy([
-            'composer' => $request->boolean('run_composer', true),
+            'composer' => $request->boolean('run_composer'),
             'migrate' => $request->boolean('run_migrate', true),
-            'npm' => $request->boolean('run_npm', true),
+            'npm' => false,
             'optimize' => $request->boolean('run_optimize', true),
         ]);
 
