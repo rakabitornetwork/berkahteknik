@@ -51,6 +51,7 @@
     min-height: var(--lp-header-h);
     border-bottom: 1px solid transparent;
     background: transparent;
+    box-shadow: none;
     transition: background-color 0.2s linear, border-color 0.2s linear, box-shadow 0.2s linear;
 }
 

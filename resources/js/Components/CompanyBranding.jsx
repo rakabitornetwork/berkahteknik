@@ -16,7 +16,7 @@ export default function CompanyBranding({ variant = 'default', collapsed = false
                         width: 36,
                         height: 36,
                         borderRadius: 10,
-                        background: 'linear-gradient(145deg, var(--color-primary-light), var(--color-primary) 55%, var(--color-primary-dark))',
+                        background: 'linear-gradient(145deg, var(--color-primary-light), var(--color-primary) 55%, var(--color-gold-deep))',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -39,11 +39,11 @@ export default function CompanyBranding({ variant = 'default', collapsed = false
                 <img src={shop.logo_url} alt={name} style={{ width: 34, height: 34, borderRadius: 10, objectFit: 'contain', flexShrink: 0 }} />
             ) : (
                 <div
+                    className="company-branding__mark"
                     style={{
                         width: 34,
                         height: 34,
                         borderRadius: 10,
-                        background: 'linear-gradient(145deg, #14948a, #0f766e 55%, #0b5f59)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -60,12 +60,12 @@ export default function CompanyBranding({ variant = 'default', collapsed = false
             )}
             {!collapsed && (
                 <span
+                    className="company-branding__name"
                     style={{
                         fontFamily: 'var(--font-display)',
                         fontWeight: 600,
                         fontSize: '1.05rem',
                         letterSpacing: '-0.02em',
-                        color: 'var(--color-sidebar-active-text)',
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
