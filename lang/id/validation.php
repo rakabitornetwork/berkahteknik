@@ -159,7 +159,7 @@ return [
 
     'custom' => [
         'email' => [
-            'unique' => 'Email ini sudah dipakai akun lain (admin, mekanik, kasir, atau karyawan). Gunakan email yang berbeda.',
+            'unique' => 'Email ini sudah dipakai akun lain (admin, mekanik, kasir, atau karyawan). Kosongkan field ini atau gunakan email yang berbeda.',
         ],
         'username' => [
             'unique' => 'Username ini sudah dipakai akun lain. Kosongkan field ini atau gunakan username yang berbeda.',

@@ -113,7 +113,7 @@ class EmployeeController extends Controller
             'thr' => 'nullable|numeric|min:0',
             'ktp_photo' => 'nullable|image|max:4096',
             'username' => ['nullable', 'string', 'max:255', Rule::unique('users', 'username')->ignore($employeeId)],
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($employeeId)],
+            'email' => ['nullable', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($employeeId)],
             'role' => ['required', Rule::in($this->staffRoles)],
             'password' => $employee
                 ? ['nullable', 'confirmed', Rules\Password::defaults()]
@@ -121,6 +121,7 @@ class EmployeeController extends Controller
         ]);
 
         $username = isset($data['username']) ? trim((string) $data['username']) : '';
+        $email = isset($data['email']) ? trim((string) $data['email']) : '';
 
         return [
             'name' => $data['name'],
@@ -131,7 +132,7 @@ class EmployeeController extends Controller
             'tenure_allowance' => $data['tenure_allowance'] ?? 0,
             'thr' => $data['thr'] ?? 0,
             'username' => $username !== '' ? $username : null,
-            'email' => $data['email'],
+            'email' => $email !== '' ? $email : null,
             'role' => $data['role'],
             'password' => $data['password'] ?? null,
             'password_confirmation' => $data['password_confirmation'] ?? null,

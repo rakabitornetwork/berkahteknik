@@ -259,12 +259,12 @@ export default function EmployeesIndex({ employees, positions = [], filters, rol
                             <div style={{ borderTop: '1px dashed var(--color-border)', paddingTop: '0.75rem', marginTop: '0.25rem' }}>
                                 <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '0.35rem' }}>AKSES SISTEM</div>
                                 <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginBottom: '0.75rem' }}>
-                                    Email dan username harus unik di seluruh akun (admin, mekanik, kasir, purchasing, karyawan). Username boleh dikosongkan.
+                                    Email dan username bersifat opsional, tetapi harus unik jika diisi. Username dan email boleh dikosongkan.
                                 </div>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                                     <div>
-                                        <label className="form-label">Email *</label>
-                                        <input type="email" className="form-input" value={data.email} onChange={e => setData('email', e.target.value)} required />
+                                        <label className="form-label">Email</label>
+                                        <input type="email" className="form-input" value={data.email} onChange={e => setData('email', e.target.value)} placeholder="opsional" />
                                         {errors.email && <div style={{ color: 'var(--color-danger)', fontSize: '0.75rem', marginTop: '0.25rem' }}>{errors.email}</div>}
                                     </div>
                                     <div>
