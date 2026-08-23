@@ -41,7 +41,7 @@ const navItems = [
     { href: '/admin/services', label: 'Manajemen Servis', icon: Wrench },
     { href: '/admin/bookings', label: 'Booking Servis', icon: CalendarClock },
     { href: '/admin/work-orders', label: 'Surat Perintah Kerja', icon: FileText },
-    { href: '/admin/sales', label: 'Penjualan (POS)', icon: ShoppingCart },
+    { href: '/admin/sales/create', label: 'Penjualan (POS)', icon: ShoppingCart, activePrefixes: ['/admin/sales'] },
     { href: '/admin/customers', label: 'Pelanggan Servis', icon: Users },
     { href: '/admin/master-data', label: 'Master Data', icon: Database, activePrefixes: MASTER_DATA_PREFIXES },
     { href: '/admin/stock-movements', label: 'Kartu Stok', icon: QrCode, advanced: true },
