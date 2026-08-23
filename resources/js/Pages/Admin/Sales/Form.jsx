@@ -52,14 +52,13 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
         customer_name: '',
         payment_method: 'cash',
         amount_paid: '',
-        discount_percent: 0,
-        discount_amount: 0,
+        discount_percent: '',
+        discount_amount: '',
         tax_enabled: false,
         tax_percent: 11,
         items: [],
     });
 
-    const [quantity, setQuantity] = useState(1);
     const [partSearch, setPartSearch] = useState('');
     const [showPartResults, setShowPartResults] = useState(false);
     const [selectedRow, setSelectedRow] = useState(-1);
@@ -107,11 +106,10 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
     const clearScan = () => {
         setPartSearch('');
         setShowPartResults(false);
-        setQuantity(1);
         codeInputRef.current?.focus();
     };
 
-    const addPartToCart = (part, qty = quantity) => {
+    const addPartToCart = (part, qty = 1) => {
         const amount = Math.max(1, parseInt(qty, 10) || 1);
         const existingItem = data.items.find((item) => item.spare_part_id === part.id);
         const currentQty = existingItem ? existingItem.quantity : 0;
@@ -136,7 +134,7 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
                 unit: part.unit || 'pcs',
                 unit_price: part.sell_price,
                 quantity: amount,
-                discount_percent: 0,
+                discount_percent: '',
             });
         }
 
@@ -185,7 +183,14 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
     };
 
     const handleQtyChange = (index, value) => {
-        const nextQty = Math.max(1, parseInt(value, 10) || 1);
+        if (value === '' || value === '0') {
+            setData('items', data.items.map((row, i) => (i === index ? { ...row, quantity: '' } : row)));
+            return;
+        }
+
+        const nextQty = parseInt(value, 10);
+        if (Number.isNaN(nextQty) || nextQty < 0) return;
+
         const item = data.items[index];
         const part = spareParts.find((p) => p.id === item.spare_part_id);
         if (part && nextQty > part.stock) {
@@ -195,17 +200,27 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
         setData('items', data.items.map((row, i) => (i === index ? { ...row, quantity: nextQty } : row)));
     };
 
+    const handleQtyBlur = (index) => {
+        const qty = parseInt(data.items[index]?.quantity, 10);
+        if (!qty || qty < 1) {
+            setData('items', data.items.map((row, i) => (i === index ? { ...row, quantity: 1 } : row)));
+        }
+    };
+
     const handleLineDiscountChange = (index, value) => {
-        const nextPercent = Math.min(100, Math.max(0, Number(value) || 0));
         setData('items', data.items.map((row, i) => (
-            i === index ? { ...row, discount_percent: nextPercent } : row
+            i === index ? { ...row, discount_percent: value } : row
         )));
     };
 
-    const parseMoneyInput = (value) => {
-        const n = Number(String(value).replace(',', '.'));
-        return Number.isNaN(n) ? 0 : Math.max(0, n);
+    const parseOptionalNumber = (value) => {
+        if (value === '' || value === null || value === undefined) return '';
+        return value;
     };
+
+    const clearZeroValue = (value) => (
+        value === '' || value === null || value === undefined || Number(value) === 0 ? '' : value
+    );
 
     const resetTransaction = () => {
         reset();
@@ -213,8 +228,8 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
             customer_name: '',
             payment_method: 'cash',
             amount_paid: '',
-            discount_percent: 0,
-            discount_amount: 0,
+            discount_percent: '',
+            discount_amount: '',
             tax_enabled: false,
             tax_percent: 11,
             items: [],
@@ -253,7 +268,7 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
             tax_percent: Number(formData.tax_percent || 0),
             items: formData.items.map(({ spare_part_id, quantity, discount_percent }) => ({
                 spare_part_id,
-                quantity,
+                quantity: Math.max(1, parseInt(quantity, 10) || 1),
                 discount_percent: Number(discount_percent || 0),
             })),
         }));
@@ -303,8 +318,8 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
             customer_name: draft.customer_name || '',
             payment_method: draft.payment_method || 'cash',
             amount_paid: '',
-            discount_percent: draft.discount_percent || 0,
-            discount_amount: draft.discount_amount || 0,
+            discount_percent: draft.discount_percent ?? '',
+            discount_amount: draft.discount_amount ?? '',
             tax_enabled: Boolean(draft.tax_enabled),
             tax_percent: draft.tax_percent ?? 11,
             items: draft.items || [],
@@ -346,10 +361,6 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
                 event.preventDefault();
                 setPendingList(readPending());
                 setShowPending(true);
-            }
-            if (event.key === 'F2') {
-                event.preventDefault();
-                toast.success('Perintah buka laci kasir dikirim.');
             }
             if (event.key === 'End' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) {
                 event.preventDefault();
@@ -421,16 +432,6 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
                     </header>
 
                     <form className="pos-scan" onSubmit={handleScanSubmit}>
-                        <label className="pos-field pos-field-qty">
-                            <span>Jumlah</span>
-                            <input
-                                type="number"
-                                className="form-input"
-                                min="1"
-                                value={quantity}
-                                onChange={(e) => setQuantity(parseInt(e.target.value, 10) || 1)}
-                            />
-                        </label>
                         <label className="pos-field pos-field-code">
                             <span>Kode Item</span>
                             <div className="pos-part-search-wrap">
@@ -499,7 +500,7 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
                             <tbody>
                                 {data.items.length === 0 ? (
                                     <tr className="pos-grid-empty">
-                                        <td colSpan="8">Belum ada barang. Isi jumlah, ketik kode item, lalu tekan Enter.</td>
+                                        <td colSpan="8">Belum ada barang. Ketik kode item, lalu tekan Enter.</td>
                                     </tr>
                                 ) : (
                                     data.items.map((item, index) => (
@@ -516,9 +517,10 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
                                                     type="number"
                                                     min="1"
                                                     className="pos-qty-input"
-                                                    value={item.quantity}
+                                                    value={item.quantity ?? ''}
                                                     onClick={(e) => e.stopPropagation()}
                                                     onChange={(e) => handleQtyChange(index, e.target.value)}
+                                                    onBlur={() => handleQtyBlur(index)}
                                                 />
                                             </td>
                                             <td>{item.unit || 'pcs'}</td>
@@ -530,9 +532,10 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
                                                     max="100"
                                                     step="0.01"
                                                     className="pos-qty-input"
-                                                    value={item.discount_percent ?? 0}
+                                                    value={item.discount_percent ?? ''}
                                                     onClick={(e) => e.stopPropagation()}
                                                     onChange={(e) => handleLineDiscountChange(index, e.target.value)}
+                                                    onBlur={(e) => handleLineDiscountChange(index, clearZeroValue(e.target.value))}
                                                 />
                                             </td>
                                             <td className="is-num">{formatCurrency(lineTotal(item))}</td>
@@ -568,17 +571,8 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
                                         <button type="button" className="btn btn-outline" onClick={handleRemoveSelected} disabled={selectedRow < 0}>
                                             <Trash2 size={14} /> Hapus Detail
                                         </button>
-                                        <button type="button" className="btn btn-outline" disabled title="Belum tersedia">
-                                            Data Serial
-                                        </button>
-                                        <button type="button" className="btn btn-outline" disabled title="Belum tersedia">
-                                            Data Rakitan
-                                        </button>
                                         <button type="button" className="btn btn-outline" onClick={showSelectedPrice}>
                                             Lihat Harga
-                                        </button>
-                                        <button type="button" className="btn btn-outline" onClick={() => toast.success('Perintah buka laci kasir dikirim.')}>
-                                            Buka Laci [F2]
                                         </button>
                                     </div>
 
@@ -624,8 +618,9 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
                                             max="100"
                                             step="0.01"
                                             className="form-input"
-                                            value={data.discount_percent}
-                                            onChange={(e) => setData('discount_percent', parseMoneyInput(e.target.value))}
+                                            value={data.discount_percent ?? ''}
+                                            onChange={(e) => setData('discount_percent', parseOptionalNumber(e.target.value))}
+                                            onBlur={(e) => setData('discount_percent', clearZeroValue(e.target.value))}
                                         />
                                     </label>
                                     <label className="pos-field">
@@ -635,8 +630,9 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
                                             min="0"
                                             step="100"
                                             className="form-input"
-                                            value={data.discount_amount}
-                                            onChange={(e) => setData('discount_amount', parseMoneyInput(e.target.value))}
+                                            value={data.discount_amount ?? ''}
+                                            onChange={(e) => setData('discount_amount', parseOptionalNumber(e.target.value))}
+                                            onBlur={(e) => setData('discount_amount', clearZeroValue(e.target.value))}
                                         />
                                     </label>
                                     <label className="pos-field pos-tax-toggle">
@@ -658,9 +654,10 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
                                             max="100"
                                             step="0.01"
                                             className="form-input"
-                                            value={data.tax_percent}
+                                            value={data.tax_percent ?? ''}
                                             disabled={!data.tax_enabled}
-                                            onChange={(e) => setData('tax_percent', parseMoneyInput(e.target.value))}
+                                            onChange={(e) => setData('tax_percent', parseOptionalNumber(e.target.value))}
+                                            onBlur={(e) => setData('tax_percent', clearZeroValue(e.target.value))}
                                         />
                                     </label>
                                     <p className="pos-adjust-hint">
@@ -756,8 +753,9 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
                                 type="number"
                                 className="form-input"
                                 min="0"
-                                value={data.amount_paid}
-                                onChange={(e) => setData('amount_paid', e.target.value)}
+                                value={data.amount_paid ?? ''}
+                                onChange={(e) => setData('amount_paid', parseOptionalNumber(e.target.value))}
+                                onBlur={(e) => setData('amount_paid', clearZeroValue(e.target.value))}
                                 autoFocus
                             />
                         </label>
