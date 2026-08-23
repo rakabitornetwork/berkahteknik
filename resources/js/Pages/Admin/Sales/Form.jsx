@@ -6,6 +6,7 @@ import {
     Clock3,
     FolderOpen,
     ListOrdered,
+    ScanLine,
     Search,
     Trash2,
     Wallet,
@@ -387,7 +388,7 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
                     <header className="pos-header">
                         <div className="pos-header-fields">
                             <label className="pos-field">
-                                <span>No Transaksi</span>
+                                <span>No. Transaksi</span>
                                 <input className="form-input" value="Otomatis saat simpan" readOnly />
                             </label>
                             <label className="pos-field pos-field-date">
@@ -395,7 +396,7 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
                                 <div className="pos-date-row">
                                     <input
                                         className="form-input"
-                                        value={now.toLocaleDateString('id-ID')}
+                                        value={now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
                                         readOnly
                                     />
                                     <span className="pos-time">{now.toLocaleTimeString('id-ID')}</span>
@@ -420,28 +421,40 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
                                 </datalist>
                             </label>
                             <div className="pos-user-pills">
-                                <span>{defaultWarehouse?.code || 'GUDANG'}</span>
-                                <span>{user?.name || 'Kasir'}</span>
+                                <span>
+                                    <small>Gudang</small>
+                                    {defaultWarehouse?.code || 'GUDANG'}
+                                </span>
+                                <span>
+                                    <small>Kasir</small>
+                                    {user?.name || 'Kasir'}
+                                </span>
                             </div>
                         </div>
 
                         <div className="pos-grand" aria-live="polite">
-                            <small>Total</small>
-                            <strong>{formatMoney(grandTotal)}</strong>
+                            <div className="pos-grand-meta">
+                                <small>Total ditagih</small>
+                                <span>{data.items.length} item</span>
+                            </div>
+                            <strong>
+                                <em>Rp</em>
+                                {formatMoney(grandTotal)}
+                            </strong>
                         </div>
                     </header>
 
                     <form className="pos-scan" onSubmit={handleScanSubmit}>
                         <label className="pos-field pos-field-code">
-                            <span>Kode Item</span>
+                            <span>Kode / Nama Item</span>
                             <div className="pos-part-search-wrap">
                                 <div className="pos-part-search-field">
-                                    <Search size={16} className="pos-part-search-icon" aria-hidden />
+                                    <Search size={18} className="pos-part-search-icon" aria-hidden />
                                     <input
                                         ref={codeInputRef}
                                         type="text"
                                         className="form-input pos-part-search-input"
-                                        placeholder="Scan atau ketik kode, nama, lalu tekan Enter"
+                                        placeholder="Scan barcode atau ketik kode / nama barang"
                                         value={partSearch}
                                         onChange={(e) => {
                                             setPartSearch(e.target.value);
@@ -452,6 +465,9 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
                                         autoComplete="off"
                                         autoFocus
                                     />
+                                    <span className="pos-scan-kbd" aria-hidden>
+                                        Enter
+                                    </span>
                                 </div>
                                 {showPartResults && partSearch.trim() && (
                                     <ul className="pos-part-search-results" role="listbox">
@@ -468,7 +484,7 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
                                                             <strong>{part.code}</strong> — {part.name}
                                                         </span>
                                                         <span className="pos-part-search-option-meta">
-                                                            Stok: {part.stock} · {formatCurrency(part.sell_price)}
+                                                            Stok {part.stock} · {formatCurrency(part.sell_price)}
                                                             {part.unit ? ` · ${part.unit}` : ''}
                                                         </span>
                                                     </button>
@@ -485,22 +501,38 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
 
                     <div className="pos-grid-wrap">
                         <table className="pos-grid">
+                            <colgroup>
+                                <col className="pos-col-no" />
+                                <col className="pos-col-code" />
+                                <col className="pos-col-name" />
+                                <col className="pos-col-qty" />
+                                <col className="pos-col-unit" />
+                                <col className="pos-col-price" />
+                                <col className="pos-col-disc" />
+                                <col className="pos-col-total" />
+                            </colgroup>
                             <thead>
                                 <tr>
                                     <th>No</th>
-                                    <th>Kode Item</th>
+                                    <th>Kode</th>
                                     <th>Keterangan</th>
-                                    <th>Jumlah</th>
+                                    <th>Qty</th>
                                     <th>Satuan</th>
                                     <th>Harga</th>
-                                    <th>Pot (%)</th>
+                                    <th>Pot %</th>
                                     <th>Total</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {data.items.length === 0 ? (
                                     <tr className="pos-grid-empty">
-                                        <td colSpan="8">Belum ada barang. Ketik kode item, lalu tekan Enter.</td>
+                                        <td colSpan="8">
+                                            <div className="pos-empty">
+                                                <ScanLine size={28} aria-hidden />
+                                                <strong>Siap menerima barang</strong>
+                                                <p>Scan barcode atau ketik kode / nama, lalu tekan Enter.</p>
+                                            </div>
+                                        </td>
                                     </tr>
                                 ) : (
                                     data.items.map((item, index) => (
@@ -509,9 +541,9 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
                                             className={selectedRow === index ? 'is-selected' : ''}
                                             onClick={() => setSelectedRow(index)}
                                         >
-                                            <td>{index + 1}</td>
-                                            <td>{item.code || '-'}</td>
-                                            <td>{item.name}</td>
+                                            <td className="is-idx">{index + 1}</td>
+                                            <td className="is-code">{item.code || '-'}</td>
+                                            <td className="is-name">{item.name}</td>
                                             <td>
                                                 <input
                                                     type="number"
@@ -668,8 +700,9 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
                         </div>
 
                         <aside className="pos-summary">
+                            <div className="pos-summary-head">Ringkasan</div>
                             <div className="pos-summary-row">
-                                <span>Sub Total</span>
+                                <span>Subtotal</span>
                                 <strong>{formatMoney(subtotal)}</strong>
                             </div>
                             <button type="button" className="pos-summary-row is-button" onClick={() => setDetailTab('potongan')}>
@@ -686,39 +719,53 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
                                     <Calculator size={14} />
                                 </span>
                             </button>
+                            <div className="pos-summary-row is-total">
+                                <span>Total</span>
+                                <strong>{formatMoney(grandTotal)}</strong>
+                            </div>
                         </aside>
                     </div>
                 </section>
 
                 <footer className="pos-actions">
-                    <button type="button" className="btn btn-outline" onClick={handleNewTransaction} disabled={!isDirty}>
-                        Tambah
-                    </button>
-                    <button type="button" className="btn btn-outline" onClick={submitSale} disabled={processing || !hasItems}>
-                        Simpan
-                    </button>
-                    <button type="button" className="btn btn-outline" onClick={handleCancel}>
-                        Batal
-                    </button>
-                    <button type="button" className="btn btn-outline" disabled title="Cetak tersedia setelah transaksi disimpan">
-                        Cetak
-                    </button>
-                    <button type="button" className="btn btn-primary pos-pay-btn" onClick={openPay} disabled={processing || !hasItems}>
-                        <Banknote size={16} /> Bayar [END]
-                    </button>
-                    <button type="button" className="btn btn-outline" onClick={holdPending} disabled={!hasItems}>
-                        <Clock3 size={16} /> Pending [F5]
-                    </button>
-                    <button
-                        type="button"
-                        className="btn btn-outline"
-                        onClick={() => {
-                            setPendingList(readPending());
-                            setShowPending(true);
-                        }}
-                    >
-                        <ListOrdered size={16} /> Daft. Pending [F6]
-                    </button>
+                    <div className="pos-actions-group">
+                        <button type="button" className="btn btn-outline" onClick={handleNewTransaction} disabled={!isDirty}>
+                            Baru
+                        </button>
+                        <button type="button" className="btn btn-outline" onClick={submitSale} disabled={processing || !hasItems}>
+                            Simpan
+                        </button>
+                        <button type="button" className="btn btn-outline" onClick={handleCancel}>
+                            Batal
+                        </button>
+                        <button type="button" className="btn btn-outline" disabled title="Cetak tersedia setelah transaksi disimpan">
+                            Cetak
+                        </button>
+                    </div>
+                    <div className="pos-actions-group">
+                        <button type="button" className="btn btn-outline" onClick={holdPending} disabled={!hasItems}>
+                            <Clock3 size={16} /> Pending
+                            <kbd>F5</kbd>
+                        </button>
+                        <button
+                            type="button"
+                            className="btn btn-outline"
+                            onClick={() => {
+                                setPendingList(readPending());
+                                setShowPending(true);
+                            }}
+                        >
+                            <ListOrdered size={16} /> Daftar Pending
+                            {pendingList.length > 0 && <span className="pos-badge">{pendingList.length}</span>}
+                            <kbd>F6</kbd>
+                        </button>
+                    </div>
+                    <div className="pos-actions-group is-pay">
+                        <button type="button" className="btn btn-primary pos-pay-btn" onClick={openPay} disabled={processing || !hasItems}>
+                            <Banknote size={18} /> Bayar
+                            <kbd>End</kbd>
+                        </button>
+                    </div>
                 </footer>
 
                 {(errors.message || errors.items) && (
@@ -762,7 +809,7 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
                         <div className={`pos-pay-status ${isPaid ? 'is-paid' : 'is-unpaid'}`}>
                             {isPaid ? 'LUNAS' : 'BELUM LUNAS'}
                         </div>
-                        <div className="pos-summary-row">
+                        <div className="pos-pay-change">
                             <span>Kembalian</span>
                             <strong>{formatCurrency(change)}</strong>
                         </div>
