@@ -46,6 +46,7 @@ export function buildSaleReceiptEscPos({
     sale,
     shop,
     paymentLabel = '',
+    hidePrices = false,
     printerLanguage = 'esc-pos',
     codepageMapping = 'epson',
     paperWidth = getPaperWidth(),
@@ -116,13 +117,17 @@ export function buildSaleReceiptEscPos({
         if (code) {
             e = e.line(code);
         }
-        e = e.table(
-            [
-                { width: nameCol, align: 'left' },
-                { width: priceCol, align: 'right' },
-            ],
-            [[`${qty} x ${fmt(price)}${disc > 0 ? ` pot ${disc}%` : ''}`, fmt(subtotal)]],
-        );
+        if (hidePrices) {
+            e = e.line(`Qty: ${qty}`);
+        } else {
+            e = e.table(
+                [
+                    { width: nameCol, align: 'left' },
+                    { width: priceCol, align: 'right' },
+                ],
+                [[`${qty} x ${fmt(price)}${disc > 0 ? ` pot ${disc}%` : ''}`, fmt(subtotal)]],
+            );
+        }
     }
 
     if (items.length === 0) {
@@ -135,13 +140,13 @@ export function buildSaleReceiptEscPos({
     const rightW = cols - leftW;
     const moneyRows = [];
 
-    if (Number(sale.subtotal || 0) > 0) {
+    if (!hidePrices && Number(sale.subtotal || 0) > 0) {
         moneyRows.push(['Sub Total', fmt(sale.subtotal)]);
     }
-    if (Number(sale.discount_total || 0) > 0) {
+    if (!hidePrices && Number(sale.discount_total || 0) > 0) {
         moneyRows.push(['Potongan', `- ${fmt(sale.discount_total)}`]);
     }
-    if (Number(sale.tax_amount || 0) > 0) {
+    if (!hidePrices && Number(sale.tax_amount || 0) > 0) {
         const taxLabel = sale.tax_percent ? `Pajak ${Number(sale.tax_percent)}%` : 'Pajak';
         moneyRows.push([taxLabel, fmt(sale.tax_amount)]);
     }

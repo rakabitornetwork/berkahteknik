@@ -13,6 +13,7 @@ export default function ThermalPrintButton({
     style,
     showLabel = true,
     onPrinted,
+    hidePrices = false,
 }) {
     const {
         supported,
@@ -42,7 +43,7 @@ export default function ThermalPrintButton({
                 await connect();
             }
             setLocalMsg('Mencetak…');
-            await printSale(sale, shop);
+            await printSale(sale, shop, { hidePrices });
             setLocalMsg('Terkirim ke printer.');
             onPrinted?.();
             setTimeout(() => setLocalMsg(null), 2500);

@@ -42,7 +42,7 @@ export function useThermalPrinter() {
     const resolveDevice = () =>
         thermalPrinterManager.device ?? thermalPrinterManager.getState().savedDevice;
 
-    const printSale = useCallback(async (sale, shop) => {
+    const printSale = useCallback(async (sale, shop, options = {}) => {
         setBusy(true);
         setError(null);
         try {
@@ -54,6 +54,7 @@ export function useThermalPrinter() {
                 sale,
                 shop,
                 paymentLabel,
+                hidePrices: Boolean(options.hidePrices),
                 printerLanguage: device?.language ?? 'esc-pos',
                 codepageMapping: device?.codepageMapping ?? 'epson',
                 paperWidth,

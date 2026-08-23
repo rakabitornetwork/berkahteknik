@@ -1,6 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { Printer, ArrowLeft } from 'lucide-react';
+import PrintHidePricesToggle from '../../../Components/PrintHidePricesToggle';
+import { readHidePrintPrices, writeHidePrintPrices } from '../../../lib/printPriceVisibility';
 
 const fmt = (n) => `Rp ${Number(n).toLocaleString('id-ID')}`;
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
@@ -34,9 +36,21 @@ function Field({ label, value, bold }) {
     );
 }
 
+const paymentLabels = { cash: 'Tunai', transfer: 'Transfer Bank', qris: 'QRIS' };
+
 export default function InvoicePrint({ service, shop }) {
+    const [hidePrices, setHidePrices] = useState(() => readHidePrintPrices());
     const partsTotal = service.spare_parts?.reduce((sum, p) => sum + (p.pivot.quantity * p.pivot.unit_price), 0) || 0;
     const grandTotal = partsTotal + Number(service.service_fee || 0);
+    const payments = service.payments || [];
+    const paidTotal = payments.reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+    const changeAmount = Math.max(0, paidTotal - grandTotal);
+    const lastPayment = payments[payments.length - 1];
+    const paymentLabel = paymentLabels[lastPayment?.payment_method] || lastPayment?.payment_method || 'Tunai';
+
+    useEffect(() => {
+        writeHidePrintPrices(hidePrices);
+    }, [hidePrices]);
 
     useEffect(() => {
         if (new URLSearchParams(window.location.search).get('print') === '1') {
@@ -103,6 +117,19 @@ export default function InvoicePrint({ service, shop }) {
                     border: 1px solid #cbd5e1;
                     color: #334155;
                 }
+                .print-hide-prices-toggle {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.4rem;
+                    font-size: 0.8rem;
+                    color: #334155;
+                    background: white;
+                    border: 1px solid #cbd5e1;
+                    border-radius: 8px;
+                    padding: 0.45rem 0.8rem;
+                    cursor: pointer;
+                    user-select: none;
+                }
                 .invoice-print-body {
                     padding: 0 1rem 1.5rem;
                     max-width: calc(210mm + 2rem);
@@ -149,6 +176,10 @@ export default function InvoicePrint({ service, shop }) {
 
             <div className="invoice-print-shell">
                 <div className="invoice-print-toolbar no-print">
+                    <PrintHidePricesToggle
+                        checked={hidePrices}
+                        onChange={setHidePrices}
+                    />
                     <button type="button" className="btn-print" onClick={() => window.print()}>
                         <Printer size={16} /> Cetak Invoice
                     </button>
@@ -235,6 +266,8 @@ export default function InvoicePrint({ service, shop }) {
                                     <tr>
                                         <th style={thStyle}>Nama Sparepart</th>
                                         <th style={{ ...thStyle, textAlign: 'center', width: '3rem' }}>Qty</th>
+                                        {!hidePrices && <th style={{ ...thStyle, textAlign: 'right', width: '7rem' }}>Harga</th>}
+                                        {!hidePrices && <th style={{ ...thStyle, textAlign: 'right', width: '7.5rem' }}>Subtotal</th>}
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -242,10 +275,12 @@ export default function InvoicePrint({ service, shop }) {
                                         <tr key={i}>
                                             <td style={tdStyle}>{p.name}</td>
                                             <td style={{ ...tdStyle, textAlign: 'center' }}>{p.pivot.quantity} {p.unit}</td>
+                                            {!hidePrices && <td style={{ ...tdStyle, textAlign: 'right' }}>{fmt(p.pivot.unit_price)}</td>}
+                                            {!hidePrices && <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 600 }}>{fmt(p.pivot.quantity * p.pivot.unit_price)}</td>}
                                         </tr>
                                     )) : (
                                         <tr>
-                                            <td colSpan={2} style={{ ...tdStyle, color: '#94a3b8', fontStyle: 'italic', textAlign: 'center', padding: '0.75rem' }}>
+                                            <td colSpan={hidePrices ? 2 : 4} style={{ ...tdStyle, color: '#94a3b8', fontStyle: 'italic', textAlign: 'center', padding: '0.75rem' }}>
                                                 Tidak ada penggantian sparepart
                                             </td>
                                         </tr>
@@ -290,10 +325,34 @@ export default function InvoicePrint({ service, shop }) {
                             </div>
                             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                                 <tbody>
+                                    {!hidePrices && (
+                                        <>
+                                            <tr>
+                                                <td style={{ ...tdStyle, textAlign: 'right', color: '#64748b' }}>Subtotal Sparepart</td>
+                                                <td style={{ ...tdStyle, textAlign: 'right', width: '8rem' }}>{fmt(partsTotal)}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style={{ ...tdStyle, textAlign: 'right', color: '#64748b' }}>Biaya Jasa</td>
+                                                <td style={{ ...tdStyle, textAlign: 'right' }}>{fmt(service.service_fee)}</td>
+                                            </tr>
+                                        </>
+                                    )}
                                     <tr style={{ background: '#f0fdfa' }}>
-                                        <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 800, fontSize: '0.85rem', color: '#0f766e', borderTop: '2px solid #0f766e' }}>TOTAL TAGIHAN</td>
+                                        <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 800, fontSize: '0.85rem', color: '#0f766e', borderTop: '2px solid #0f766e' }}>TOTAL</td>
                                         <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 800, fontSize: '0.85rem', color: '#0f766e', borderTop: '2px solid #0f766e', width: '8rem' }}>{fmt(grandTotal)}</td>
                                     </tr>
+                                    {paidTotal > 0 && (
+                                        <>
+                                            <tr>
+                                                <td style={{ ...tdStyle, textAlign: 'right', color: '#475569' }}>{paymentLabel}</td>
+                                                <td style={{ ...tdStyle, textAlign: 'right' }}>{fmt(paidTotal)}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style={{ ...tdStyle, textAlign: 'right', color: '#475569' }}>Kembali</td>
+                                                <td style={{ ...tdStyle, textAlign: 'right' }}>{fmt(changeAmount)}</td>
+                                            </tr>
+                                        </>
+                                    )}
                                 </tbody>
                             </table>
                         </Section>

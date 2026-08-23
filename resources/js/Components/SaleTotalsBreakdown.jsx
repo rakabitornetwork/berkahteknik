@@ -1,11 +1,11 @@
 import React from 'react';
 import { lineTotal } from '../lib/saleTotals';
 
-export default function SaleTotalsBreakdown({ sale, formatCurrency, paymentLabel }) {
+export default function SaleTotalsBreakdown({ sale, formatCurrency, paymentLabel, hideBreakdown = false }) {
     const discount = Number(sale.discount_total || 0);
     const tax = Number(sale.tax_amount || 0);
     const subtotal = Number(sale.subtotal || 0);
-    const showBreakdown = subtotal > 0 || discount > 0 || tax > 0;
+    const showBreakdown = !hideBreakdown && (subtotal > 0 || discount > 0 || tax > 0);
 
     return (
         <div className="receipt-totals-box">
