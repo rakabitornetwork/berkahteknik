@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { Printer } from 'lucide-react';
 import ReceiptHeader, { PaidWatermark } from '../../../Components/ReceiptHeader';
+import SaleTotalsBreakdown, { saleItemLineTotal } from '../../../Components/SaleTotalsBreakdown';
 import ThermalPrintButton from '../../../Components/ThermalPrintButton';
 
 const fmt = (n) => `Rp ${Number(n).toLocaleString('id-ID')}`;
@@ -216,11 +217,16 @@ function ReceiptBody({ sale, shop, items, paymentLabel }) {
                             <tr key={item.id}>
                                 <td>
                                     <div style={{ fontWeight: 600, color: '#0f172a' }}>{item.spare_part?.name ?? '-'}</div>
-                                    {item.spare_part?.code && <div className="item-code">{item.spare_part.code}</div>}
+                                    {(item.spare_part?.code || Number(item.discount_percent) > 0) && (
+                                        <div className="item-code">
+                                            {item.spare_part?.code}
+                                            {Number(item.discount_percent) > 0 ? ` · pot ${Number(item.discount_percent)}%` : ''}
+                                        </div>
+                                    )}
                                 </td>
                                 <td style={{ textAlign: 'center' }}>{item.quantity}</td>
                                 <td style={{ textAlign: 'right' }}>{fmt(item.unit_price)}</td>
-                                <td style={{ textAlign: 'right', fontWeight: 600 }}>{fmt(item.unit_price * item.quantity)}</td>
+                                <td style={{ textAlign: 'right', fontWeight: 600 }}>{fmt(saleItemLineTotal(item))}</td>
                             </tr>
                         )) : (
                             <tr>
@@ -233,7 +239,7 @@ function ReceiptBody({ sale, shop, items, paymentLabel }) {
                 </table>
 
                 <div className="receipt-totals">
-                    <TotalsBox sale={sale} paymentLabel={paymentLabel} />
+                    <SaleTotalsBreakdown sale={sale} formatCurrency={fmt} paymentLabel={paymentLabel} />
                 </div>
 
                 <div className="receipt-footer">
@@ -244,26 +250,4 @@ function ReceiptBody({ sale, shop, items, paymentLabel }) {
     );
 }
 
-function TotalsBox({ sale, paymentLabel }) {
-    return (
-        <div className="receipt-totals-box">
-            <div className="receipt-totals-row is-grand">
-                <span>TOTAL</span>
-                <span>{fmt(sale.total_amount)}</span>
-            </div>
-            {sale.amount_paid > 0 && (
-                <>
-                    <div className="receipt-totals-row">
-                        <span>{paymentLabel}</span>
-                        <span>{fmt(sale.amount_paid)}</span>
-                    </div>
-                    <div className="receipt-totals-row">
-                        <span>Kembali</span>
-                        <span>{fmt(sale.change_amount)}</span>
-                    </div>
-                </>
-            )}
-        </div>
-    );
-}
 

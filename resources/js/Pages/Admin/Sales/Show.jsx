@@ -3,6 +3,7 @@ import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { Printer, ArrowLeft, CheckCircle, Clock, DollarSign } from 'lucide-react';
 import AdminLayout from '../../../Layouts/AdminLayout';
 import ReceiptHeader, { PaidWatermark } from '../../../Components/ReceiptHeader';
+import SaleTotalsBreakdown, { saleItemLineTotal } from '../../../Components/SaleTotalsBreakdown';
 import ThermalPrintButton from '../../../Components/ThermalPrintButton';
 
 export default function SalesShow({ sale }) {
@@ -128,35 +129,21 @@ export default function SalesShow({ sale }) {
                                     <tr key={index}>
                                         <td>
                                             <div style={{ fontWeight: 600, color: '#0f172a' }}>{item.spare_part.name}</div>
-                                            <div className="item-code">{item.spare_part.code}</div>
+                                            <div className="item-code">
+                                                {item.spare_part.code}
+                                                {Number(item.discount_percent) > 0 ? ` · pot ${Number(item.discount_percent)}%` : ''}
+                                            </div>
                                         </td>
                                         <td style={{ textAlign: 'center' }}>{item.quantity}</td>
                                         <td style={{ textAlign: 'right' }}>{formatCurrency(item.unit_price)}</td>
-                                        <td style={{ textAlign: 'right', fontWeight: 600 }}>{formatCurrency(item.unit_price * item.quantity)}</td>
+                                        <td style={{ textAlign: 'right', fontWeight: 600 }}>{formatCurrency(saleItemLineTotal(item))}</td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
 
                         <div className="receipt-totals">
-                            <div className="receipt-totals-box">
-                                <div className="receipt-totals-row is-grand">
-                                    <span>TOTAL</span>
-                                    <span>{formatCurrency(sale.total_amount)}</span>
-                                </div>
-                                {sale.amount_paid > 0 && (
-                                    <>
-                                        <div className="receipt-totals-row">
-                                            <span>{paymentLabel}</span>
-                                            <span>{formatCurrency(sale.amount_paid)}</span>
-                                        </div>
-                                        <div className="receipt-totals-row">
-                                            <span>Kembali</span>
-                                            <span>{formatCurrency(sale.change_amount)}</span>
-                                        </div>
-                                    </>
-                                )}
-                            </div>
+                            <SaleTotalsBreakdown sale={sale} formatCurrency={formatCurrency} paymentLabel={paymentLabel} />
                         </div>
 
                         <div className="receipt-footer">

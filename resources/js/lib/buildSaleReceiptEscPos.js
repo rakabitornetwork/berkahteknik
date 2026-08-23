@@ -1,4 +1,5 @@
 import ReceiptPrinterEncoder from '@point-of-sale/receipt-printer-encoder';
+import { lineTotal } from './saleTotals';
 import { getPaperColumns, getPaperWidth } from './thermalPrinterStorage';
 
 const fmt = (n) => `Rp ${Number(n).toLocaleString('id-ID')}`;
@@ -81,7 +82,8 @@ export function buildSaleReceiptEscPos({
         const code = itemCode(item);
         const qty = item.quantity;
         const price = item.unit_price;
-        const subtotal = price * qty;
+        const disc = Number(item.discount_percent || 0);
+        const subtotal = lineTotal(item);
 
         e = e.bold(true).line(name).bold(false);
         if (code) {
@@ -92,7 +94,7 @@ export function buildSaleReceiptEscPos({
                 { width: nameCol, align: 'left' },
                 { width: priceCol, align: 'right' },
             ],
-            [[`${qty} x ${fmt(price)}`, fmt(subtotal)]],
+            [[`${qty} x ${fmt(price)}${disc > 0 ? ` pot ${disc}%` : ''}`, fmt(subtotal)]],
         );
     }
 
@@ -102,10 +104,35 @@ export function buildSaleReceiptEscPos({
 
     e = e.rule({ style: 'single' });
 
+    const leftW = Math.floor(cols * 0.35);
+    const rightW = cols - leftW;
+    const moneyRows = [];
+
+    if (Number(sale.subtotal || 0) > 0) {
+        moneyRows.push(['Sub Total', fmt(sale.subtotal)]);
+    }
+    if (Number(sale.discount_total || 0) > 0) {
+        moneyRows.push(['Potongan', `- ${fmt(sale.discount_total)}`]);
+    }
+    if (Number(sale.tax_amount || 0) > 0) {
+        const taxLabel = sale.tax_percent ? `Pajak ${Number(sale.tax_percent)}%` : 'Pajak';
+        moneyRows.push([taxLabel, fmt(sale.tax_amount)]);
+    }
+
+    if (moneyRows.length) {
+        e = e.table(
+            [
+                { width: leftW, align: 'left' },
+                { width: rightW, align: 'right' },
+            ],
+            moneyRows,
+        );
+    }
+
     e = e.table(
         [
-            { width: Math.floor(cols * 0.35), align: 'left' },
-            { width: cols - Math.floor(cols * 0.35), align: 'right' },
+            { width: leftW, align: 'left' },
+            { width: rightW, align: 'right' },
         ],
         [
             [

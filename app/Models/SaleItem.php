@@ -11,6 +11,13 @@ class SaleItem extends Model
         'spare_part_id',
         'quantity',
         'unit_price',
+        'discount_percent',
+    ];
+
+    protected $casts = [
+        'quantity' => 'integer',
+        'unit_price' => 'float',
+        'discount_percent' => 'float',
     ];
 
     public function sale()

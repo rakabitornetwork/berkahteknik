@@ -1201,6 +1201,467 @@ option {
     }
 }
 
+/* POS kasir — layout zona seperti desktop kasir */
+.pos-desk {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-height: calc(100vh - 10.5rem);
+}
+
+.pos-desk-list {
+    min-height: 0;
+    margin-bottom: 0.75rem;
+}
+
+.pos-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    padding: 0.25rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+}
+
+.pos-tab {
+    padding: 0.55rem 0.95rem;
+    border-radius: 8px;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+.pos-tab.is-active {
+    background: var(--color-primary-alpha);
+    color: var(--color-primary);
+}
+
+.pos-desk-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.pos-header,
+.pos-scan,
+.pos-bottom,
+.pos-actions {
+    padding: 0.85rem 1rem;
+}
+
+.pos-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: flex-end;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.pos-header-fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    align-items: flex-end;
+    flex: 1;
+    min-width: 0;
+}
+
+.pos-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 0;
+}
+
+.pos-field > span {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+}
+
+.pos-field-date {
+    width: 220px;
+}
+
+.pos-field-customer {
+    min-width: 220px;
+    flex: 1;
+}
+
+.pos-field-qty {
+    width: 96px;
+}
+
+.pos-field-code {
+    flex: 1;
+}
+
+.pos-field-notes {
+    flex: 1;
+    min-width: 180px;
+}
+
+.pos-date-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.pos-time {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    color: var(--color-text-main);
+    min-width: 5.5rem;
+}
+
+.pos-user-pills {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.pos-user-pills span {
+    padding: 0.45rem 0.7rem;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-input-bg);
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.pos-grand {
+    min-width: min(320px, 100%);
+    padding: 0.55rem 1rem 0.35rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-input-bg);
+    text-align: right;
+}
+
+.pos-grand small {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+}
+
+.pos-grand strong {
+    display: block;
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+}
+
+.pos-scan {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-end;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.pos-grid-wrap {
+    flex: 1;
+    min-height: 220px;
+    overflow: auto;
+}
+
+.pos-grid {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.84rem;
+}
+
+.pos-grid th,
+.pos-grid td {
+    padding: 0.55rem 0.65rem;
+    border-bottom: 1px solid var(--color-border);
+    text-align: left;
+    white-space: nowrap;
+}
+
+.pos-grid th {
+    position: sticky;
+    top: 0;
+    background: var(--color-table-head-bg);
+    color: var(--color-text-muted);
+    font-size: 0.74rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.pos-grid td.is-num,
+.pos-grid th:nth-last-child(-n+3) {
+    text-align: right;
+}
+
+.pos-grid tbody tr {
+    cursor: pointer;
+}
+
+.pos-grid tbody tr:hover {
+    background: var(--color-table-row-hover);
+}
+
+.pos-grid tbody tr.is-selected {
+    background: var(--color-primary-alpha);
+}
+
+.pos-grid-empty td {
+    text-align: center;
+    color: var(--color-text-muted);
+    padding: 2.5rem 1rem;
+    white-space: normal;
+}
+
+.pos-qty-input {
+    width: 72px;
+    padding: 0.3rem 0.4rem;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-input-bg);
+    color: var(--color-text-main);
+}
+
+.pos-bottom {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(220px, 0.7fr);
+    gap: 1rem;
+    border-top: 1px solid var(--color-border);
+    background: var(--color-table-head-bg);
+}
+
+.pos-detail-tabs {
+    display: flex;
+    gap: 0.35rem;
+    margin-bottom: 0.75rem;
+}
+
+.pos-detail-tabs button {
+    border: 1px solid var(--color-border);
+    background: transparent;
+    color: var(--color-text-muted);
+    border-radius: 8px;
+    padding: 0.4rem 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.pos-detail-tabs button.is-active {
+    background: var(--color-primary-alpha);
+    color: var(--color-primary);
+    border-color: transparent;
+}
+
+.pos-detail-actions,
+.pos-detail-fields,
+.pos-actions,
+.pos-pending-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.pos-detail-actions {
+    margin-bottom: 0.85rem;
+}
+
+.pos-detail-actions .btn,
+.pos-actions .btn {
+    min-height: 2.4rem;
+}
+
+.pos-detail-empty {
+    color: var(--color-text-muted);
+    font-size: 0.88rem;
+    margin: 0;
+}
+
+.pos-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.pos-summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.9rem;
+}
+
+.pos-summary-row.is-button {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    text-align: left;
+}
+
+.pos-summary-row.is-button:hover strong {
+    color: var(--color-primary);
+}
+
+.pos-adjust-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.pos-adjust-hint {
+    grid-column: 1 / -1;
+    margin: 0;
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+}
+
+.pos-check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.6rem;
+    font-size: 0.88rem;
+}
+
+.pos-tax-toggle .pos-check {
+    padding-top: 0.2rem;
+}
+
+@media (max-width: 900px) {
+    .pos-adjust-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.pos-summary-value {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--color-text-muted);
+}
+
+.pos-actions {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+}
+
+.pos-pay-btn {
+    min-width: 150px;
+}
+
+.pos-error {
+    margin: 0;
+    color: var(--color-danger);
+    font-size: 0.85rem;
+}
+
+.pos-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(8, 14, 16, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.pos-modal {
+    width: min(440px, 100%);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.pos-modal-wide {
+    width: min(760px, 100%);
+}
+
+.pos-modal header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.pos-modal h3 {
+    margin: 0;
+    font-size: 1.05rem;
+}
+
+.pos-modal footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.pos-pay-total,
+.pos-pay-status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0.85rem;
+    border-radius: var(--radius-md);
+}
+
+.pos-pay-total {
+    background: var(--color-table-head-bg);
+}
+
+.pos-pay-total strong {
+    font-size: 1.25rem;
+}
+
+.pos-pay-status {
+    justify-content: center;
+    font-weight: 800;
+}
+
+.pos-pay-status.is-paid {
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--color-success);
+}
+
+.pos-pay-status.is-unpaid {
+    background: rgba(225, 29, 72, 0.1);
+    color: var(--color-danger);
+}
+
+@media (max-width: 900px) {
+    .pos-header,
+    .pos-scan,
+    .pos-bottom {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .pos-bottom {
+        grid-template-columns: 1fr;
+    }
+
+    .pos-field-date,
+    .pos-field-qty {
+        width: 100%;
+    }
+}
+
 @keyframes spin {
     to {
         transform: rotate(360deg);

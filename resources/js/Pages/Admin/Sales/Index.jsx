@@ -4,6 +4,7 @@ import { Plus, Search, Eye, Trash2, ShoppingCart } from 'lucide-react';
 import AdminLayout from '../../../Layouts/AdminLayout';
 import DataTable from '../../../Components/DataTable';
 import Pagination from '../../../Components/Pagination';
+import PosTabs from './PosTabs';
 
 export default function SalesIndex({ sales, filters }) {
     const [search, setSearch] = useState(filters.search || '');
@@ -54,8 +55,12 @@ export default function SalesIndex({ sales, filters }) {
     const hasData = sales.data.length > 0;
 
     return (
-        <AdminLayout title="Riwayat Penjualan">
-            <Head title="Penjualan POS" />
+        <AdminLayout title="Daftar Kasir">
+            <Head title="Daftar Kasir" />
+
+            <div className="pos-desk pos-desk-list">
+                <PosTabs active="daftar" />
+            </div>
 
             <div className="glass-panel list-panel" style={{ marginBottom: '1rem' }}>
                 <header className="list-page-toolbar" style={{ marginBottom: 0 }}>
