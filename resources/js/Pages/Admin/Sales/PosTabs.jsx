@@ -2,7 +2,6 @@ import React from 'react';
 import { Link } from '@inertiajs/react';
 
 const TABS = [
-    { id: 'menu', href: '/admin', label: 'Menu Utama' },
     { id: 'daftar', href: '/admin/sales', label: 'Daftar Kasir' },
     { id: 'kasir', href: '/admin/sales/create', label: 'Kasir' },
 ];
