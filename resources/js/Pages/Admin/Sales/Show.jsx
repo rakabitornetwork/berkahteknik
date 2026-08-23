@@ -3,6 +3,7 @@ import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { Printer, ArrowLeft, CheckCircle, Clock, DollarSign } from 'lucide-react';
 import AdminLayout from '../../../Layouts/AdminLayout';
 import ReceiptHeader, { PaidWatermark } from '../../../Components/ReceiptHeader';
+import ReceiptWarrantyTerms from '../../../Components/ReceiptWarrantyTerms';
 import SaleTotalsBreakdown, { saleItemLineTotal } from '../../../Components/SaleTotalsBreakdown';
 import ThermalPrintButton from '../../../Components/ThermalPrintButton';
 
@@ -145,6 +146,8 @@ export default function SalesShow({ sale }) {
                         <div className="receipt-totals">
                             <SaleTotalsBreakdown sale={sale} formatCurrency={formatCurrency} paymentLabel={paymentLabel} />
                         </div>
+
+                        <ReceiptWarrantyTerms shop={shop} />
 
                         <div className="receipt-footer">
                             {shop?.receipt_footer || 'Terima kasih atas pembelian Anda.'}

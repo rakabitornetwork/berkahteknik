@@ -1,6 +1,33 @@
 import ReceiptPrinterEncoder from '@point-of-sale/receipt-printer-encoder';
+import { warrantyText } from './warrantyText';
 import { lineTotal } from './saleTotals';
 import { getPaperColumns, getPaperWidth } from './thermalPrinterStorage';
+
+function wrapReceiptText(text, cols) {
+    const lines = [];
+
+    String(text || '').replace(/\r/g, '').split('\n').forEach((paragraph) => {
+        const words = paragraph.trim().split(/\s+/).filter(Boolean);
+        if (words.length === 0) {
+            lines.push('');
+            return;
+        }
+
+        let current = '';
+        words.forEach((word) => {
+            const next = current ? `${current} ${word}` : word;
+            if (next.length <= cols) {
+                current = next;
+                return;
+            }
+            if (current) lines.push(current);
+            current = word.length <= cols ? word : word.slice(0, cols);
+        });
+        if (current) lines.push(current);
+    });
+
+    return lines;
+}
 
 const fmt = (n) => `Rp ${Number(n).toLocaleString('id-ID')}`;
 
@@ -156,6 +183,25 @@ export function buildSaleReceiptEscPos({
             .line('LUNAS')
             .bold(false);
     }
+
+    const months = Number(shop?.warranty_default_months || 0);
+    e = e
+        .newline()
+        .rule({ style: 'single' })
+        .align('left')
+        .bold(true)
+        .line('Ketentuan Garansi')
+        .bold(false);
+
+    if (months > 0) {
+        wrapReceiptText(`Masa garansi: ${months} bulan sejak tanggal pembelian.`, cols).forEach((line) => {
+            e = e.line(line);
+        });
+    }
+
+    wrapReceiptText(warrantyText(shop), cols).forEach((line) => {
+        e = e.line(line);
+    });
 
     const footer = shop?.receipt_footer || 'Terima kasih atas pembelian Anda.';
     e = e

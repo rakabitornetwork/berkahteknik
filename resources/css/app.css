@@ -1738,6 +1738,37 @@ option {
     color: #0f172a;
 }
 
+.receipt-premium .receipt-warranty {
+    margin: 0.85rem 0 0;
+    padding: 0.6rem 0.7rem;
+    border: 1px dashed #cbd5e1;
+    border-radius: 4px;
+    background: #f8fafc;
+    text-align: left;
+}
+
+.receipt-premium .receipt-warranty-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.receipt-premium .receipt-warranty-meta {
+    font-size: 0.7rem;
+    color: #334155;
+    margin-bottom: 0.3rem;
+}
+
+.receipt-premium .receipt-warranty-body {
+    font-size: 0.65rem;
+    color: #64748b;
+    line-height: 1.45;
+    white-space: pre-line;
+}
+
 .receipt-premium .receipt-footer {
     text-align: center;
     margin-top: 0.85rem;
