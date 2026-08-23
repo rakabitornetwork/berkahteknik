@@ -339,15 +339,6 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
         setPendingList(next);
     };
 
-    const showSelectedPrice = () => {
-        const item = selectedRow >= 0 ? data.items[selectedRow] : null;
-        if (!item) {
-            toast.error('Pilih baris barang untuk melihat harga.');
-            return;
-        }
-        toast.success(`${item.code || item.name}: ${formatCurrency(item.unit_price)}`);
-    };
-
     const actionsRef = useRef({});
     actionsRef.current = { holdPending, openPay, submitSale, showPay };
 
@@ -602,9 +593,6 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
                                     <div className="pos-detail-actions">
                                         <button type="button" className="btn btn-outline" onClick={handleRemoveSelected} disabled={selectedRow < 0}>
                                             <Trash2 size={14} /> Hapus Detail
-                                        </button>
-                                        <button type="button" className="btn btn-outline" onClick={showSelectedPrice}>
-                                            Lihat Harga
                                         </button>
                                     </div>
 
