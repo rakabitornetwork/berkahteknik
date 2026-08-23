@@ -9,10 +9,11 @@ Stack: **Laravel 13**, **Inertia.js**, **React**, **MySQL** (produksi) / SQLite 
 ## Fitur
 
 - **Situs publik** — landing page, berita/promo, syarat ketentuan
-- **Panel admin** — dashboard, servis, booking, SPK, POS, stok, karyawan, laporan, keuangan
+- **Panel admin** — dashboard, servis, booking, SPK, kasir POS, stok, karyawan, laporan, keuangan
+- **Kasir POS** — scan/cari barang, diskon & pajak, pending transaksi, bayar, cetak nota/faktur
 - **Portal pelanggan** — daftar akun, lacak servis, booking, klaim garansi
 - **Panel mekanik** — pekerjaan yang ditugaskan dan update status
-- **Pengaturan aplikasi** — nama, logo, favicon, kontak, lokasi GPS
+- **Pengaturan aplikasi** — nama, logo, favicon, kontak, kebijakan garansi, lokasi GPS
 - **Update GitHub** — tarik update dari panel admin (setelah VPS dikonfigurasi)
 
 Role staf: `owner`, `admin`, `cashier`, `purchasing`, `mechanic`.
@@ -26,7 +27,7 @@ Role staf: `owner`, `admin`, `cashier`, `purchasing`, `mechanic`.
 | PHP | 8.3+ (CLI **dan** FPM) |
 | Ekstensi PHP | `mbstring`, `xml`, `curl`, `zip`, `gd`, `bcmath`, `intl`, `pdo_mysql` |
 | Composer | 2.x |
-| Node.js | 20 LTS atau 22 LTS |
+| Node.js | 20 LTS atau 22 LTS — **komputer lokal** (build frontend), tidak wajib di VPS |
 | npm | ikut Node.js |
 | Database produksi | MySQL 8 / MariaDB 10.11+ |
 | Web server | Nginx (disarankan) atau Apache |
@@ -40,6 +41,8 @@ Role staf: `owner`, `admin`, `cashier`, `purchasing`, `mechanic`.
 |---|---|
 | Beranda | `/` |
 | Login admin / staf | `/admin/login` |
+| Kasir POS | `/admin/sales/create` |
+| Daftar transaksi kasir | `/admin/sales` |
 | Panel mekanik | `/mechanic/dashboard` |
 | Portal pelanggan | `/portal/login` |
 | Pengaturan | `/admin/settings` |
@@ -102,7 +105,7 @@ php artisan tinker
 ]);
 ```
 
-6. Buka `APP_URL` lalu masuk lewat `/admin/login`.
+6. Buka `APP_URL` lalu masuk lewat `/admin/login`. Menu **Penjualan (POS)** membuka kasir di `/admin/sales/create`.
 
 Jangan jalankan `php artisan db:seed` di produksi. Seeder bawaan hanya membuat user uji `test@example.com`.
 
@@ -136,7 +139,7 @@ curl -sS https://getcomposer.org/installer | php
 sudo mv composer.phar /usr/local/bin/composer
 ```
 
-Node.js 22 LTS:
+Node.js **tidak wajib** di VPS. Pasang hanya jika ingin build frontend di server (biasanya tidak perlu):
 
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
@@ -229,9 +232,11 @@ which php8.3
 # biasanya /usr/bin/php8.3
 ```
 
-### 5. Dependensi, migrasi, dan build
+### 5. Dependensi, migrasi, dan frontend
 
-Jalankan sebagai `www-data` agar file hasil build milik web server:
+Frontend produksi sudah ada di folder **`public/build`** (di-build di komputer lokal, lalu di-commit). VPS **tidak wajib** memasang Node.js atau menjalankan `npm run build`.
+
+Jalankan sebagai `www-data`:
 
 ```bash
 cd /var/www/berkahteknik
@@ -240,13 +245,13 @@ sudo -u www-data composer install --no-dev --optimize-autoloader
 sudo -u www-data php8.3 artisan key:generate
 sudo -u www-data php8.3 artisan migrate --force
 sudo -u www-data php8.3 artisan storage:link
-sudo -u www-data npm ci --no-audit --no-fund
-sudo -u www-data npm run build
 sudo -u www-data php8.3 artisan optimize
 sudo -u www-data php8.3 artisan config:cache
 sudo -u www-data php8.3 artisan route:cache
 sudo -u www-data php8.3 artisan view:cache
 ```
+
+Pastikan `public/build/manifest.json` ada setelah `git clone` / `git pull`. Jika folder itu kosong, build di komputer lokal (`npm run build`), commit hasilnya, lalu pull lagi di VPS.
 
 Hak tulis:
 
@@ -357,19 +362,23 @@ sudo systemctl restart php8.3-fpm
 
 ## Update aplikasi
 
+Alur yang dipakai: ubah sumber di komputer lokal → `npm run build` → **commit `public/build` bersama kode** → push ke `main` → VPS `git pull`. Tampilan kasir/admin tidak berubah di VPS jika hanya source JSX/CSS yang di-push tanpa hasil build.
+
 ### Dari panel admin (disarankan)
 
-1. Push commit ke cabang `main`.
-2. Login sebagai `owner` atau `admin`.
-3. Buka **Update GitHub** (`/admin/system-update`).
-4. Jalankan update. Panel akan `git pull`, `composer install --no-dev`, `migrate --force`, `npm ci` + `npm run build`, lalu cache config.
+1. Di komputer lokal: `npm run build`, lalu commit termasuk `public/build`.
+2. Push ke cabang `main`.
+3. Login sebagai `owner` atau `admin`.
+4. Buka **Update GitHub** (`/admin/system-update`).
+5. Jalankan update. Panel akan `git pull`, `composer install --no-dev`, `migrate --force`, lalu cache config. Aset frontend diambil dari `public/build` di Git.
 
 Syarat VPS:
 
 - Folder app adalah clone Git, bukan salinan zip
 - `www-data` bisa `git fetch` / `git pull` (deploy key)
 - `DEPLOY_PHP_BINARY` mengarah ke PHP **CLI**, contoh `/usr/bin/php8.3`
-- Composer dan npm ada di `PATH` user `www-data`
+- Composer ada di `PATH` user `www-data` (atau set `DEPLOY_COMPOSER_BINARY`)
+- Node.js / npm di VPS **tidak wajib**
 
 ### Manual di SSH
 
@@ -378,8 +387,7 @@ cd /var/www/berkahteknik
 sudo -u www-data git pull --ff-only origin main
 sudo -u www-data composer install --no-dev --optimize-autoloader
 sudo -u www-data php8.3 artisan migrate --force
-sudo -u www-data npm ci --no-audit --no-fund
-sudo -u www-data npm run build
+sudo -u www-data php8.3 artisan optimize:clear
 sudo -u www-data php8.3 artisan optimize
 ```
 
@@ -388,12 +396,36 @@ sudo -u www-data php8.3 artisan optimize
 ## Setelah install
 
 1. Login `/admin/login`.
-2. Buka **Pengaturan Aplikasi** — isi nama, alamat, logo, favicon, WhatsApp.
+2. Buka **Pengaturan Aplikasi** — isi nama, alamat, logo, favicon, WhatsApp, **Kebijakan Garansi**.
 3. Buka **Konten Situs** untuk landing page.
 4. Tambah karyawan di **Data Karyawan** (kasir, mekanik, admin).
-5. Isi master data: jasa, produk, supplier.
+5. Isi master data: jasa, sparepart, gudang, supplier.
+6. Buka **Penjualan (POS)** untuk mulai kasir.
 
 Nama di navbar dan judul tab mengikuti **Nama Aplikasi** di Identitas & Pemilik.
+
+---
+
+## Kasir (POS)
+
+Menu sidebar **Penjualan (POS)** membuka meja kasir. Tab di halaman: **Daftar Kasir** (riwayat) dan **Kasir** (transaksi baru).
+
+| Aksi | Cara |
+|---|---|
+| Tambah barang | Scan barcode, atau ketik kode/nama, lalu **Enter** |
+| Ubah qty / potongan per baris | Edit langsung di tabel |
+| Diskon nota | Tab **Potongan**: persen dan/atau rupiah |
+| Pajak | Tab **Potongan**: centang pajak (default 11%) |
+| Bayar | Tombol **Bayar** atau tombol **End** |
+| Simpan pending | **F5** — draft tersimpan di browser (`localStorage`) |
+| Buka antrian pending | **F6** |
+| Transaksi baru | Tombol **Baru** |
+
+Urutan hitung: potongan per barang → subtotal → potongan nota → pajak dari sisa → total.
+
+Nota/faktur cetak menampilkan kebijakan garansi dari **Pengaturan → Kebijakan Garansi**. Di toolbar cetak ada opsi **Sembunyikan harga & subtotal** (total dan kembalian tetap tampil).
+
+Migrasi diskon/pajak ada di `database/migrations/2026_08_23_140000_add_discount_and_tax_to_sales_tables.php`. Setelah pull, jalankan `php artisan migrate`.
 
 ---
 
@@ -424,7 +456,7 @@ Contoh cron harian (jam 02:00):
 | Gejala | Periksa |
 |---|---|
 | Halaman putih / 500 | `storage/logs/laravel.log`, `APP_DEBUG=false` jangan dibiarkan tanpa cek log |
-| CSS/JS tidak muncul | `npm run build` sudah jalan; `public/build` ada `manifest.json` |
+| CSS/JS tidak muncul / kasir masih tampilan lama | `public/build` sudah di-commit dan di-pull; `manifest.json` ada; `php artisan optimize:clear` |
 | Logo tidak tampil | `php artisan storage:link`; folder `storage` milik `www-data` |
 | Upload gagal | `client_max_body_size` Nginx dan `upload_max_filesize` PHP |
 | Update GitHub gagal | `DEPLOY_PHP_BINARY=/usr/bin/php8.3`; deploy key; `sudo -u www-data git fetch` |
@@ -452,4 +484,4 @@ php artisan migrate
 php artisan pint     # format PHP
 ```
 
-Build produksi frontend: `npm run build`.
+Build produksi frontend: `npm run build`. Commit folder `public/build` bersama perubahan UI agar VPS cukup `git pull`.
