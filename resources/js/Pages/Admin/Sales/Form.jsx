@@ -386,55 +386,55 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
 
                 <section className="pos-desk-card">
                     <header className="pos-header">
-                        <div className="pos-header-fields">
-                            <label className="pos-field">
-                                <span>No. Transaksi</span>
-                                <input className="form-input" value="Otomatis saat simpan" readOnly />
-                            </label>
-                            <label className="pos-field pos-field-date">
-                                <span>Tanggal</span>
-                                <div className="pos-date-row">
-                                    <input
-                                        className="form-input"
-                                        value={now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                        readOnly
-                                    />
-                                    <span className="pos-time">{now.toLocaleTimeString('id-ID')}</span>
-                                </div>
-                            </label>
-                            <label className="pos-field pos-field-customer">
-                                <span>Pelanggan</span>
-                                <input
-                                    className="form-input"
-                                    list="pos-customer-list"
-                                    value={data.customer_name}
-                                    onChange={(e) => setData('customer_name', e.target.value)}
-                                    placeholder="UMUM"
-                                />
-                                <datalist id="pos-customer-list">
-                                    <option value="UMUM" />
-                                    {customers.map((customer) => (
-                                        <option key={customer.id} value={customer.name}>
-                                            {customer.phone || ''}
-                                        </option>
-                                    ))}
-                                </datalist>
-                            </label>
-                            <div className="pos-user-pills">
-                                <span>
-                                    <small>Gudang</small>
-                                    {defaultWarehouse?.code || 'GUDANG'}
-                                </span>
-                                <span>
-                                    <small>Kasir</small>
-                                    {user?.name || 'Kasir'}
-                                </span>
-                            </div>
-                        </div>
-
+                        <label className="pos-field pos-field-txn">
+                            <span>No. Transaksi</span>
+                            <input className="form-input" value="Otomatis saat simpan" readOnly />
+                        </label>
+                        <label className="pos-field pos-field-date">
+                            <span>Tanggal</span>
+                            <input
+                                className="form-input"
+                                value={now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                readOnly
+                            />
+                        </label>
+                        <label className="pos-field pos-field-time">
+                            <span>Jam</span>
+                            <input
+                                className="form-input"
+                                value={now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                readOnly
+                            />
+                        </label>
+                        <label className="pos-field pos-field-customer">
+                            <span>Pelanggan</span>
+                            <input
+                                className="form-input"
+                                list="pos-customer-list"
+                                value={data.customer_name}
+                                onChange={(e) => setData('customer_name', e.target.value)}
+                                placeholder="UMUM"
+                            />
+                            <datalist id="pos-customer-list">
+                                <option value="UMUM" />
+                                {customers.map((customer) => (
+                                    <option key={customer.id} value={customer.name}>
+                                        {customer.phone || ''}
+                                    </option>
+                                ))}
+                            </datalist>
+                        </label>
+                        <label className="pos-field pos-field-meta pos-field-warehouse">
+                            <span>Gudang</span>
+                            <input className="form-input" value={defaultWarehouse?.code || 'GUDANG'} readOnly />
+                        </label>
+                        <label className="pos-field pos-field-meta pos-field-cashier">
+                            <span>Kasir</span>
+                            <input className="form-input" value={user?.name || 'Kasir'} readOnly />
+                        </label>
                         <div className="pos-grand" aria-live="polite">
                             <div className="pos-grand-meta">
-                                <small>Total ditagih</small>
+                                <span>Total ditagih</span>
                                 <span>{data.items.length} item</span>
                             </div>
                             <strong>
