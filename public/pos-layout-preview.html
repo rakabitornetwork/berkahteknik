@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="id" class="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>POS layout preview</title>
+    <link rel="stylesheet" href="/build/assets/app-DqU1d9XR.css">
+    <style>
+        body { margin: 0; }
+    </style>
+</head>
+<body>
+<div class="admin-layout-container">
+    <aside class="admin-sidebar">
+        <div class="admin-sidebar-brand"><strong>Berkah Teknik</strong></div>
+        <nav class="admin-nav"></nav>
+    </aside>
+    <div class="admin-main-content">
+        <header class="admin-header">
+            <div class="admin-header-left">
+                <h1 class="admin-header-title">Kasir</h1>
+            </div>
+            <div class="admin-header-right">
+                <span>Superadmin</span>
+            </div>
+        </header>
+        <main>
+            <div class="pos-desk">
+                <nav class="pos-tabs">
+                    <a class="pos-tab" href="#">Daftar Kasir</a>
+                    <a class="pos-tab is-active" href="#">Kasir</a>
+                </nav>
+                <section class="pos-desk-card">
+                    <header class="pos-header">
+                        <label class="pos-field pos-field-txn"><span>No. Transaksi</span><input class="form-input" value="Otomatis saat simpan" readonly></label>
+                        <label class="pos-field pos-field-date"><span>Tanggal</span><input class="form-input" value="24 Agu 2026" readonly></label>
+                        <label class="pos-field pos-field-time"><span>Jam</span><input class="form-input" value="17.30.20" readonly></label>
+                        <label class="pos-field pos-field-customer"><span>Pelanggan</span><input class="form-input" value="UMUM"></label>
+                        <label class="pos-field pos-field-meta pos-field-warehouse"><span>Gudang</span><input class="form-input" value="MAIN-WH" readonly></label>
+                        <label class="pos-field pos-field-meta pos-field-cashier"><span>Kasir</span><input class="form-input" value="Superadmin" readonly></label>
+                        <div class="pos-grand">
+                            <div class="pos-grand-meta"><span>Total ditagih</span><span>0 item</span></div>
+                            <strong><em>Rp</em>0,00</strong>
+                        </div>
+                    </header>
+                    <form class="pos-scan">
+                        <label class="pos-field pos-field-code">
+                            <span>Kode / Nama Item</span>
+                            <input class="form-input pos-part-search-input" placeholder="Scan barcode atau ketik kode / nama barang">
+                        </label>
+                    </form>
+                    <div class="pos-grid-wrap">
+                        <table class="pos-grid">
+                            <thead>
+                                <tr><th>No</th><th>Kode</th><th>Keterangan</th><th>Qty</th><th>Satuan</th><th>Harga</th><th>Pot %</th><th>Total</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr class="pos-grid-empty">
+                                    <td colspan="8">
+                                        <div class="pos-empty">
+                                            <strong>Siap menerima barang</strong>
+                                            <p>Scan barcode atau ketik kode / nama, lalu tekan Enter.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pos-bottom">
+                        <div class="pos-detail">
+                            <div class="pos-detail-head">
+                                <div class="pos-detail-tabs">
+                                    <button type="button" class="is-active">Rincian</button>
+                                    <button type="button">Potongan</button>
+                                </div>
+                                <div class="pos-detail-actions">
+                                    <button type="button" class="btn btn-outline">Hapus Detail</button>
+                                </div>
+                            </div>
+                            <div class="pos-detail-body">
+                                <div class="pos-detail-fields">
+                                    <label class="pos-field"><span>Sales</span><select class="form-input"><option>Superadmin</option></select></label>
+                                    <label class="pos-field"><span>Keluar dari</span><select class="form-input"><option>MAIN-WH — Gudang Utama</option></select></label>
+                                    <label class="pos-field pos-field-notes"><span>Keterangan</span><input class="form-input" placeholder="Catatan transaksi"></label>
+                                </div>
+                            </div>
+                        </div>
+                        <aside class="pos-summary">
+                            <div class="pos-summary-head">Ringkasan</div>
+                            <div class="pos-summary-row"><span>Subtotal</span><strong>0,00</strong></div>
+                            <div class="pos-summary-row"><span>Potongan</span><strong>0,00</strong></div>
+                            <div class="pos-summary-row"><span>Pajak</span><strong>0,00</strong></div>
+                            <div class="pos-summary-row is-total"><span>Total</span><strong>0,00</strong></div>
+                        </aside>
+                    </div>
+                </section>
+                <footer class="pos-actions">
+                    <div class="pos-actions-group">
+                        <button type="button" class="btn btn-outline">Baru</button>
+                        <button type="button" class="btn btn-outline">Simpan</button>
+                        <button type="button" class="btn btn-outline">Batal</button>
+                        <button type="button" class="btn btn-outline">Cetak</button>
+                    </div>
+                    <div class="pos-actions-group">
+                        <button type="button" class="btn btn-outline">Pending <kbd>F5</kbd></button>
+                        <button type="button" class="btn btn-outline">Daftar Pending <kbd>F6</kbd></button>
+                    </div>
+                    <div class="pos-actions-group is-pay">
+                        <button type="button" class="btn btn-primary pos-pay-btn">Bayar <kbd>End</kbd></button>
+                    </div>
+                </footer>
+            </div>
+        </main>
+        <footer class="app-footer app-footer--admin">© 2026 Berkah Teknik AC — Sistem Manajemen Bengkel</footer>
+    </div>
+</div>
+</body>
+</html>

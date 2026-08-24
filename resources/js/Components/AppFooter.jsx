@@ -10,7 +10,7 @@ export default function AppFooter({ variant = 'portal' }) {
 
     if (variant === 'admin') {
         return (
-            <footer className="app-footer app-footer--admin" style={{ borderTop: '1px solid var(--color-border)', padding: '0.75rem 1rem', fontSize: '0.75rem', color: 'var(--color-text-muted)', textAlign: 'center' }}>
+            <footer className="app-footer app-footer--admin">
                 {footerLine}
             </footer>
         );

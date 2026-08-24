@@ -571,31 +571,34 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
 
                     <div className="pos-bottom">
                         <div className="pos-detail">
-                            <div className="pos-detail-tabs">
-                                <button
-                                    type="button"
-                                    className={detailTab === 'rincian' ? 'is-active' : ''}
-                                    onClick={() => setDetailTab('rincian')}
-                                >
-                                    Rincian
-                                </button>
-                                <button
-                                    type="button"
-                                    className={detailTab === 'potongan' ? 'is-active' : ''}
-                                    onClick={() => setDetailTab('potongan')}
-                                >
-                                    Potongan
-                                </button>
-                            </div>
-
-                            {detailTab === 'rincian' ? (
-                                <div className="pos-detail-body">
+                            <div className="pos-detail-head">
+                                <div className="pos-detail-tabs">
+                                    <button
+                                        type="button"
+                                        className={detailTab === 'rincian' ? 'is-active' : ''}
+                                        onClick={() => setDetailTab('rincian')}
+                                    >
+                                        Rincian
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className={detailTab === 'potongan' ? 'is-active' : ''}
+                                        onClick={() => setDetailTab('potongan')}
+                                    >
+                                        Potongan
+                                    </button>
+                                </div>
+                                {detailTab === 'rincian' && (
                                     <div className="pos-detail-actions">
                                         <button type="button" className="btn btn-outline" onClick={handleRemoveSelected} disabled={selectedRow < 0}>
                                             <Trash2 size={14} /> Hapus Detail
                                         </button>
                                     </div>
+                                )}
+                            </div>
 
+                            {detailTab === 'rincian' ? (
+                                <div className="pos-detail-body">
                                     <div className="pos-detail-fields">
                                         <label className="pos-field">
                                             <span>Sales</span>
