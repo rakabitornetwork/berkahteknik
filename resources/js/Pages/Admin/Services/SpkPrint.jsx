@@ -11,7 +11,6 @@ const DEFAULT_LOGO = '/images/brand/logo.svg';
 const MIN_SCALE = 0.62;
 
 function pickDensity(service) {
-    const jobs = service.work_items?.length || 0;
     const parts = service.spare_parts?.length || 0;
     const text = [
         service.description,
@@ -21,9 +20,9 @@ function pickDensity(service) {
         service.warranty_notes,
         service.warranty_terms,
     ].filter(Boolean).join(' ').length;
-    const score = jobs * 2 + parts + Math.ceil(text / 160);
-    if (score >= 22 || jobs >= 10 || parts >= 10) return 'tight';
-    if (score >= 12 || jobs >= 6 || parts >= 6) return 'compact';
+    const score = parts + Math.ceil(text / 160);
+    if (score >= 16 || parts >= 10) return 'tight';
+    if (score >= 8 || parts >= 6) return 'compact';
     return 'comfortable';
 }
 
@@ -39,7 +38,6 @@ function fitToSheet(sheet, inner, setScale) {
 
 export default function SpkPrint({ service, shop }) {
     const parts = service.spare_parts ?? [];
-    const jobs = service.work_items ?? [];
     const partsTotal = parts.reduce((sum, p) => sum + (p.pivot.quantity * p.pivot.unit_price), 0);
     const grandTotal = partsTotal + Number(service.service_fee || 0);
     const density = useMemo(() => pickDensity(service), [service]);
@@ -400,7 +398,7 @@ export default function SpkPrint({ service, shop }) {
                     <button type="button" className="btn-back" onClick={handleBack}>Kembali</button>
                 </div>
                 <p className="spk-hint no-print">
-                    Kertas F4 (210 × 330 mm) · 1 lembar. Kepadatan menyesuaikan jumlah jobdesk
+                    Kertas F4 (210 × 330 mm) · 1 lembar
                     {scale < 0.999 ? ` · disesuaikan otomatis (${Math.round(scale * 100)}%)` : ''}.
                     Pilih F4/Folio, skala 100%, tanpa header/footer browser.
                 </p>
@@ -411,7 +409,6 @@ export default function SpkPrint({ service, shop }) {
                         density={density}
                         service={service}
                         shop={shop}
-                        jobs={jobs}
                         parts={parts}
                         grandTotal={grandTotal}
                         onLogoLoad={() => fitToSheet(sheetRef.current, innerRef.current, setScale)}
@@ -422,7 +419,7 @@ export default function SpkPrint({ service, shop }) {
     );
 }
 
-function SpkSheet({ innerRef, density, service, shop, jobs, parts, grandTotal, onLogoLoad }) {
+function SpkSheet({ innerRef, density, service, shop, parts, grandTotal, onLogoLoad }) {
     const shopName = shop?.legal_name || shop?.app_name || 'Berkah Teknik AC';
     const contacts = [shop?.phone && `Telp ${shop.phone}`, shop?.whatsapp && `WA ${shop.whatsapp}`].filter(Boolean);
     const vehicle = service.vehicle;
@@ -508,31 +505,6 @@ function SpkSheet({ innerRef, density, service, shop, jobs, parts, grandTotal, o
                         ))}
                     </div>
                 )}
-
-                <div>
-                    <table className="spk-table">
-                        <thead>
-                            <tr>
-                                <th className="col-no">No</th>
-                                <th>Jobdesk / Pekerjaan</th>
-                                <th className="col-qty">Qty</th>
-                                <th className="col-qty">Satuan</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {jobs.length > 0 ? jobs.map((item, i) => (
-                                <tr key={item.id || i}>
-                                    <td className="col-no">{i + 1}</td>
-                                    <td style={{ fontWeight: 700 }}>{item.name || item.work_type?.name || '—'}</td>
-                                    <td className="col-qty">{item.quantity || 1}</td>
-                                    <td className="col-qty">{(item.unit || item.work_type?.unit || 'JOB').toString().toUpperCase()}</td>
-                                </tr>
-                            )) : (
-                                <tr><td colSpan={4} className="muted-row">Belum ada item jobdesk</td></tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
 
                 <div>
                     <table className="spk-table">
