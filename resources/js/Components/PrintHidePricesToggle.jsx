@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function PrintHidePricesToggle({ checked, onChange }) {
+export default function PrintHidePricesToggle({ checked, onChange, label = 'Sembunyikan harga & subtotal' }) {
     return (
         <label className="print-hide-prices-toggle">
             <input
@@ -8,7 +8,7 @@ export default function PrintHidePricesToggle({ checked, onChange }) {
                 checked={checked}
                 onChange={(e) => onChange(e.target.checked)}
             />
-            Sembunyikan harga &amp; subtotal
+            {label}
         </label>
     );
 }

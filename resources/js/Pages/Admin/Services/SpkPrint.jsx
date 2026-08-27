@@ -1,6 +1,8 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { Printer } from 'lucide-react';
+import PrintHidePricesToggle from '../../../Components/PrintHidePricesToggle';
+import { readHidePrintPrices, writeHidePrintPrices } from '../../../lib/printPriceVisibility';
 
 const fmt = (n) => `Rp ${Number(n || 0).toLocaleString('id-ID')}`;
 const fmtWhen = (d) => (d
@@ -41,10 +43,15 @@ export default function SpkPrint({ service, shop }) {
     const partsTotal = parts.reduce((sum, p) => sum + (p.pivot.quantity * p.pivot.unit_price), 0);
     const grandTotal = partsTotal + Number(service.service_fee || 0);
     const density = useMemo(() => pickDensity(service), [service]);
+    const [hidePrices, setHidePrices] = useState(() => readHidePrintPrices());
 
     const sheetRef = useRef(null);
     const innerRef = useRef(null);
     const [scale, setScale] = useState(1);
+
+    useEffect(() => {
+        writeHidePrintPrices(hidePrices);
+    }, [hidePrices]);
 
     useLayoutEffect(() => {
         let cancelled = false;
@@ -54,7 +61,7 @@ export default function SpkPrint({ service, shop }) {
         run();
         document.fonts?.ready?.then(run);
         return () => { cancelled = true; };
-    }, [service, density]);
+    }, [service, density, hidePrices]);
 
     useEffect(() => {
         if (new URLSearchParams(window.location.search).get('print') === '1') {
@@ -111,6 +118,19 @@ export default function SpkPrint({ service, shop }) {
                 }
                 .btn-print { border: none; background: #0f766e; color: #fff; }
                 .btn-back { background: #fff; border: 1px solid #cbd5e1; color: #334155; }
+                .print-hide-prices-toggle {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.4rem;
+                    font-size: 0.8rem;
+                    color: #334155;
+                    background: #fff;
+                    border: 1px solid #cbd5e1;
+                    border-radius: 8px;
+                    padding: 0.42rem 0.8rem;
+                    cursor: pointer;
+                    user-select: none;
+                }
                 .spk-hint {
                     width: 100%;
                     text-align: center;
@@ -392,6 +412,11 @@ export default function SpkPrint({ service, shop }) {
 
             <div className="spk-print-shell">
                 <div className="spk-toolbar no-print">
+                    <PrintHidePricesToggle
+                        checked={hidePrices}
+                        onChange={setHidePrices}
+                        label="Sembunyikan harga & jumlah"
+                    />
                     <button type="button" className="btn-print" onClick={() => window.print()}>
                         <Printer size={16} /> Cetak SPK
                     </button>
@@ -411,6 +436,7 @@ export default function SpkPrint({ service, shop }) {
                         shop={shop}
                         parts={parts}
                         grandTotal={grandTotal}
+                        hidePrices={hidePrices}
                         onLogoLoad={() => fitToSheet(sheetRef.current, innerRef.current, setScale)}
                     />
                 </div>
@@ -419,7 +445,7 @@ export default function SpkPrint({ service, shop }) {
     );
 }
 
-function SpkSheet({ innerRef, density, service, shop, parts, grandTotal, onLogoLoad }) {
+function SpkSheet({ innerRef, density, service, shop, parts, grandTotal, hidePrices, onLogoLoad }) {
     const shopName = shop?.legal_name || shop?.app_name || 'Berkah Teknik AC';
     const contacts = [shop?.phone && `Telp ${shop.phone}`, shop?.whatsapp && `WA ${shop.whatsapp}`].filter(Boolean);
     const vehicle = service.vehicle;
@@ -513,8 +539,8 @@ function SpkSheet({ innerRef, density, service, shop, parts, grandTotal, onLogoL
                                 <th className="col-no">No</th>
                                 <th>Spare part</th>
                                 <th className="col-qty">Qty</th>
-                                <th className="col-num">Harga</th>
-                                <th className="col-num">Jumlah</th>
+                                {!hidePrices && <th className="col-num">Harga</th>}
+                                {!hidePrices && <th className="col-num">Jumlah</th>}
                             </tr>
                         </thead>
                         <tbody>
@@ -523,18 +549,20 @@ function SpkSheet({ innerRef, density, service, shop, parts, grandTotal, onLogoL
                                     <td className="col-no">{i + 1}</td>
                                     <td style={{ fontWeight: 700 }}>{p.name}</td>
                                     <td className="col-qty">{p.pivot.quantity}{p.unit ? ` ${p.unit}` : ''}</td>
-                                    <td className="col-num">{fmt(p.pivot.unit_price)}</td>
-                                    <td className="col-num" style={{ fontWeight: 700 }}>{fmt(p.pivot.quantity * p.pivot.unit_price)}</td>
+                                    {!hidePrices && <td className="col-num">{fmt(p.pivot.unit_price)}</td>}
+                                    {!hidePrices && <td className="col-num" style={{ fontWeight: 700 }}>{fmt(p.pivot.quantity * p.pivot.unit_price)}</td>}
                                 </tr>
                             )) : (
-                                <tr><td colSpan={5} className="muted-row">Tidak ada spare part dari bengkel</td></tr>
+                                <tr><td colSpan={hidePrices ? 3 : 5} className="muted-row">Tidak ada spare part dari bengkel</td></tr>
                             )}
                         </tbody>
                     </table>
-                    <div className="spk-total" style={{ marginTop: '1.4mm' }}>
-                        <span>Biaya jasa {fmt(service.service_fee)}</span>
-                        <strong>Estimasi {fmt(grandTotal)}</strong>
-                    </div>
+                    {!hidePrices && (
+                        <div className="spk-total" style={{ marginTop: '1.4mm' }}>
+                            <span>Biaya jasa {fmt(service.service_fee)}</span>
+                            <strong>Estimasi {fmt(grandTotal)}</strong>
+                        </div>
+                    )}
                 </div>
 
                 <div className="spk-grid-2">
