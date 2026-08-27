@@ -51,6 +51,8 @@
     /* Halaman cetak standalone: SPK, nota, slip gaji */
     .receipt-print-shell,
     .receipt-print-shell *,
+    .spk-print-shell,
+    .spk-print-shell *,
     .spk-page,
     .spk-page *,
     .print-page,
