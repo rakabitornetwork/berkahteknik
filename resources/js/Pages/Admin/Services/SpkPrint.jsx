@@ -557,12 +557,10 @@ function SpkSheet({ innerRef, density, service, shop, parts, grandTotal, hidePri
                             )}
                         </tbody>
                     </table>
-                    {!hidePrices && (
-                        <div className="spk-total" style={{ marginTop: '1.4mm' }}>
-                            <span>Biaya jasa {fmt(service.service_fee)}</span>
-                            <strong>Estimasi {fmt(grandTotal)}</strong>
-                        </div>
-                    )}
+                    <div className="spk-total" style={{ marginTop: '1.4mm' }}>
+                        <span>Biaya jasa {fmt(service.service_fee)}</span>
+                        <strong>Estimasi {fmt(grandTotal)}</strong>
+                    </div>
                 </div>
 
                 <div className="spk-grid-2">
