@@ -33,9 +33,24 @@ class CmsPost extends Model
 
     public function getCoverUrlAttribute(): ?string
     {
-        return $this->cover_image_path
-            ? Storage::disk('public')->url($this->cover_image_path)
-            : null;
+        if (! $this->cover_image_path) {
+            return null;
+        }
+
+        $path = ltrim($this->cover_image_path, '/');
+        $filename = basename($path);
+        $bundled = 'images/cms/'.$filename;
+
+        // Cover bawaan ikut repo (public/images/cms), supaya tampil di VPS tanpa storage:link.
+        if (is_file(public_path($bundled))) {
+            return asset($bundled);
+        }
+
+        if (str_starts_with($path, 'images/')) {
+            return asset($path);
+        }
+
+        return Storage::disk('public')->url($path);
     }
 
     public function scopePublished(Builder $query): Builder
