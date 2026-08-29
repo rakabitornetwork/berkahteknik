@@ -26,44 +26,11 @@ class CmsPostSeeder extends Seeder
             ]);
         }
 
-        if (CmsPost::query()->exists()) {
-            return;
+        foreach (require database_path('data/cms_bundled_posts.php') as $post) {
+            CmsPost::query()->firstOrCreate(
+                ['slug' => $post['slug']],
+                $post
+            );
         }
-
-        CmsPost::create([
-            'title' => 'Promo Servis AC Mobil — Diskon 15%',
-            'slug' => 'promo-servis-ac-mobil-diskon-15',
-            'type' => 'promo',
-            'excerpt' => 'Dapatkan diskon 15% untuk paket servis AC mobil lengkap selama bulan ini.',
-            'body' => "Syarat dan ketentuan:\n- Berlaku untuk semua tipe mobil\n- Tidak dapat digabung dengan promo lain\n- Hubungi kami via WhatsApp untuk reservasi",
-            'cover_image_path' => 'images/cms/cover-promo-servis-ac.jpg',
-            'is_published' => true,
-            'published_at' => now(),
-            'sort_order' => 10,
-        ]);
-
-        CmsPost::create([
-            'title' => 'Tips Merawat AC Agar Awet dan Dingin',
-            'slug' => 'tips-merawat-ac-agar-awet',
-            'type' => 'berita',
-            'excerpt' => 'Beberapa kebiasaan sederhana yang membantu AC mobil tetap optimal.',
-            'body' => "1. Rutin servis setiap 6 bulan\n2. Bersihkan filter AC secara berkala\n3. Hindari pengaturan suhu terlalu ekstrem\n4. Segera periksa jika AC kurang dingin atau berbau",
-            'cover_image_path' => 'images/cms/cover-tips-merawat-ac.jpg',
-            'is_published' => true,
-            'published_at' => now()->subDay(),
-            'sort_order' => 5,
-        ]);
-
-        CmsPost::create([
-            'title' => 'Jam Operasional Bengkel',
-            'slug' => 'jam-operasional-bengkel',
-            'type' => 'informasi',
-            'excerpt' => 'Informasi jam buka dan layanan booking servis.',
-            'body' => "Senin – Sabtu: 08.00 – 17.00 WIB\nMinggu: Tutup\n\nUntuk antrian lebih cepat, silakan daftar melalui portal pelanggan atau WhatsApp.",
-            'cover_image_path' => 'images/cms/cover-jam-operasional.jpg',
-            'is_published' => true,
-            'published_at' => now()->subDays(2),
-            'sort_order' => 0,
-        ]);
     }
 }
