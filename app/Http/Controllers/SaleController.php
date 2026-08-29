@@ -12,7 +12,6 @@ use App\Services\SaleTotals;
 use App\Services\ShopSettingService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -74,11 +73,9 @@ class SaleController extends Controller
         ]);
 
         $sale = DB::transaction(function () use ($validated, $journal) {
-            $receiptNumber = 'TRX-' . strtoupper(Str::random(8));
             $lines = [];
 
             $sale = Sale::create([
-                'receipt_number' => $receiptNumber,
                 'customer_name' => $validated['customer_name'] ?? 'Pelanggan Umum',
                 'payment_status' => 'belum_lunas',
                 'payment_method' => $validated['payment_method'],

@@ -130,10 +130,9 @@ export default function SalesShow({ sale }) {
                                     <tr key={index}>
                                         <td>
                                             <div style={{ fontWeight: 600, color: '#0f172a' }}>{item.spare_part.name}</div>
-                                            <div className="item-code">
-                                                {item.spare_part.code}
-                                                {Number(item.discount_percent) > 0 ? ` · pot ${Number(item.discount_percent)}%` : ''}
-                                            </div>
+                                            {Number(item.discount_percent) > 0 && (
+                                                <div className="item-code">{`pot ${Number(item.discount_percent)}%`}</div>
+                                            )}
                                         </td>
                                         <td style={{ textAlign: 'center' }}>{item.quantity}</td>
                                         <td style={{ textAlign: 'right' }}>{formatCurrency(item.unit_price)}</td>

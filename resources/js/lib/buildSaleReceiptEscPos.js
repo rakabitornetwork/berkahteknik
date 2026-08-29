@@ -35,10 +35,6 @@ function itemName(item) {
     return item.spare_part?.name ?? item.sparePart?.name ?? '-';
 }
 
-function itemCode(item) {
-    return item.spare_part?.code ?? item.sparePart?.code ?? null;
-}
-
 /**
  * @param {{ sale: object, shop: object, paymentLabel?: string, printerLanguage?: string, codepageMapping?: string, paperWidth?: number }} opts
  */
@@ -107,16 +103,12 @@ export function buildSaleReceiptEscPos({
 
     for (const item of items) {
         const name = itemName(item);
-        const code = itemCode(item);
         const qty = item.quantity;
         const price = item.unit_price;
         const disc = Number(item.discount_percent || 0);
         const subtotal = lineTotal(item);
 
         e = e.bold(true).line(name).bold(false);
-        if (code) {
-            e = e.line(code);
-        }
         if (hidePrices) {
             e = e.line(`Qty: ${qty}`);
         } else {
