@@ -820,7 +820,11 @@ class OperationsController extends Controller
             'cash-ledger' => DB::table('cash_ledger_entries')->latest('occurred_at')->get(['occurred_at', 'type', 'category', 'description', 'amount']),
             'stock-movements' => DB::table('stock_movements')->join('spare_parts', 'stock_movements.spare_part_id', '=', 'spare_parts.id')->latest('occurred_at')->get(['occurred_at', 'spare_parts.code', 'spare_parts.name', 'type', 'quantity', 'stock_before', 'stock_after', 'notes']),
             'customers' => DB::table('customers')->get(['id', 'name', 'phone', 'email', 'address']),
-            'sales' => DB::table('sales')->get(['receipt_number', 'customer_name', 'total_amount', 'amount_paid', 'payment_status', 'payment_method', 'created_at']),
+            'sales' => DB::table('sales')->get(['receipt_number', 'customer_name', 'total_amount', 'amount_paid', 'payment_status', 'payment_method', 'created_at'])
+                ->map(function ($row) {
+                    $row->receipt_number = \App\Models\Sale::formatReceiptNumber($row->receipt_number, $row->created_at);
+                    return $row;
+                }),
             'purchase-orders' => DB::table('purchase_orders')->leftJoin('suppliers', 'purchase_orders.supplier_id', '=', 'suppliers.id')->get(['po_number', 'suppliers.name', 'order_date', 'total_amount', 'status']),
             'expenses' => DB::table('expenses')->get(['expense_date', 'category', 'amount', 'description']),
             default => collect(),

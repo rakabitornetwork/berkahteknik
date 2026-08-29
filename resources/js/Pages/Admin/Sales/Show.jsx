@@ -6,6 +6,7 @@ import ReceiptHeader, { PaidWatermark } from '../../../Components/ReceiptHeader'
 import ReceiptWarrantyTerms from '../../../Components/ReceiptWarrantyTerms';
 import SaleTotalsBreakdown, { saleItemLineTotal } from '../../../Components/SaleTotalsBreakdown';
 import ThermalPrintButton from '../../../Components/ThermalPrintButton';
+import { formatReceiptNumber } from '../../../lib/receiptNumber';
 
 export default function SalesShow({ sale }) {
     const { shop } = usePage().props;
@@ -15,6 +16,7 @@ export default function SalesShow({ sale }) {
 
     const formatCurrency = (amount) => `Rp ${Number(amount).toLocaleString('id-ID')}`;
     const paymentLabel = { cash: 'Tunai', transfer: 'Transfer Bank', qris: 'QRIS' }[sale.payment_method] || sale.payment_method;
+    const notaNumber = formatReceiptNumber(sale.receipt_number, sale.created_at);
 
     const handlePay = (e) => {
         e.preventDefault();
@@ -25,8 +27,8 @@ export default function SalesShow({ sale }) {
     };
 
     return (
-        <AdminLayout title={`Detail Penjualan: ${sale.receipt_number}`}>
-            <Head title={`Nota ${sale.receipt_number}`} />
+        <AdminLayout title={`Detail Penjualan: ${notaNumber}`}>
+            <Head title={`Nota ${notaNumber}`} />
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -54,7 +56,7 @@ export default function SalesShow({ sale }) {
                     <div className="glass-panel" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                         <div>
                             <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>No. Nota</div>
-                            <div style={{ fontSize: '1rem', fontWeight: 600, fontFamily: 'monospace' }}>{sale.receipt_number}</div>
+                            <div style={{ fontSize: '1rem', fontWeight: 600, fontFamily: 'monospace' }}>{notaNumber}</div>
                         </div>
                         <div>
                             <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>Tanggal & Waktu</div>

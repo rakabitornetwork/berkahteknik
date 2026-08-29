@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatReceiptNumber } from '../lib/receiptNumber';
 
 export function PaidWatermark() {
     return (
@@ -76,6 +77,7 @@ export default function ReceiptHeader({
                     muted={muted}
                     main={main}
                     receiptNumber={receiptNumber}
+                    transactionDate={transactionDate}
                     dateLabel={dateLabel}
                     customerName={customerName}
                 />
@@ -124,11 +126,12 @@ function MetaRow({ label, value, main, muted, emphasize = false }) {
             </span>
             <span
                 style={{
-                    fontSize: emphasize ? '0.8rem' : '0.72rem',
+                    fontSize: emphasize ? '0.8rem' : (label === 'No. Nota' ? '0.68rem' : '0.72rem'),
                     fontWeight: emphasize ? 700 : 600,
                     color: main,
                     textAlign: 'right',
                     fontFamily: label === 'No. Nota' ? 'ui-monospace, monospace' : 'inherit',
+                    wordBreak: label === 'No. Nota' ? 'break-all' : 'normal',
                 }}
             >
                 {value}
@@ -137,10 +140,17 @@ function MetaRow({ label, value, main, muted, emphasize = false }) {
     );
 }
 
-function TxnColumn({ muted, main, receiptNumber, dateLabel, customerName }) {
+function TxnColumn({ muted, main, receiptNumber, transactionDate, dateLabel, customerName }) {
     return (
         <div className="receipt-header-txn" style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-            {receiptNumber && <MetaRow label="No. Nota" value={receiptNumber} main={main} muted={muted} />}
+            {receiptNumber && (
+                <MetaRow
+                    label="No. Nota"
+                    value={formatReceiptNumber(receiptNumber, transactionDate)}
+                    main={main}
+                    muted={muted}
+                />
+            )}
             {dateLabel && <MetaRow label="Tanggal" value={dateLabel} main={main} muted={muted} />}
             <MetaRow label="Pelanggan" value={customerName || 'Pelanggan Umum'} main={main} muted={muted} emphasize />
         </div>

@@ -2,6 +2,7 @@ import ReceiptPrinterEncoder from '@point-of-sale/receipt-printer-encoder';
 import { warrantyText } from './warrantyText';
 import { lineTotal } from './saleTotals';
 import { getPaperColumns, getPaperWidth } from './thermalPrinterStorage';
+import { formatReceiptNumber } from './receiptNumber';
 
 function wrapReceiptText(text, cols) {
     const lines = [];
@@ -92,7 +93,7 @@ export function buildSaleReceiptEscPos({
     e = e
         .rule({ style: 'single' })
         .align('left')
-        .line(`No  : ${sale.receipt_number}`)
+        .line(`No  : ${formatReceiptNumber(sale.receipt_number, sale.created_at)}`)
         .line(`Tgl : ${dateStr}`)
         .line(`Plg : ${sale.customer_name || 'Pelanggan Umum'}`)
         .rule({ style: 'single' })

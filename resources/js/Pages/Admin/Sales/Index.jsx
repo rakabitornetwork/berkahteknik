@@ -5,6 +5,7 @@ import AdminLayout from '../../../Layouts/AdminLayout';
 import DataTable from '../../../Components/DataTable';
 import Pagination from '../../../Components/Pagination';
 import PosTabs from './PosTabs';
+import { formatReceiptNumber } from '../../../lib/receiptNumber';
 
 export default function SalesIndex({ sales, filters }) {
     const [search, setSearch] = useState(filters.search || '');
@@ -27,7 +28,7 @@ export default function SalesIndex({ sales, filters }) {
     const formatCurrency = (amount) => `Rp ${Number(amount).toLocaleString('id-ID')}`;
 
     const columns = [
-        { header: 'No. Nota', accessor: 'receipt_number', cell: r => <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{r.receipt_number}</span> },
+        { header: 'No. Nota', accessor: 'receipt_number', cell: r => <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{formatReceiptNumber(r.receipt_number, r.created_at)}</span> },
         { header: 'Tanggal', accessor: 'created_at', cell: r => new Date(r.created_at).toLocaleDateString('id-ID') },
         { header: 'Pelanggan', accessor: 'customer_name', cell: r => r.customer_name || 'Umum' },
         { header: 'Total', accessor: 'total_amount', cell: r => formatCurrency(r.total_amount) },
