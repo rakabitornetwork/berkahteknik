@@ -14,11 +14,15 @@ export function portalCtaUrl(auth, landingCtaUrl) {
 }
 
 export default function PublicLayout({ children, variant = 'default' }) {
-    const { auth } = usePage().props;
+    const page = usePage();
+    const { auth } = page.props;
+    const url = page.url || '';
     const [mobileOpen, setMobileOpen] = React.useState(false);
     const headerRef = React.useRef(null);
     const scrolledRef = React.useRef(false);
     const isLanding = variant === 'landing';
+    const isEditorial = variant === 'editorial';
+    const isBrand = isLanding || isEditorial;
 
     const ctaUrl = portalCtaUrl(auth, '/portal/login');
     const ctaLabel = auth?.customer ? 'Portal Saya' : 'Portal Pelanggan';
@@ -75,7 +79,7 @@ export default function PublicLayout({ children, variant = 'default' }) {
     }, [mobileOpen]);
 
     const closeMobile = () => setMobileOpen(false);
-    const postsHref = isLanding ? '#berita-promo' : '/#berita-promo';
+    const postsHref = '/konten';
 
     const scrollToHash = (hash) => {
         const id = hash.replace(/^#/, '');
@@ -85,12 +89,16 @@ export default function PublicLayout({ children, variant = 'default' }) {
         }
     };
 
+    const currentPath = url.split('?')[0];
+    const isActivePath = (href) => (href !== '/' && currentPath.startsWith(href)) || (href === '/' && currentPath === '/');
+
     const navLink = (href, label, ink, { hash = false, mobile = false } = {}) => {
+        const active = isActivePath(href);
         const className = mobile ? 'public-nav-mobile-link' : undefined;
         const style = {
             fontSize: '0.875rem',
-            fontWeight: 500,
-            color: ink || 'var(--color-text-muted)',
+            fontWeight: active ? 700 : 500,
+            color: ink || (active && isEditorial ? '#0f766e' : 'var(--color-text-muted)'),
             textDecoration: 'none',
         };
 
@@ -127,23 +135,23 @@ export default function PublicLayout({ children, variant = 'default' }) {
 
     return (
         <div
-            className={`public-site${isLanding ? ' public-site--landing' : ''}`}
-            style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: isLanding ? undefined : 'var(--color-bg)' }}
+            className={`public-site${isBrand ? ' public-site--brand' : ''}${isLanding ? ' public-site--landing' : ''}${isEditorial ? ' public-site--editorial' : ''}`}
+            style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: isBrand ? undefined : 'var(--color-bg)' }}
         >
             <DocumentIcons />
             <header
                 ref={headerRef}
                 className="public-site-header"
                 style={{
-                    position: isLanding ? undefined : 'sticky',
+                    position: isBrand ? undefined : 'sticky',
                     top: 0,
                     zIndex: 50,
-                    borderBottom: isLanding ? undefined : '1px solid var(--color-border)',
+                    borderBottom: isBrand ? undefined : '1px solid var(--color-border)',
                 }}
             >
                 <div
-                    className={isLanding ? 'public-site-header-inner' : undefined}
-                    style={isLanding ? undefined : { maxWidth: 1120, margin: '0 auto', padding: '0.95rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}
+                    className={isBrand ? 'public-site-header-inner' : undefined}
+                    style={isBrand ? undefined : { maxWidth: 1120, margin: '0 auto', padding: '0.95rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}
                 >
                     <Link href="/" style={{ textDecoration: 'none' }}>
                         <CompanyBranding variant="portal" />
@@ -151,15 +159,15 @@ export default function PublicLayout({ children, variant = 'default' }) {
 
                     <nav className="public-nav-desktop" style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
                         {navLink('/', 'Beranda')}
-                        {navLink(postsHref, 'Berita & Promo', undefined, { hash: isLanding })}
-                        {!isLanding && <ThemeToggle />}
-                        <Link href={ctaUrl} className="btn btn-primary" style={{ fontSize: '0.85rem', padding: '0.5rem 1.1rem', borderRadius: 2, boxShadow: 'none' }}>
+                        {navLink(postsHref, 'Berita & Promo')}
+                        {!isBrand && <ThemeToggle />}
+                        <Link href={ctaUrl} className="btn btn-primary" style={{ fontSize: '0.85rem', padding: '0.5rem 1.1rem', borderRadius: isBrand ? 12 : 2, boxShadow: 'none' }}>
                             {ctaLabel}
                         </Link>
                     </nav>
 
                     <div className="public-nav-mobile-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        {!isLanding && <ThemeToggle />}
+                        {!isBrand && <ThemeToggle />}
                         <button
                             type="button"
                             className="public-nav-toggle"
@@ -180,12 +188,12 @@ export default function PublicLayout({ children, variant = 'default' }) {
                     aria-hidden={!mobileOpen}
                 >
                     <div className="public-nav-mobile-panel-inner">
-                        {navLink('/', 'Beranda', isLanding ? '#3d4f5c' : undefined, { mobile: true })}
-                        {navLink(postsHref, 'Berita & Promo', isLanding ? '#3d4f5c' : undefined, { hash: isLanding, mobile: true })}
+                        {navLink('/', 'Beranda', isBrand ? '#3d4f5c' : undefined, { mobile: true })}
+                        {navLink(postsHref, 'Berita & Promo', isBrand ? '#3d4f5c' : undefined, { mobile: true })}
                         <Link
                             href={ctaUrl}
                             className="btn btn-primary"
-                            style={{ textAlign: 'center', borderRadius: 2, background: isLanding ? '#0d6e6e' : undefined, color: isLanding ? '#fff' : undefined, boxShadow: 'none' }}
+                            style={{ textAlign: 'center', borderRadius: isBrand ? 12 : 2, background: isBrand ? '#0d6e6e' : undefined, color: isBrand ? '#fff' : undefined, boxShadow: 'none' }}
                             onClick={closeMobile}
                             tabIndex={mobileOpen ? 0 : -1}
                         >

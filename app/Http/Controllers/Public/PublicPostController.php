@@ -32,8 +32,17 @@ class PublicPostController extends Controller
     {
         $post = CmsPost::published()->where('slug', $slug)->firstOrFail();
 
+        $related = CmsPost::published()
+            ->where('id', '!=', $post->id)
+            ->orderByRaw('CASE WHEN type = ? THEN 0 ELSE 1 END', [$post->type])
+            ->orderByDesc('published_at')
+            ->orderByDesc('sort_order')
+            ->limit(3)
+            ->get(['id', 'title', 'slug', 'type', 'excerpt', 'cover_image_path', 'published_at']);
+
         return Inertia::render('Public/Posts/Show', [
             'post' => $post,
+            'related' => $related,
         ]);
     }
 }

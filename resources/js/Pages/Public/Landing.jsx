@@ -1,12 +1,12 @@
 import React, { useEffect, useRef } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import {
-    ArrowRight, Car, Package, MapPin, Phone, MessageCircle, Mail,
-    Wrench, Shield, Clock, Snowflake, CheckCircle2, Thermometer, Fan,
+    ArrowRight, ArrowUpRight, Car, Package, MapPin, Phone, MessageCircle, Mail,
+    Wrench, Shield, Clock, Snowflake, CheckCircle2, Thermometer, Fan, Quote,
 } from 'lucide-react';
 import PublicLayout, { portalCtaUrl } from '../../Layouts/PublicLayout';
+import { PostCard } from '../../Components/PublicPosts';
 
-const TYPE_LABELS = { berita: 'Berita', promo: 'Promo', informasi: 'Informasi' };
 const ICONS = {
     car: Car,
     package: Package,
@@ -21,12 +21,7 @@ const ICONS = {
 
 function ServiceIcon({ name, size = 20 }) {
     const Icon = ICONS[name] || Package;
-    return <Icon size={size} strokeWidth={1.5} className="lp-service-icon" />;
-}
-
-function formatDate(d) {
-    if (!d) return '';
-    return new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    return <Icon size={size} strokeWidth={1.6} className="lp-service-icon" />;
 }
 
 function useReveal() {
@@ -81,6 +76,7 @@ export default function Landing({ landing, latestPosts }) {
     const brand = shop?.legal_name || shop?.app_name || 'Bengkel AC';
     const sections = landing?.sections || {};
     const copy = landing?.copy || {};
+    const posts = latestPosts || [];
 
     const heroCtaUrl = portalCtaUrl(auth, landing?.hero_cta_url);
     const heroCtaLabel = landing?.hero_cta_label || 'Lacak Servis Kendaraan';
@@ -97,9 +93,14 @@ export default function Landing({ landing, latestPosts }) {
     const showWarranty = sections.warranty !== false && (landing?.warranty_title || landing?.warranty_body);
     const showTestimonials = sections.testimonials !== false && landing?.testimonials?.length > 0;
     const showHours = sections.hours !== false && landing?.hours?.length > 0;
-    const showPosts = sections.posts !== false && landing?.show_latest_posts && latestPosts?.length > 0;
+    const showPosts = sections.posts !== false && landing?.show_latest_posts && posts.length > 0;
     const showCta = sections.cta !== false;
     const showContact = sections.contact !== false && (shop?.address || shop?.phone || shop?.whatsapp_url || shop?.email);
+
+    const featuredPost = posts[0];
+    const sidePosts = posts.slice(1, 3);
+    const morePosts = posts.slice(3);
+    const heroChips = (landing?.highlights || []).slice(0, 3);
 
     useEffect(() => {
         if (window.location.hash !== '#berita-promo') return undefined;
@@ -124,27 +125,32 @@ export default function Landing({ landing, latestPosts }) {
                             decoding="async"
                             fetchPriority="high"
                         />
+                        <div className="lp-hero-shade" />
+                        <div className="lp-hero-grain" />
                     </div>
                     <div className="lp-hero-inner">
                         <div className="lp-hero-copy">
-                            <p className="lp-brand">{brand}</p>
+                            <p className="lp-hero-kicker">{brand}</p>
                             <h1 className="lp-hero-title">{heroTitle}</h1>
                             <p className="lp-hero-sub">{heroSub}</p>
                             <div className="lp-cta-group">
                                 <Link href={heroCtaUrl} className="lp-btn lp-btn-primary">
                                     {heroCtaLabel} <ArrowRight size={18} strokeWidth={2} />
                                 </Link>
-                                <a
-                                    href="#berita-promo"
-                                    className="lp-btn lp-btn-ghost"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        document.getElementById('berita-promo')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                                    }}
-                                >
+                                <Link href="/konten" className="lp-btn lp-btn-ghost">
                                     Berita & Promo
-                                </a>
+                                </Link>
                             </div>
+                            {heroChips.length > 0 && (
+                                <div className="lp-hero-chips">
+                                    {heroChips.map((item, i) => (
+                                        <span key={i} className="lp-hero-chip">
+                                            <CheckCircle2 size={16} strokeWidth={2} />
+                                            {item.title}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </section>
@@ -159,7 +165,9 @@ export default function Landing({ landing, latestPosts }) {
                                 <div className="lp-highlight-grid">
                                     {landing.highlights.map((item, i) => (
                                         <article key={i} className="lp-highlight-item">
-                                            <ServiceIcon name={item.icon} size={22} />
+                                            <span className="lp-icon-wrap">
+                                                <ServiceIcon name={item.icon} size={20} />
+                                            </span>
                                             <h3>{item.title}</h3>
                                             <p>{item.description}</p>
                                         </article>
@@ -180,7 +188,9 @@ export default function Landing({ landing, latestPosts }) {
                                 <ul className="lp-service-list">
                                     {landing.services.map((svc, i) => (
                                         <li key={i} className="lp-service-item">
-                                            <ServiceIcon name={svc.icon} size={24} />
+                                            <span className="lp-icon-wrap">
+                                                <ServiceIcon name={svc.icon} size={22} />
+                                            </span>
                                             <div className="lp-service-body">
                                                 <h3>{svc.title}</h3>
                                                 <p>{svc.description}</p>
@@ -246,6 +256,9 @@ export default function Landing({ landing, latestPosts }) {
                     <section className="lp-section lp-warranty">
                         <div className="lp-section-inner lp-warranty-inner">
                             <Reveal>
+                                <div className="lp-warranty-mark">
+                                    <Shield size={22} strokeWidth={1.75} />
+                                </div>
                                 <p className="lp-kicker">Garansi</p>
                                 <h2 className="lp-h2">{landing.warranty_title || 'Garansi pekerjaan yang jelas'}</h2>
                                 <div className="lp-warranty-body" style={{ marginTop: '1rem' }}>{landing.warranty_body}</div>
@@ -264,7 +277,8 @@ export default function Landing({ landing, latestPosts }) {
                                 <div className="lp-testimonial-grid">
                                     {landing.testimonials.map((item, i) => (
                                         <blockquote key={i} className="lp-testimonial-item">
-                                            <p>“{item.quote}”</p>
+                                            <Quote className="lp-quote-mark" size={22} strokeWidth={1.6} />
+                                            <p>{item.quote}</p>
                                             <footer>
                                                 <strong>{item.name}</strong>
                                                 {item.vehicle ? <span>{item.vehicle}</span> : null}
@@ -302,28 +316,30 @@ export default function Landing({ landing, latestPosts }) {
                         <div className="lp-section-inner">
                             <Reveal>
                                 <div className="lp-posts-head">
-                                    <SectionHead copy={copy.posts} fallbackKicker="Wawasan" fallbackTitle="Berita & informasi terbaru" />
-                                    <Link href="/konten" className="lp-text-link">Lihat semua</Link>
+                                    <SectionHead copy={copy.posts} fallbackKicker="Berita & Promo" fallbackTitle="Update dan penawaran terbaru" />
+                                    <Link href="/konten" className="lp-text-link">
+                                        Lihat semua <ArrowUpRight size={16} />
+                                    </Link>
                                 </div>
                             </Reveal>
                             <Reveal>
-                                <div className="lp-post-list">
-                                    {latestPosts.map((post) => (
-                                        <Link key={post.id} href={`/konten/${post.slug}`} className="lp-post-row">
-                                            {post.cover_url ? (
-                                                <img src={post.cover_url} alt="" className="lp-post-thumb" />
-                                            ) : (
-                                                <span className="lp-post-thumb lp-post-thumb--empty" aria-hidden="true" />
-                                            )}
-                                            <div>
-                                                <p className="lp-post-meta">{TYPE_LABELS[post.type] || post.type}</p>
-                                                <h3>{post.title}</h3>
-                                                <p>{post.excerpt}</p>
-                                            </div>
-                                            <span className="lp-post-date">{formatDate(post.published_at)}</span>
-                                        </Link>
-                                    ))}
+                                <div className={`lp-post-board${sidePosts.length ? ' has-side' : ''}`}>
+                                    <PostCard post={featuredPost} featured />
+                                    {sidePosts.length > 0 && (
+                                        <div className="lp-post-side">
+                                            {sidePosts.map((post) => (
+                                                <PostCard key={post.id} post={post} compact />
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
+                                {morePosts.length > 0 && (
+                                    <div className="lp-post-grid" style={{ marginTop: '1.15rem' }}>
+                                        {morePosts.map((post) => (
+                                            <PostCard key={post.id} post={post} />
+                                        ))}
+                                    </div>
+                                )}
                             </Reveal>
                         </div>
                     </section>
@@ -349,7 +365,7 @@ export default function Landing({ landing, latestPosts }) {
                 )}
 
                 {showContact && (
-                    <section className="lp-section lp-contact">
+                    <section id="kontak" className="lp-section lp-contact">
                         <div className="lp-section-inner">
                             <Reveal>
                                 <div className="lp-section-head">
@@ -364,7 +380,9 @@ export default function Landing({ landing, latestPosts }) {
                                 <div className="lp-contact-grid">
                                     {shop?.address && (
                                         <div className="lp-contact-item">
-                                            <MapPin size={18} strokeWidth={1.5} />
+                                            <span className="lp-icon-wrap">
+                                                <MapPin size={18} strokeWidth={1.6} />
+                                            </span>
                                             <div>
                                                 <strong>Alamat</strong>
                                                 {shop.maps_url ? (
@@ -377,7 +395,9 @@ export default function Landing({ landing, latestPosts }) {
                                     )}
                                     {shop?.phone && (
                                         <div className="lp-contact-item">
-                                            <Phone size={18} strokeWidth={1.5} />
+                                            <span className="lp-icon-wrap">
+                                                <Phone size={18} strokeWidth={1.6} />
+                                            </span>
                                             <div>
                                                 <strong>Telepon</strong>
                                                 <span>{shop.phone}</span>
@@ -386,7 +406,9 @@ export default function Landing({ landing, latestPosts }) {
                                     )}
                                     {shop?.whatsapp_url && (
                                         <div className="lp-contact-item">
-                                            <MessageCircle size={18} strokeWidth={1.5} />
+                                            <span className="lp-icon-wrap">
+                                                <MessageCircle size={18} strokeWidth={1.6} />
+                                            </span>
                                             <div>
                                                 <strong>WhatsApp</strong>
                                                 <a href={shop.whatsapp_url} target="_blank" rel="noreferrer">Chat sekarang</a>
@@ -395,7 +417,9 @@ export default function Landing({ landing, latestPosts }) {
                                     )}
                                     {shop?.email && (
                                         <div className="lp-contact-item">
-                                            <Mail size={18} strokeWidth={1.5} />
+                                            <span className="lp-icon-wrap">
+                                                <Mail size={18} strokeWidth={1.6} />
+                                            </span>
                                             <div>
                                                 <strong>Email</strong>
                                                 <a href={`mailto:${shop.email}`}>{shop.email}</a>

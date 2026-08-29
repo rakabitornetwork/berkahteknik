@@ -63,9 +63,9 @@ class LandingDefaults
                 'lead' => 'Datang langsung atau booking terlebih dahulu agar antrean lebih nyaman.',
             ],
             'posts' => [
-                'kicker' => 'Wawasan',
-                'title' => 'Berita & informasi terbaru',
-                'lead' => '',
+                'kicker' => 'Berita & Promo',
+                'title' => 'Update dan penawaran terbaru',
+                'lead' => 'Ikuti kabar layanan, promo, dan informasi resmi dari bengkel.',
             ],
         ];
     }

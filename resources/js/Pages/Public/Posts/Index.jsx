@@ -1,92 +1,117 @@
 import React from 'react';
 import { Head, Link, router } from '@inertiajs/react';
+import { Newspaper } from 'lucide-react';
 import PublicLayout from '../../../Layouts/PublicLayout';
-
-const TYPE_LABELS = { berita: 'Berita', promo: 'Promo', informasi: 'Informasi' };
-
-function formatDate(d) {
-    if (!d) return '';
-    return new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-}
+import { PostCard, TYPE_LABELS } from '../../../Components/PublicPosts';
 
 export default function PostsIndex({ posts, filters, types }) {
     const setType = (type) => {
-        router.get('/konten', type ? { type } : {}, { preserveState: true });
+        router.get('/konten', type ? { type } : {}, { preserveState: true, preserveScroll: true });
     };
 
+    const items = posts.data || [];
+    const useBoard = (posts.current_page || 1) === 1 && items.length > 1;
+    const featured = useBoard ? items[0] : null;
+    const sidePosts = useBoard ? items.slice(1, 3) : [];
+    const rest = useBoard ? items.slice(3) : items;
+    const total = posts.total ?? items.length;
+
     return (
-        <PublicLayout>
+        <PublicLayout variant="editorial">
             <Head title="Berita & Promo" />
 
-            <div style={{ maxWidth: 1100, margin: '0 auto', padding: '2rem 1.25rem 3rem' }}>
-                <h1 style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '0.35rem' }}>Berita & Promo</h1>
-                <p style={{ color: 'var(--color-text-muted)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-                    Informasi terbaru seputar layanan dan promo bengkel kami.
-                </p>
-
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1.5rem' }}>
-                    <button
-                        type="button"
-                        className={!filters.type ? 'btn btn-primary' : 'btn btn-outline'}
-                        style={{ fontSize: '0.8rem', padding: '0.35rem 0.85rem' }}
-                        onClick={() => setType(null)}
-                    >
-                        Semua
-                    </button>
-                    {types.map((t) => (
-                        <button
-                            key={t}
-                            type="button"
-                            className={filters.type === t ? 'btn btn-primary' : 'btn btn-outline'}
-                            style={{ fontSize: '0.8rem', padding: '0.35rem 0.85rem' }}
-                            onClick={() => setType(t)}
-                        >
-                            {TYPE_LABELS[t]}
-                        </button>
-                    ))}
-                </div>
-
-                {posts.data.length === 0 ? (
-                    <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-                        Belum ada konten yang dipublikasikan.
+            <div className="lp">
+                <section className="lp-page-hero">
+                    <div className="lp-hero-shade" />
+                    <div className="lp-hero-grain" />
+                    <div className="lp-page-hero-inner">
+                        <p className="lp-kicker">Wawasan bengkel</p>
+                        <h1>Berita & Promo</h1>
+                        <p>Update layanan, penawaran, dan informasi resmi dari bengkel — dirancang agar mudah dibaca sebelum Anda booking.</p>
                     </div>
-                ) : (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
-                        {posts.data.map((post) => (
-                            <Link key={post.id} href={`/konten/${post.slug}`} className="glass-panel" style={{ overflow: 'hidden', textDecoration: 'none', display: 'block' }}>
-                                {post.cover_url && (
-                                    <img src={post.cover_url} alt="" style={{ width: '100%', height: 160, objectFit: 'cover' }} />
-                                )}
-                                <div style={{ padding: '1.1rem' }}>
-                                    <span style={{ fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', color: 'var(--color-primary)' }}>
-                                        {TYPE_LABELS[post.type]}
-                                    </span>
-                                    <h2 style={{ fontSize: '1rem', fontWeight: 600, margin: '0.4rem 0 0.5rem', color: 'var(--color-text-main)' }}>{post.title}</h2>
-                                    <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', margin: 0, lineHeight: 1.55 }}>{post.excerpt}</p>
-                                    <p style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', marginTop: '0.65rem' }}>{formatDate(post.published_at)}</p>
+                </section>
+
+                <section className="lp-section" style={{ paddingTop: '2.75rem' }}>
+                    <div className="lp-section-inner">
+                        <div className="lp-page-toolbar">
+                            <div className="lp-filter-bar">
+                                <button
+                                    type="button"
+                                    className={`lp-filter-chip${!filters.type ? ' is-active' : ''}`}
+                                    onClick={() => setType(null)}
+                                >
+                                    Semua
+                                </button>
+                                {types.map((t) => (
+                                    <button
+                                        key={t}
+                                        type="button"
+                                        className={`lp-filter-chip${filters.type === t ? ' is-active' : ''}`}
+                                        onClick={() => setType(t)}
+                                    >
+                                        {TYPE_LABELS[t]}
+                                    </button>
+                                ))}
+                            </div>
+                            <p className="lp-page-count">
+                                {total} {total === 1 ? 'tulisan' : 'tulisan'}
+                            </p>
+                        </div>
+
+                        {items.length === 0 ? (
+                            <div className="lp-empty">
+                                <div className="lp-empty-icon">
+                                    <Newspaper size={22} strokeWidth={1.7} />
                                 </div>
-                            </Link>
-                        ))}
-                    </div>
-                )}
+                                <h2>Belum ada konten</h2>
+                                <p>Berita, promo, atau informasi belum dipublikasikan untuk kategori ini.</p>
+                            </div>
+                        ) : (
+                            <>
+                                {featured && (
+                                    <div className={`lp-post-board${sidePosts.length ? ' has-side' : ''}`}>
+                                        <PostCard post={featured} featured />
+                                        {sidePosts.length > 0 && (
+                                            <div className="lp-post-side">
+                                                {sidePosts.map((post) => (
+                                                    <PostCard key={post.id} post={post} compact />
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                                {rest.length > 0 && (
+                                    <div className="lp-post-grid" style={{ marginTop: featured ? '1.15rem' : 0 }}>
+                                        {rest.map((post) => (
+                                            <PostCard key={post.id} post={post} />
+                                        ))}
+                                    </div>
+                                )}
+                            </>
+                        )}
 
-                {posts.last_page > 1 && (
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '2rem', flexWrap: 'wrap' }}>
-                        {posts.links.map((link, i) => (
-                            link.url ? (
-                                <Link
-                                    key={i}
-                                    href={link.url}
-                                    className={link.active ? 'btn btn-primary' : 'btn btn-outline'}
-                                    style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem', opacity: link.url ? 1 : 0.5 }}
-                                    dangerouslySetInnerHTML={{ __html: link.label }}
-                                />
-                            ) : (
-                                <span key={i} className="btn btn-outline" style={{ fontSize: '0.8rem', opacity: 0.4 }} dangerouslySetInnerHTML={{ __html: link.label }} />
-                            )
-                        ))}
+                        {posts.last_page > 1 && (
+                            <nav className="lp-pager" aria-label="Navigasi halaman">
+                                {posts.links.map((link, i) => (
+                                    link.url ? (
+                                        <Link
+                                            key={i}
+                                            href={link.url}
+                                            className={link.active ? 'is-active' : undefined}
+                                            dangerouslySetInnerHTML={{ __html: link.label }}
+                                        />
+                                    ) : (
+                                        <span
+                                            key={i}
+                                            className="is-disabled"
+                                            dangerouslySetInnerHTML={{ __html: link.label }}
+                                        />
+                                    )
+                                ))}
+                            </nav>
+                        )}
                     </div>
-                )}
+                </section>
             </div>
         </PublicLayout>
     );
