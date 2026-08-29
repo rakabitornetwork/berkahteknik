@@ -139,9 +139,9 @@ export default function SpkPrint({ service, shop }) {
                     padding: 0 1rem 0.75rem;
                     line-height: 1.35;
                 }
-                .spk-f4-sheet {
+                .spk-a4-sheet {
                     width: 210mm;
-                    height: 330mm;
+                    height: 297mm;
                     margin: 0 auto 1.25rem;
                     background: #fff;
                     box-sizing: border-box;
@@ -385,9 +385,9 @@ export default function SpkPrint({ service, shop }) {
                         overflow: hidden !important;
                         height: auto !important;
                     }
-                    .spk-f4-sheet {
+                    .spk-a4-sheet {
                         width: 100% !important;
-                        height: 320mm;
+                        height: 287mm;
                         margin: 0 !important;
                         padding: 0 !important;
                         box-shadow: none !important;
@@ -405,7 +405,7 @@ export default function SpkPrint({ service, shop }) {
                     }
                 }
                 @page {
-                    size: 210mm 330mm;
+                    size: A4;
                     margin: 5mm 6mm !important;
                 }
             `}</style>
@@ -423,12 +423,12 @@ export default function SpkPrint({ service, shop }) {
                     <button type="button" className="btn-back" onClick={handleBack}>Kembali</button>
                 </div>
                 <p className="spk-hint no-print">
-                    Kertas F4 (210 × 330 mm) · 1 lembar
+                    Kertas A4 (210 × 297 mm) · 1 lembar
                     {scale < 0.999 ? ` · disesuaikan otomatis (${Math.round(scale * 100)}%)` : ''}.
-                    Pilih F4/Folio, skala 100%, tanpa header/footer browser.
+                    Pilih A4, skala 100%, tanpa header/footer browser.
                 </p>
 
-                <div className="spk-f4-sheet print-page" ref={sheetRef}>
+                <div className="spk-a4-sheet print-page" ref={sheetRef}>
                     <SpkSheet
                         innerRef={innerRef}
                         density={density}

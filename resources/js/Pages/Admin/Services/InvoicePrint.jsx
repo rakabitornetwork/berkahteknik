@@ -171,7 +171,7 @@ export default function InvoicePrint({ service, shop }) {
                     html, body { background: white !important; margin: 0 !important; }
                     .invoice-page { box-shadow: none !important; margin: 0 !important; max-width: 100% !important; padding: 0 !important; }
                 }
-                @page { margin: 10mm; }
+                @page { size: A4; margin: 10mm; }
             `}</style>
 
             <div className="invoice-print-shell">
