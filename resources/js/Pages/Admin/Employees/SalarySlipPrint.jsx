@@ -1,6 +1,20 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { ArrowLeft, Printer } from 'lucide-react';
+
+const MIN_SCALE = 0.62;
+
+function fitToCopy(copy, inner, setScale) {
+    if (!copy || !inner) return;
+    inner.style.zoom = '1';
+    const styles = getComputedStyle(copy);
+    const padY = (parseFloat(styles.paddingTop) || 0) + (parseFloat(styles.paddingBottom) || 0);
+    const avail = copy.clientHeight - padY;
+    const needed = inner.scrollHeight;
+    const next = needed <= avail + 1 ? 1 : Math.max(MIN_SCALE, avail / needed);
+    inner.style.zoom = String(next);
+    setScale(next);
+}
 
 const months = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 
@@ -31,7 +45,7 @@ function MoneyCell({ amount, bold = false, empty = false }) {
     return <td className={`num${bold ? ' bold' : ''}`}>{fmt(amount)}</td>;
 }
 
-function SlipCopy({ salary, shop, employee, periodLabel, printedAt }) {
+function SlipCopy({ copyRef, innerRef, salary, shop, employee, periodLabel, printedAt, onLogoLoad }) {
     const pendapatan = Number(salary.pendapatan || 0);
     const tunjangan = Number(salary.tunjangan_transport || 0);
     const intensifJasa = Number(salary.intensif_jasa || 0);
@@ -48,12 +62,13 @@ function SlipCopy({ salary, shop, employee, periodLabel, printedAt }) {
         || ({ mechanic: 'Mekanik', cashier: 'Kasir', admin: 'Admin', purchasing: 'Purchasing' }[employee?.role] || employee?.role || '—');
 
     return (
-        <article className="slip-copy">
-            <div className="slip-main">
+        <article className="slip-copy" ref={copyRef}>
+            <div className="slip-inner" ref={innerRef}>
+                <div className="slip-main">
                 <header className="slip-head">
                     <div className="slip-brand">
                         {shop?.logo_url && (
-                            <img src={shop.logo_url} alt="" className="slip-logo" />
+                            <img src={shop.logo_url} alt="" className="slip-logo" onLoad={onLogoLoad} />
                         )}
                         <div className="slip-brand-text">
                             <div className="shop-name">{shopName}</div>
@@ -161,6 +176,7 @@ function SlipCopy({ salary, shop, employee, periodLabel, printedAt }) {
                     Dicetak {printedAt}
                 </footer>
             </div>
+            </div>
         </article>
     );
 }
@@ -169,6 +185,21 @@ export default function SalarySlipPrint({ salary, shop }) {
     const employee = salary.employee;
     const periodLabel = `${months[salary.period_month] || salary.period_month} ${salary.period_year}`;
     const printedAt = new Date().toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' });
+    const copyRef = useRef(null);
+    const innerRef = useRef(null);
+    const [scale, setScale] = useState(1);
+
+    const refit = () => fitToCopy(copyRef.current, innerRef.current, setScale);
+
+    useLayoutEffect(() => {
+        let cancelled = false;
+        const run = () => {
+            if (!cancelled) refit();
+        };
+        run();
+        document.fonts?.ready?.then(run);
+        return () => { cancelled = true; };
+    }, [salary]);
 
     useEffect(() => {
         if (new URLSearchParams(window.location.search).get('print') === '1') {
@@ -241,16 +272,25 @@ export default function SalarySlipPrint({ salary, shop }) {
                     height: calc(50% - 4mm);
                     min-height: 0;
                     overflow: hidden;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: space-between;
-                    gap: 2.5mm;
                     font-size: 9.5pt;
                     line-height: 1.35;
                     border: 1px solid #cbd5e1;
                     padding: 5mm;
                 }
-                .slip-main,
+                .slip-inner {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-between;
+                    gap: 2.5mm;
+                    min-height: 100%;
+                    box-sizing: border-box;
+                    transform-origin: top left;
+                }
+                .slip-main {
+                    display: flex;
+                    flex-direction: column;
+                    flex: 1 1 auto;
+                }
                 .slip-signoff {
                     display: flex;
                     flex-direction: column;
@@ -393,8 +433,10 @@ export default function SalarySlipPrint({ salary, shop }) {
                     color: #475569;
                     border: 1px dashed #cbd5e1;
                     padding: 1.5mm 2.2mm;
-                    max-height: 12mm;
-                    overflow: hidden;
+                    white-space: pre-wrap;
+                    overflow-wrap: break-word;
+                    word-break: break-word;
+                    line-height: 1.4;
                 }
                 .notes span { font-weight: 800; color: #0f172a; }
                 .signs {
@@ -474,17 +516,21 @@ export default function SalarySlipPrint({ salary, shop }) {
                     </button>
                 </div>
                 <p className="slip-hint no-print">
-                    Kertas A4 (210 × 297 mm) · 1 slip di setengah atas, setengah bawah kosong.
+                    Kertas A4 (210 × 297 mm) · 1 slip di setengah atas, setengah bawah kosong
+                    {scale < 0.999 ? ` · disesuaikan otomatis (${Math.round(scale * 100)}%)` : ''}.
                     Pilih A4, skala 100%, tanpa header/footer. Untuk slip berikutnya: balik kertas 180° lalu cetak lagi.
                 </p>
 
                 <div className="slip-sheet print-page">
                     <SlipCopy
+                        copyRef={copyRef}
+                        innerRef={innerRef}
                         salary={salary}
                         shop={shop}
                         employee={employee}
                         periodLabel={periodLabel}
                         printedAt={printedAt}
+                        onLogoLoad={refit}
                     />
                     <div className="slip-cut">Potong di sini</div>
                     <div className="slip-blank">
