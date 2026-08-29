@@ -50,8 +50,12 @@ function SlipCopy({ copyRef, innerRef, salary, shop, employee, periodLabel, prin
     const tunjangan = Number(salary.tunjangan_transport || 0);
     const intensifJasa = Number(salary.intensif_jasa || 0);
     const intensifSparepart = Number(salary.intensif_sparepart || 0);
+    const bonusReward = Number(salary.bonus_reward || 0);
     const potongan = Number(salary.potongan || 0);
-    const totalPendapatan = pendapatan + tunjangan + intensifJasa + intensifSparepart;
+    const potonganAbsensi = Number(salary.potongan_absensi || 0);
+    const potonganPiutang = Number(salary.potongan_piutang || 0);
+    const totalPendapatan = pendapatan + tunjangan + intensifJasa + intensifSparepart + bonusReward;
+    const totalPotongan = potongan + potonganAbsensi + potonganPiutang;
     const net = Number(salary.net_salary || 0);
     const shopName = shop?.legal_name || shop?.app_name || 'Berkah Teknik AC';
     const contacts = [shop?.phone && `Telp ${shop.phone}`, shop?.whatsapp && `WA ${shop.whatsapp}`].filter(Boolean);
@@ -113,20 +117,20 @@ function SlipCopy({ copyRef, innerRef, salary, shop, employee, periodLabel, prin
                         <tr>
                             <td>Pendapatan pokok</td>
                             <MoneyCell amount={pendapatan} />
-                            <td>Potongan</td>
+                            <td>Potongan lainnya</td>
                             <MoneyCell amount={potongan} />
                         </tr>
                         <tr>
                             <td>Tunjangan transport</td>
                             <MoneyCell amount={tunjangan} />
-                            <td className="muted" />
-                            <MoneyCell empty />
+                            <td>Potongan absensi</td>
+                            <MoneyCell amount={potonganAbsensi} />
                         </tr>
                         <tr>
                             <td>Intensif jasa</td>
                             <MoneyCell amount={intensifJasa} />
-                            <td className="muted" />
-                            <MoneyCell empty />
+                            <td>Potongan piutang</td>
+                            <MoneyCell amount={potonganPiutang} />
                         </tr>
                         <tr>
                             <td>Intensif sparepart</td>
@@ -134,11 +138,17 @@ function SlipCopy({ copyRef, innerRef, salary, shop, employee, periodLabel, prin
                             <td className="muted" />
                             <MoneyCell empty />
                         </tr>
+                        <tr>
+                            <td>Bonus / Reward</td>
+                            <MoneyCell amount={bonusReward} />
+                            <td className="muted" />
+                            <MoneyCell empty />
+                        </tr>
                         <tr className="total-row">
                             <td>Total pendapatan</td>
                             <MoneyCell amount={totalPendapatan} bold />
                             <td>Total potongan</td>
-                            <MoneyCell amount={potongan} bold />
+                            <MoneyCell amount={totalPotongan} bold />
                         </tr>
                     </tbody>
                 </table>

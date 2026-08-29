@@ -12,9 +12,12 @@ class EmployeeSalary extends Model
         'period_year',
         'pendapatan',
         'potongan',
+        'potongan_absensi',
+        'potongan_piutang',
         'tunjangan_transport',
         'intensif_jasa',
         'intensif_sparepart',
+        'bonus_reward',
         'net_salary',
         'status',
         'paid_at',
@@ -24,9 +27,12 @@ class EmployeeSalary extends Model
     protected $casts = [
         'pendapatan' => 'float',
         'potongan' => 'float',
+        'potongan_absensi' => 'float',
+        'potongan_piutang' => 'float',
         'tunjangan_transport' => 'float',
         'intensif_jasa' => 'float',
         'intensif_sparepart' => 'float',
+        'bonus_reward' => 'float',
         'net_salary' => 'float',
         'paid_at' => 'date',
         'period_month' => 'integer',
@@ -43,8 +49,21 @@ class EmployeeSalary extends Model
         float $tunjanganTransport,
         float $intensifJasa,
         float $intensifSparepart,
-        float $potongan
+        float $bonusReward,
+        float $potongan,
+        float $potonganAbsensi = 0,
+        float $potonganPiutang = 0
     ): float {
-        return max(0, $pendapatan + $tunjanganTransport + $intensifJasa + $intensifSparepart - $potongan);
+        return max(
+            0,
+            $pendapatan
+            + $tunjanganTransport
+            + $intensifJasa
+            + $intensifSparepart
+            + $bonusReward
+            - $potongan
+            - $potonganAbsensi
+            - $potonganPiutang
+        );
     }
 }

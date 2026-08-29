@@ -90,24 +90,33 @@ class EmployeeSalaryController extends Controller
             'period_year' => 'required|integer|min:2000|max:2100',
             'pendapatan' => 'required|numeric|min:0',
             'potongan' => 'nullable|numeric|min:0',
+            'potongan_absensi' => 'nullable|numeric|min:0',
+            'potongan_piutang' => 'nullable|numeric|min:0',
             'tunjangan_transport' => 'nullable|numeric|min:0',
             'intensif_jasa' => 'nullable|numeric|min:0',
             'intensif_sparepart' => 'nullable|numeric|min:0',
+            'bonus_reward' => 'nullable|numeric|min:0',
             'status' => 'required|in:draft,paid',
             'paid_at' => 'nullable|date',
             'notes' => 'nullable|string',
         ]);
 
         $data['potongan'] = $data['potongan'] ?? 0;
+        $data['potongan_absensi'] = $data['potongan_absensi'] ?? 0;
+        $data['potongan_piutang'] = $data['potongan_piutang'] ?? 0;
         $data['tunjangan_transport'] = $data['tunjangan_transport'] ?? 0;
         $data['intensif_jasa'] = $data['intensif_jasa'] ?? 0;
         $data['intensif_sparepart'] = $data['intensif_sparepart'] ?? 0;
+        $data['bonus_reward'] = $data['bonus_reward'] ?? 0;
         $data['net_salary'] = EmployeeSalary::calculateNet(
             (float) $data['pendapatan'],
             (float) $data['tunjangan_transport'],
             (float) $data['intensif_jasa'],
             (float) $data['intensif_sparepart'],
+            (float) $data['bonus_reward'],
             (float) $data['potongan'],
+            (float) $data['potongan_absensi'],
+            (float) $data['potongan_piutang'],
         );
 
         if ($data['status'] === 'paid' && empty($data['paid_at'])) {

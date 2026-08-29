@@ -26,9 +26,12 @@ export default function Salaries({ salaries, employees = [], filters }) {
         period_year: new Date().getFullYear(),
         pendapatan: 0,
         potongan: 0,
+        potongan_absensi: 0,
+        potongan_piutang: 0,
         tunjangan_transport: 0,
         intensif_jasa: 0,
         intensif_sparepart: 0,
+        bonus_reward: 0,
         status: 'draft',
         paid_at: '',
         notes: '',
@@ -41,9 +44,12 @@ export default function Salaries({ salaries, employees = [], filters }) {
             + Number(data.tunjangan_transport || 0)
             + Number(data.intensif_jasa || 0)
             + Number(data.intensif_sparepart || 0)
-            - Number(data.potongan || 0),
+            + Number(data.bonus_reward || 0)
+            - Number(data.potongan || 0)
+            - Number(data.potongan_absensi || 0)
+            - Number(data.potongan_piutang || 0),
         )
-    ), [data.pendapatan, data.tunjangan_transport, data.intensif_jasa, data.intensif_sparepart, data.potongan]);
+    ), [data.pendapatan, data.tunjangan_transport, data.intensif_jasa, data.intensif_sparepart, data.bonus_reward, data.potongan, data.potongan_absensi, data.potongan_piutang]);
 
     const applyFilter = (e) => {
         e.preventDefault();
@@ -59,9 +65,12 @@ export default function Salaries({ salaries, employees = [], filters }) {
             period_year: new Date().getFullYear(),
             pendapatan: 0,
             potongan: 0,
+            potongan_absensi: 0,
+            potongan_piutang: 0,
             tunjangan_transport: 0,
             intensif_jasa: 0,
             intensif_sparepart: 0,
+            bonus_reward: 0,
             status: 'draft',
             paid_at: '',
             notes: '',
@@ -78,9 +87,12 @@ export default function Salaries({ salaries, employees = [], filters }) {
             period_year: item.period_year,
             pendapatan: item.pendapatan,
             potongan: item.potongan,
+            potongan_absensi: item.potongan_absensi || 0,
+            potongan_piutang: item.potongan_piutang || 0,
             tunjangan_transport: item.tunjangan_transport,
             intensif_jasa: item.intensif_jasa,
             intensif_sparepart: item.intensif_sparepart,
+            bonus_reward: item.bonus_reward || 0,
             status: item.status,
             paid_at: item.paid_at ? String(item.paid_at).slice(0, 10) : '',
             notes: item.notes || '',
@@ -131,7 +143,10 @@ export default function Salaries({ salaries, employees = [], filters }) {
         { header: 'Tj. Transport', accessor: 'tunjangan_transport', cell: r => fmt(r.tunjangan_transport) },
         { header: 'Ins. Jasa', accessor: 'intensif_jasa', cell: r => fmt(r.intensif_jasa) },
         { header: 'Ins. Sparepart', accessor: 'intensif_sparepart', cell: r => fmt(r.intensif_sparepart) },
-        { header: 'Potongan', accessor: 'potongan', cell: r => fmt(r.potongan) },
+        { header: 'Bonus / Reward', accessor: 'bonus_reward', cell: r => fmt(r.bonus_reward) },
+        { header: 'Potongan', accessor: 'potongan', cell: r => fmt(
+            Number(r.potongan || 0) + Number(r.potongan_absensi || 0) + Number(r.potongan_piutang || 0)
+        ) },
         { header: 'Gaji Bersih', accessor: 'net_salary', cell: r => <span style={{ fontWeight: 700 }}>{fmt(r.net_salary)}</span> },
         { header: 'Status', accessor: 'status', cell: r => (
             <span style={{ fontWeight: 600, color: r.status === 'paid' ? 'var(--color-success)' : 'var(--color-warning)' }}>
@@ -189,7 +204,7 @@ export default function Salaries({ salaries, employees = [], filters }) {
             {isModalOpen && (
                 <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
                     <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} onClick={() => setIsModalOpen(false)} />
-                    <div className="glass-panel" style={{ position: 'relative', width: '100%', maxWidth: '580px', padding: '1.5rem', maxHeight: '90vh', overflowY: 'auto' }}>
+                    <div className="glass-panel" style={{ position: 'relative', width: '100%', maxWidth: '640px', padding: '1.5rem', maxHeight: '90vh', overflowY: 'auto' }}>
                         <h2 style={{ fontSize: '1.1rem', fontWeight: 600, margin: '0 0 1.25rem' }}>
                             {editing ? 'Edit Gaji Karyawan' : 'Input Gaji Karyawan'}
                         </h2>
@@ -222,11 +237,11 @@ export default function Salaries({ salaries, employees = [], filters }) {
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                                 <div>
-                                    <label className="form-label">Pendapatan *</label>
+                                    <label className="form-label">Pendapatan pokok *</label>
                                     <input type="number" min={0} className="form-input" value={data.pendapatan} onChange={e => setData('pendapatan', e.target.value)} required />
                                 </div>
                                 <div>
-                                    <label className="form-label">Potongan</label>
+                                    <label className="form-label">Potongan lainnya</label>
                                     <input type="number" min={0} className="form-input" value={data.potongan} onChange={e => setData('potongan', e.target.value)} />
                                 </div>
                                 <div>
@@ -234,12 +249,24 @@ export default function Salaries({ salaries, employees = [], filters }) {
                                     <input type="number" min={0} className="form-input" value={data.tunjangan_transport} onChange={e => setData('tunjangan_transport', e.target.value)} />
                                 </div>
                                 <div>
+                                    <label className="form-label">Potongan absensi</label>
+                                    <input type="number" min={0} className="form-input" value={data.potongan_absensi} onChange={e => setData('potongan_absensi', e.target.value)} />
+                                </div>
+                                <div>
                                     <label className="form-label">Intensif Jasa</label>
                                     <input type="number" min={0} className="form-input" value={data.intensif_jasa} onChange={e => setData('intensif_jasa', e.target.value)} />
                                 </div>
                                 <div>
+                                    <label className="form-label">Potongan piutang</label>
+                                    <input type="number" min={0} className="form-input" value={data.potongan_piutang} onChange={e => setData('potongan_piutang', e.target.value)} />
+                                </div>
+                                <div>
                                     <label className="form-label">Intensif Sparepart</label>
                                     <input type="number" min={0} className="form-input" value={data.intensif_sparepart} onChange={e => setData('intensif_sparepart', e.target.value)} />
+                                </div>
+                                <div>
+                                    <label className="form-label">Bonus / Reward</label>
+                                    <input type="number" min={0} className="form-input" value={data.bonus_reward} onChange={e => setData('bonus_reward', e.target.value)} />
                                 </div>
                                 <div>
                                     <label className="form-label">Status *</label>
