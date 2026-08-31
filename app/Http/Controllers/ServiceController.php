@@ -42,7 +42,7 @@ class ServiceController extends Controller
             'technicians' => User::where('role', 'mechanic')->get(['id', 'name']),
             'spareParts'  => SparePart::where('stock', '>', 0)->get(),
             'serviceCategories' => ServiceCategory::where('is_active', true)->orderBy('name')->get(['id', 'name', 'unit', 'default_fee']),
-            'workTypes' => WorkType::where('is_active', true)->orderBy('name')->get(['id', 'name', 'unit']),
+            'workTypes' => WorkType::where('is_active', true)->orderBy('name')->get(['id', 'name', 'unit', 'default_fee']),
         ]);
     }
 
@@ -58,13 +58,15 @@ class ServiceController extends Controller
             'is_bring_own_part' => 'boolean',
             'service_fee'  => 'nullable|numeric|min:0',
             'parts'        => 'nullable|array',
-            'parts.*.spare_part_id' => 'exists:spare_parts,id',
-            'parts.*.quantity'      => 'integer|min:1',
+            'parts.*.spare_part_id' => 'nullable|exists:spare_parts,id',
+            'parts.*.quantity'      => 'nullable|integer|min:1',
+            'parts.*.unit_price'    => 'nullable|numeric|min:0',
             'work_items'   => 'nullable|array',
             'work_items.*.work_type_id' => 'nullable|exists:work_types,id',
             'work_items.*.name' => 'nullable|string|max:255',
             'work_items.*.quantity' => 'nullable|integer|min:1',
             'work_items.*.unit' => Units::validationRule(false),
+            'work_items.*.unit_price' => 'nullable|numeric|min:0',
             'warranty_months' => 'nullable|integer|min:0|max:120',
             'warranty_notes' => 'nullable|string',
             'warranty_terms' => 'nullable|string',
@@ -86,20 +88,7 @@ class ServiceController extends Controller
                 'warranty_terms' => $validated['warranty_terms'] ?? null,
             ]);
 
-            if (!empty($validated['parts'])) {
-                foreach ($validated['parts'] as $part) {
-                    $sparePart = SparePart::lockForUpdate()->find($part['spare_part_id']);
-                    $before = $sparePart->stock;
-                    $service->spareParts()->attach($sparePart->id, [
-                        'quantity'   => $part['quantity'],
-                        'unit_price' => $sparePart->sell_price,
-                    ]);
-                    $sparePart->decrement('stock', $part['quantity']);
-                    $sparePart->refresh();
-                    $journal->stock($sparePart, 'out', $part['quantity'], $before, $sparePart->stock, $service, 'Pemakaian spare part servis', $sparePart->buy_price);
-                }
-            }
-
+            $this->syncParts($service, $validated['parts'] ?? [], $journal);
             $this->syncWorkItems($service, $validated['work_items'] ?? []);
 
             $journal->audit('create', 'service', $service, 'Servis baru dibuat.');
@@ -128,11 +117,11 @@ class ServiceController extends Controller
             'technicians' => User::where('role', 'mechanic')->get(['id', 'name']),
             'spareParts'  => SparePart::all(),
             'serviceCategories' => ServiceCategory::where('is_active', true)->orderBy('name')->get(['id', 'name', 'unit', 'default_fee']),
-            'workTypes' => WorkType::where('is_active', true)->orderBy('name')->get(['id', 'name', 'unit']),
+            'workTypes' => WorkType::where('is_active', true)->orderBy('name')->get(['id', 'name', 'unit', 'default_fee']),
         ]);
     }
 
-    public function update(Request $request, Service $service)
+    public function update(Request $request, Service $service, OperationalJournal $journal)
     {
         $validated = $request->validate([
             'user_id'        => 'nullable|exists:users,id',
@@ -146,24 +135,31 @@ class ServiceController extends Controller
             'is_bring_own_part' => 'boolean',
             'service_fee'    => 'nullable|numeric|min:0',
             'payment_status' => 'nullable|in:belum_lunas,lunas',
+            'parts'          => 'nullable|array',
+            'parts.*.spare_part_id' => 'nullable|exists:spare_parts,id',
+            'parts.*.quantity'      => 'nullable|integer|min:1',
+            'parts.*.unit_price'    => 'nullable|numeric|min:0',
             'work_items'     => 'nullable|array',
             'work_items.*.work_type_id' => 'nullable|exists:work_types,id',
             'work_items.*.name' => 'nullable|string|max:255',
             'work_items.*.quantity' => 'nullable|integer|min:1',
             'work_items.*.unit' => Units::validationRule(false),
+            'work_items.*.unit_price' => 'nullable|numeric|min:0',
             'warranty_months' => 'nullable|integer|min:0|max:120',
             'warranty_notes' => 'nullable|string',
             'warranty_terms' => 'nullable|string',
             'warranty_starts_at' => 'nullable|date',
         ]);
 
+        $parts = $validated['parts'] ?? [];
         $workItems = $validated['work_items'] ?? [];
-        unset($validated['work_items']);
+        unset($validated['parts'], $validated['work_items']);
 
         $this->applyStatusSideEffects($validated, $service);
 
-        DB::transaction(function () use ($service, $validated, $workItems) {
+        DB::transaction(function () use ($service, $validated, $parts, $workItems, $journal) {
             $service->update($validated);
+            $this->syncParts($service, $parts, $journal);
             $this->syncWorkItems($service, $workItems);
         });
 
@@ -214,6 +210,79 @@ class ServiceController extends Controller
         ]);
     }
 
+    private function syncParts(Service $service, array $parts, OperationalJournal $journal): void
+    {
+        $service->load('spareParts');
+
+        $existing = [];
+        foreach ($service->spareParts as $sparePart) {
+            $existing[(int) $sparePart->id] = (int) $sparePart->pivot->quantity;
+        }
+
+        $incoming = [];
+        foreach ($parts as $part) {
+            $id = (int) ($part['spare_part_id'] ?? 0);
+            if ($id <= 0) {
+                continue;
+            }
+
+            $sparePart = SparePart::find($id);
+            if (! $sparePart) {
+                continue;
+            }
+
+            $qty = max(1, (int) ($part['quantity'] ?? 1));
+            $price = array_key_exists('unit_price', $part) && $part['unit_price'] !== '' && $part['unit_price'] !== null
+                ? (float) $part['unit_price']
+                : (float) $sparePart->sell_price;
+
+            if (isset($incoming[$id])) {
+                $incoming[$id]['quantity'] += $qty;
+            } else {
+                $incoming[$id] = [
+                    'quantity' => $qty,
+                    'unit_price' => $price,
+                ];
+            }
+        }
+
+        $allIds = array_unique(array_merge(array_keys($existing), array_keys($incoming)));
+
+        foreach ($allIds as $id) {
+            $oldQty = $existing[$id] ?? 0;
+            $newQty = $incoming[$id]['quantity'] ?? 0;
+            $delta = $newQty - $oldQty;
+            if ($delta === 0) {
+                continue;
+            }
+
+            $sparePart = SparePart::lockForUpdate()->find($id);
+            if (! $sparePart) {
+                continue;
+            }
+
+            $before = $sparePart->stock;
+            if ($delta > 0) {
+                $sparePart->decrement('stock', $delta);
+                $sparePart->refresh();
+                $journal->stock($sparePart, 'out', $delta, $before, $sparePart->stock, $service, 'Pemakaian spare part servis', $sparePart->buy_price);
+            } else {
+                $returnQty = abs($delta);
+                $sparePart->increment('stock', $returnQty);
+                $sparePart->refresh();
+                $journal->stock($sparePart, 'return', $returnQty, $before, $sparePart->stock, $service, 'Penyesuaian spare part servis');
+            }
+        }
+
+        $service->spareParts()->detach();
+        foreach ($incoming as $id => $row) {
+            $service->spareParts()->attach($id, [
+                'quantity' => $row['quantity'],
+                'unit_price' => $row['unit_price'],
+            ]);
+        }
+    }
+
     private function syncWorkItems(Service $service, array $workItems): void
     {
         $service->workItems()->delete();
@@ -222,12 +291,18 @@ class ServiceController extends Controller
             $workTypeId = $item['work_type_id'] ?? null;
             $name = trim((string) ($item['name'] ?? ''));
             $unit = Units::normalize($item['unit'] ?? null, 'job');
+            $unitPrice = array_key_exists('unit_price', $item) && $item['unit_price'] !== '' && $item['unit_price'] !== null
+                ? (float) $item['unit_price']
+                : null;
 
             if ($workTypeId) {
                 $workType = WorkType::find($workTypeId);
                 if ($workType) {
                     $name = $name !== '' ? $name : $workType->name;
                     $unit = Units::normalize($workType->unit ?: $unit, 'job');
+                    if ($unitPrice === null) {
+                        $unitPrice = (float) ($workType->default_fee ?? 0);
+                    }
                 }
             }
 
@@ -240,6 +315,7 @@ class ServiceController extends Controller
                 'name' => $name,
                 'quantity' => max(1, (int) ($item['quantity'] ?? 1)),
                 'unit' => $unit,
+                'unit_price' => $unitPrice ?? 0,
             ]);
         }
     }

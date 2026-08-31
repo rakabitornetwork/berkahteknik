@@ -203,6 +203,8 @@ export default function ServiceShow({ service }) {
                                 <th>Nama Pengerjaan</th>
                                 <th style={{ textAlign: 'center', width: '5rem' }}>Qty</th>
                                 <th style={{ textAlign: 'center', width: '5rem' }}>Satuan</th>
+                                <th style={{ textAlign: 'right' }}>Harga Satuan</th>
+                                <th style={{ textAlign: 'right' }}>Subtotal</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -211,9 +213,11 @@ export default function ServiceShow({ service }) {
                                     <td>{item.name}</td>
                                     <td style={{ textAlign: 'center' }}>{item.quantity}</td>
                                     <td style={{ textAlign: 'center', fontFamily: 'monospace', fontWeight: 700 }}>{item.unit || 'JOB'}</td>
+                                    <td style={{ textAlign: 'right' }}>{fmt(item.unit_price)}</td>
+                                    <td style={{ textAlign: 'right', fontWeight: 500 }}>{fmt(item.quantity * item.unit_price)}</td>
                                 </tr>
                             )) : (
-                                <tr><td colSpan="3" style={{ color: 'var(--color-text-muted)', fontStyle: 'italic' }}>Tidak ada item pengerjaan</td></tr>
+                                <tr><td colSpan="5" style={{ color: 'var(--color-text-muted)', fontStyle: 'italic' }}>Tidak ada item pengerjaan</td></tr>
                             )}
                         </tbody>
                     </table>

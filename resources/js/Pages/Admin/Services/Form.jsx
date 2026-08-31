@@ -3,6 +3,12 @@ import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import AdminLayout from '../../../Layouts/AdminLayout';
 import { ArrowLeft } from 'lucide-react';
 
+const fmt = (n) => `Rp ${Number(n || 0).toLocaleString('id-ID')}`;
+
+function lineTotal(qty, price) {
+    return Number(qty || 0) * Number(price || 0);
+}
+
 function FormSection({ title, children }) {
     return (
         <div style={{ marginBottom: '1.5rem' }}>
@@ -27,15 +33,21 @@ export default function ServiceForm({ service, customers, technicians, sparePart
         service?.spare_parts?.map(p => ({
             spare_part_id: p.id,
             quantity: p.pivot.quantity,
+            unit_price: p.pivot.unit_price ?? p.sell_price ?? 0,
         })) || []
     );
     const [workItems, setWorkItems] = useState(
-        service?.work_items?.map(item => ({
-            work_type_id: item.work_type_id || '',
-            name: item.name,
-            quantity: item.quantity,
-            unit: (item.unit || 'job').toLowerCase(),
-        })) || []
+        service?.work_items?.map(item => {
+            const workType = workTypes.find(wt => String(wt.id) === String(item.work_type_id));
+            const storedPrice = Number(item.unit_price);
+            return {
+                work_type_id: item.work_type_id || '',
+                name: item.name,
+                quantity: item.quantity,
+                unit: (item.unit || 'job').toLowerCase(),
+                unit_price: storedPrice > 0 ? storedPrice : (workType?.default_fee ?? 0),
+            };
+        }) || []
     );
 
     const { data, setData, post, put, processing, errors } = useForm({
@@ -80,8 +92,11 @@ export default function ServiceForm({ service, customers, technicians, sparePart
 
     const customerVehicles = customers?.find(c => c.id == selectedCustomer)?.vehicles || [];
 
+    const partsTotal = data.parts.reduce((sum, part) => sum + lineTotal(part.quantity, part.unit_price), 0);
+    const workItemsTotal = data.work_items.reduce((sum, item) => sum + lineTotal(item.quantity, item.unit_price), 0);
+
     const addPart = () => {
-        const newParts = [...data.parts, { spare_part_id: '', quantity: 1 }];
+        const newParts = [...data.parts, { spare_part_id: '', quantity: 1, unit_price: 0 }];
         setParts(newParts);
         setData('parts', newParts);
     };
@@ -93,13 +108,24 @@ export default function ServiceForm({ service, customers, technicians, sparePart
     };
 
     const updatePart = (idx, field, value) => {
-        const newParts = data.parts.map((p, i) => i === idx ? { ...p, [field]: value } : p);
+        const newParts = data.parts.map((p, i) => {
+            if (i !== idx) return p;
+            if (field === 'spare_part_id') {
+                const sparePart = spareParts.find(sp => String(sp.id) === String(value));
+                return {
+                    ...p,
+                    spare_part_id: value,
+                    unit_price: sparePart?.sell_price ?? 0,
+                };
+            }
+            return { ...p, [field]: value };
+        });
         setParts(newParts);
         setData('parts', newParts);
     };
 
     const addWorkItem = () => {
-        const next = [...data.work_items, { work_type_id: '', name: '', quantity: 1, unit: 'job' }];
+        const next = [...data.work_items, { work_type_id: '', name: '', quantity: 1, unit: 'job', unit_price: 0 }];
         setWorkItems(next);
         setData('work_items', next);
     };
@@ -120,6 +146,7 @@ export default function ServiceForm({ service, customers, technicians, sparePart
                     work_type_id: value,
                     name: workType?.name || item.name,
                     unit: (workType?.unit || item.unit || 'job').toLowerCase(),
+                    unit_price: workType?.default_fee ?? 0,
                 };
             }
             return { ...item, [field]: value };
@@ -141,7 +168,7 @@ export default function ServiceForm({ service, customers, technicians, sparePart
         <AdminLayout title={isEditing ? 'Edit Servis' : 'Input Servis Baru'}>
             <Head title={isEditing ? 'Edit Servis' : 'Input Servis Baru'} />
 
-            <div style={{ maxWidth: '750px' }}>
+            <div style={{ maxWidth: '960px' }}>
                 <div className="glass-panel" style={{ padding: '2rem' }}>
                     <div style={{ marginBottom: '1.5rem' }}>
                         <Link href="/admin/services" style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}><ArrowLeft size={14} /> Kembali</Link>
@@ -242,34 +269,74 @@ export default function ServiceForm({ service, customers, technicians, sparePart
                             </div>
                         </FormSection>
 
-                        {!isEditing && (
-                            <FormSection title="Item Sparepart">
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                                    {data.parts.map((part, idx) => (
-                                        <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 80px auto', gap: '0.5rem', alignItems: 'center' }}>
-                                            <select className="form-input" value={part.spare_part_id}
-                                                onChange={e => updatePart(idx, 'spare_part_id', e.target.value)}>
-                                                <option value="">-- Pilih Spare Part --</option>
-                                                {spareParts?.map(sp => <option key={sp.id} value={sp.id}>{sp.name} (Stok: {sp.stock})</option>)}
-                                            </select>
-                                            <input type="number" className="form-input" value={part.quantity} min={1}
-                                                onChange={e => updatePart(idx, 'quantity', e.target.value)}
-                                                placeholder="Qty" />
-                                            <button type="button" onClick={() => removePart(idx)}
-                                                style={{ color: 'var(--color-danger)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', lineHeight: 1 }}>×</button>
+                        <FormSection title="Item Sparepart">
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.75rem', overflowX: 'auto' }}>
+                                {data.parts.length > 0 && (
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.6fr) 70px 130px 130px auto', gap: '0.5rem' }}>
+                                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Spare Part</span>
+                                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Qty</span>
+                                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Harga (Rp)</span>
+                                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)', textAlign: 'right' }}>Jumlah</span>
+                                        <span></span>
+                                    </div>
+                                )}
+                                {data.parts.map((part, idx) => (
+                                    <div key={idx} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.6fr) 70px 130px 130px auto', gap: '0.5rem', alignItems: 'center' }}>
+                                        <select className="form-input" value={part.spare_part_id}
+                                            onChange={e => updatePart(idx, 'spare_part_id', e.target.value)}>
+                                            <option value="">-- Pilih Spare Part --</option>
+                                            {spareParts?.map(sp => (
+                                                <option key={sp.id} value={sp.id}>
+                                                    {sp.name} (Stok: {sp.stock}) · {fmt(sp.sell_price)}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <input type="number" className="form-input" value={part.quantity} min={1}
+                                            onChange={e => updatePart(idx, 'quantity', e.target.value)}
+                                            placeholder="Qty" />
+                                        <input type="number" className="form-input" value={part.unit_price} min={0}
+                                            onChange={e => updatePart(idx, 'unit_price', e.target.value)}
+                                            placeholder="0" />
+                                        <div style={{ textAlign: 'right', fontSize: '0.85rem', fontWeight: 600 }}>
+                                            {fmt(lineTotal(part.quantity, part.unit_price))}
                                         </div>
-                                    ))}
-                                </div>
+                                        <button type="button" onClick={() => removePart(idx)}
+                                            style={{ color: 'var(--color-danger)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', lineHeight: 1 }}>×</button>
+                                    </div>
+                                ))}
+                                {data.parts.length === 0 && (
+                                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
+                                        Belum ada spare part.
+                                    </div>
+                                )}
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
                                 <button type="button" onClick={addPart} className="btn btn-outline" style={{ fontSize: '0.8rem' }}>
                                     + Tambah Spare Part
                                 </button>
-                            </FormSection>
-                        )}
+                                {data.parts.length > 0 && (
+                                    <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>
+                                        Subtotal spare part: {fmt(partsTotal)}
+                                    </div>
+                                )}
+                            </div>
+                        </FormSection>
 
                         <FormSection title="Item Pengerjaan">
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.75rem', overflowX: 'auto' }}>
+                                {data.work_items.length > 0 && (
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.3fr) minmax(0, 1fr) 64px 56px 120px 120px auto', gap: '0.5rem' }}>
+                                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Jenis</span>
+                                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Nama</span>
+                                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Qty</span>
+                                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Satuan</span>
+                                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)' }}>Harga (Rp)</span>
+                                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)', textAlign: 'right' }}>Jumlah</span>
+                                        <span></span>
+                                    </div>
+                                )}
                                 {data.work_items.map((item, idx) => (
-                                    <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 70px 56px auto', gap: '0.5rem', alignItems: 'center' }}>
+                                    <div key={idx} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.3fr) minmax(0, 1fr) 64px 56px 120px 120px auto', gap: '0.5rem', alignItems: 'center' }}>
                                         <select
                                             className="form-input"
                                             value={item.work_type_id}
@@ -277,7 +344,9 @@ export default function ServiceForm({ service, customers, technicians, sparePart
                                         >
                                             <option value="">-- Pilih jenis pengerjaan --</option>
                                             {workTypes.map(wt => (
-                                                <option key={wt.id} value={wt.id}>{wt.name} ({wt.unit})</option>
+                                                <option key={wt.id} value={wt.id}>
+                                                    {wt.name} ({wt.unit}) · {fmt(wt.default_fee)}
+                                                </option>
                                             ))}
                                         </select>
                                         <input
@@ -303,6 +372,17 @@ export default function ServiceForm({ service, customers, technicians, sparePart
                                             title="Satuan"
                                             style={{ textAlign: 'center', fontWeight: 700, textTransform: 'capitalize' }}
                                         />
+                                        <input
+                                            type="number"
+                                            className="form-input"
+                                            value={item.unit_price}
+                                            min={0}
+                                            onChange={e => updateWorkItem(idx, 'unit_price', e.target.value)}
+                                            placeholder="0"
+                                        />
+                                        <div style={{ textAlign: 'right', fontSize: '0.85rem', fontWeight: 600 }}>
+                                            {fmt(lineTotal(item.quantity, item.unit_price))}
+                                        </div>
                                         <button type="button" onClick={() => removeWorkItem(idx)}
                                             style={{ color: 'var(--color-danger)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', lineHeight: 1 }}>×</button>
                                     </div>
@@ -318,9 +398,16 @@ export default function ServiceForm({ service, customers, technicians, sparePart
                                     </div>
                                 )}
                             </div>
-                            <button type="button" onClick={addWorkItem} className="btn btn-outline" style={{ fontSize: '0.8rem' }}>
-                                + Tambah Item Pengerjaan
-                            </button>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                                <button type="button" onClick={addWorkItem} className="btn btn-outline" style={{ fontSize: '0.8rem' }}>
+                                    + Tambah Item Pengerjaan
+                                </button>
+                                {data.work_items.length > 0 && (
+                                    <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>
+                                        Subtotal pengerjaan: {fmt(workItemsTotal)}
+                                    </div>
+                                )}
+                            </div>
                         </FormSection>
 
                         <FormSection title="Jasa">
@@ -355,6 +442,9 @@ export default function ServiceForm({ service, customers, technicians, sparePart
                                     <label className="form-label">Biaya Jasa (Rp)</label>
                                     <input type="number" value={data.service_fee} onChange={e => setData('service_fee', e.target.value)}
                                         className="form-input" placeholder="0" min={0} />
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.35rem' }}>
+                                        Harga spare part dan item pengerjaan terisi otomatis dari master data, dan bisa diubah.
+                                    </div>
                                 </div>
                             </div>
                         </FormSection>

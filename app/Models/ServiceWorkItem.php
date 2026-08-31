@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class ServiceWorkItem extends Model
 {
-    protected $fillable = ['service_id', 'work_type_id', 'name', 'quantity', 'unit'];
+    protected $fillable = ['service_id', 'work_type_id', 'name', 'quantity', 'unit', 'unit_price'];
 
     protected $casts = [
         'quantity' => 'integer',
+        'unit_price' => 'float',
     ];
 
     public function service()
