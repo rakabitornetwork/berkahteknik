@@ -202,7 +202,7 @@ class ServiceController extends Controller
 
     public function invoice(Service $service)
     {
-        $service->load(['vehicle.customer', 'technician', 'spareParts', 'workItems', 'payments']);
+        $service->load(['vehicle.customer', 'technician', 'spareParts', 'workItems', 'payments', 'serviceCategory']);
 
         return Inertia::render('Admin/Services/InvoicePrint', [
             'service' => $service,

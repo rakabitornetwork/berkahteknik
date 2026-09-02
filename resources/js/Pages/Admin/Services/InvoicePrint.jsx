@@ -552,6 +552,10 @@ function InvoiceSheet({
         service.diagnosis && { title: 'Diagnosa teknisi', body: service.diagnosis },
         service.mechanic_notes && { title: 'Catatan mekanik', body: service.mechanic_notes },
     ].filter(Boolean);
+    const jasaName = service.service_name || '';
+    const jasaUnit = service.service_category?.unit || 'JOB';
+    const jasaFee = Number(service.service_fee || 0);
+    const hasJasa = Boolean(jasaName || jasaFee);
 
     return (
         <article className="invoice-inner invoice-page" ref={innerRef} data-density={density}>
@@ -689,6 +693,36 @@ function InvoiceSheet({
                                 </tr>
                             )) : (
                                 <tr><td colSpan={hidePrices ? 4 : 6} className="muted-row">Tidak ada item pengerjaan</td></tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div>
+                    <div className="invoice-section-label">Jasa</div>
+                    <table className="invoice-table">
+                        <thead>
+                            <tr>
+                                <th className="col-no">No</th>
+                                <th>Jenis jasa</th>
+                                <th className="col-qty">Qty</th>
+                                <th className="col-unit">Satuan</th>
+                                {!hidePrices && <th className="col-num">Harga</th>}
+                                {!hidePrices && <th className="col-num">Jumlah</th>}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {hasJasa ? (
+                                <tr>
+                                    <td className="col-no">1</td>
+                                    <td style={{ fontWeight: 700 }}>{jasaName || '—'}</td>
+                                    <td className="col-qty">1</td>
+                                    <td className="col-unit">{jasaUnit}</td>
+                                    {!hidePrices && <td className="col-num">{fmt(jasaFee)}</td>}
+                                    {!hidePrices && <td className="col-num" style={{ fontWeight: 700 }}>{fmt(jasaFee)}</td>}
+                                </tr>
+                            ) : (
+                                <tr><td colSpan={hidePrices ? 4 : 6} className="muted-row">Tidak ada jasa</td></tr>
                             )}
                         </tbody>
                     </table>
