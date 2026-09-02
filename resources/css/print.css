@@ -48,13 +48,17 @@
         border-color: #ccc !important;
     }
 
-    /* Halaman cetak standalone: SPK, nota, slip gaji */
+    /* Halaman cetak standalone: SPK, invoice, nota, slip gaji */
     .receipt-print-shell,
     .receipt-print-shell *,
     .spk-print-shell,
     .spk-print-shell *,
     .spk-page,
     .spk-page *,
+    .invoice-print-shell,
+    .invoice-print-shell *,
+    .invoice-page,
+    .invoice-page *,
     .print-page,
     .print-page *,
     .slip-print-shell,
@@ -80,6 +84,7 @@
     }
 
     .spk-page,
+    .invoice-page,
     .print-page {
         position: relative;
         left: auto;
