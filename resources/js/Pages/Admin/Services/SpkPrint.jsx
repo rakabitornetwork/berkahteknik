@@ -14,6 +14,7 @@ const MIN_SCALE = 0.62;
 
 function pickDensity(service) {
     const parts = service.spare_parts?.length || 0;
+    const works = service.work_items?.length || 0;
     const text = [
         service.description,
         service.work_instructions,
@@ -22,9 +23,9 @@ function pickDensity(service) {
         service.warranty_notes,
         service.warranty_terms,
     ].filter(Boolean).join(' ').length;
-    const score = parts + Math.ceil(text / 160);
-    if (score >= 16 || parts >= 10) return 'tight';
-    if (score >= 8 || parts >= 6) return 'compact';
+    const score = parts + works + Math.ceil(text / 160);
+    if (score >= 16 || parts + works >= 10) return 'tight';
+    if (score >= 8 || parts + works >= 6) return 'compact';
     return 'comfortable';
 }
 
@@ -40,6 +41,7 @@ function fitToSheet(sheet, inner, setScale) {
 
 export default function SpkPrint({ service, shop }) {
     const parts = service.spare_parts ?? [];
+    const workItems = service.work_items ?? [];
     const partsTotal = parts.reduce((sum, p) => sum + (p.pivot.quantity * p.pivot.unit_price), 0);
     const grandTotal = partsTotal + Number(service.service_fee || 0);
     const density = useMemo(() => pickDensity(service), [service]);
@@ -325,8 +327,17 @@ export default function SpkPrint({ service, shop }) {
                 .spk-table tbody tr:last-child td { border-bottom: 1px solid #94a3b8; }
                 .col-no { width: 7mm; text-align: center; color: var(--muted); font-variant-numeric: tabular-nums; }
                 .col-qty { width: 14mm; text-align: center; font-variant-numeric: tabular-nums; }
+                .col-unit { width: 16mm; text-align: center; font-variant-numeric: tabular-nums; }
                 .col-num { width: 26mm; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
                 .muted-row { color: #94a3b8; font-style: italic; }
+                .spk-section-label {
+                    font-size: 6.4pt;
+                    font-weight: 800;
+                    letter-spacing: 0.08em;
+                    text-transform: uppercase;
+                    color: var(--teal-deep);
+                    margin: 0 0 0.8mm;
+                }
 
                 .spk-total {
                     display: flex;
@@ -435,6 +446,7 @@ export default function SpkPrint({ service, shop }) {
                         service={service}
                         shop={shop}
                         parts={parts}
+                        workItems={workItems}
                         grandTotal={grandTotal}
                         hidePrices={hidePrices}
                         onLogoLoad={() => fitToSheet(sheetRef.current, innerRef.current, setScale)}
@@ -445,7 +457,7 @@ export default function SpkPrint({ service, shop }) {
     );
 }
 
-function SpkSheet({ innerRef, density, service, shop, parts, grandTotal, hidePrices, onLogoLoad }) {
+function SpkSheet({ innerRef, density, service, shop, parts, workItems, grandTotal, hidePrices, onLogoLoad }) {
     const shopName = shop?.legal_name || shop?.app_name || 'Berkah Teknik AC';
     const contacts = [shop?.phone && `Telp ${shop.phone}`, shop?.whatsapp && `WA ${shop.whatsapp}`].filter(Boolean);
     const vehicle = service.vehicle;
@@ -456,6 +468,10 @@ function SpkSheet({ innerRef, density, service, shop, parts, grandTotal, hidePri
         service.diagnosis && { title: 'Diagnosa teknisi', body: service.diagnosis },
         service.mechanic_notes && { title: 'Catatan mekanik', body: service.mechanic_notes },
     ].filter(Boolean);
+    const jasaName = service.service_name || '';
+    const jasaUnit = service.service_category?.unit || 'JOB';
+    const jasaFee = Number(service.service_fee || 0);
+    const hasJasa = Boolean(jasaName || jasaFee);
 
     return (
         <article className="spk-inner spk-page" ref={innerRef} data-density={density}>
@@ -533,6 +549,7 @@ function SpkSheet({ innerRef, density, service, shop, parts, grandTotal, hidePri
                 )}
 
                 <div>
+                    <div className="spk-section-label">Spare part</div>
                     <table className="spk-table">
                         <thead>
                             <tr>
@@ -554,6 +571,66 @@ function SpkSheet({ innerRef, density, service, shop, parts, grandTotal, hidePri
                                 </tr>
                             )) : (
                                 <tr><td colSpan={hidePrices ? 3 : 5} className="muted-row">Tidak ada spare part dari bengkel</td></tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div>
+                    <div className="spk-section-label">Item pengerjaan</div>
+                    <table className="spk-table">
+                        <thead>
+                            <tr>
+                                <th className="col-no">No</th>
+                                <th>Nama pengerjaan</th>
+                                <th className="col-qty">Qty</th>
+                                <th className="col-unit">Satuan</th>
+                                {!hidePrices && <th className="col-num">Harga</th>}
+                                {!hidePrices && <th className="col-num">Jumlah</th>}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {workItems.length > 0 ? workItems.map((item, i) => (
+                                <tr key={item.id || i}>
+                                    <td className="col-no">{i + 1}</td>
+                                    <td style={{ fontWeight: 700 }}>{item.name}</td>
+                                    <td className="col-qty">{item.quantity}</td>
+                                    <td className="col-unit">{item.unit || 'JOB'}</td>
+                                    {!hidePrices && <td className="col-num">{fmt(item.unit_price)}</td>}
+                                    {!hidePrices && <td className="col-num" style={{ fontWeight: 700 }}>{fmt(item.quantity * item.unit_price)}</td>}
+                                </tr>
+                            )) : (
+                                <tr><td colSpan={hidePrices ? 4 : 6} className="muted-row">Tidak ada item pengerjaan</td></tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div>
+                    <div className="spk-section-label">Jasa</div>
+                    <table className="spk-table">
+                        <thead>
+                            <tr>
+                                <th className="col-no">No</th>
+                                <th>Jenis jasa</th>
+                                <th className="col-qty">Qty</th>
+                                <th className="col-unit">Satuan</th>
+                                {!hidePrices && <th className="col-num">Harga</th>}
+                                {!hidePrices && <th className="col-num">Jumlah</th>}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {hasJasa ? (
+                                <tr>
+                                    <td className="col-no">1</td>
+                                    <td style={{ fontWeight: 700 }}>{jasaName || '—'}</td>
+                                    <td className="col-qty">1</td>
+                                    <td className="col-unit">{jasaUnit}</td>
+                                    {!hidePrices && <td className="col-num">{fmt(jasaFee)}</td>}
+                                    {!hidePrices && <td className="col-num" style={{ fontWeight: 700 }}>{fmt(jasaFee)}</td>}
+                                </tr>
+                            ) : (
+                                <tr><td colSpan={hidePrices ? 4 : 6} className="muted-row">Tidak ada jasa</td></tr>
                             )}
                         </tbody>
                     </table>

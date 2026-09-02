@@ -43,7 +43,7 @@ class WorkOrderController extends Controller
 
     public function print(Service $service)
     {
-        $service->load(['vehicle.customer', 'technician', 'spareParts']);
+        $service->load(['vehicle.customer', 'technician', 'spareParts', 'workItems', 'serviceCategory']);
 
         return Inertia::render('Admin/Services/SpkPrint', [
             'service' => $service,
