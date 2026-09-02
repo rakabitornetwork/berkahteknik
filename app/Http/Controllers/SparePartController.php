@@ -55,6 +55,40 @@ class SparePartController extends Controller
             ->with('success', 'Spare part berhasil ditambahkan.');
     }
 
+    public function quickStore(Request $request)
+    {
+        $request->merge([
+            'code' => strtoupper(trim((string) $request->input('code', ''))),
+            'barcode' => $request->filled('barcode') ? trim((string) $request->input('barcode')) : null,
+            'product_type_id' => $request->filled('product_type_id') ? $request->input('product_type_id') : null,
+        ]);
+
+        if ($request->input('code') === '') {
+            $request->merge(['code' => SparePart::nextQuickCode()]);
+        }
+
+        $validated = $request->validate([
+            'code'            => 'required|string|unique:spare_parts,code',
+            'barcode'         => 'nullable|string|unique:spare_parts,barcode',
+            'name'            => 'required|string|max:150',
+            'product_type_id' => 'nullable|exists:product_types,id',
+            'unit'            => Units::validationRule(),
+            'stock'           => 'required|integer|min:1',
+            'min_stock'       => 'nullable|integer|min:0',
+            'buy_price'       => 'required|numeric|min:0',
+            'sell_price'      => 'required|numeric|min:0',
+            'description'     => 'nullable|string',
+        ]);
+
+        $validated['min_stock'] = $validated['min_stock'] ?? 0;
+        $part = SparePart::create($validated);
+
+        return response()->json([
+            'spare_part' => $part,
+            'message' => 'Produk berhasil ditambahkan dan siap masuk keranjang.',
+        ], 201);
+    }
+
     public function edit(SparePart $sparePart)
     {
         return Inertia::render('Admin/SpareParts/Form', [

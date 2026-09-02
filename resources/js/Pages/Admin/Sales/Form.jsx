@@ -6,6 +6,7 @@ import {
     Clock3,
     FolderOpen,
     ListOrdered,
+    PackagePlus,
     ScanLine,
     Search,
     Trash2,
@@ -14,6 +15,7 @@ import {
 import AdminLayout from '../../../Layouts/AdminLayout';
 import { toast } from '../../../Components/Toast';
 import { computeSaleTotals, lineTotal } from '../../../lib/saleTotals';
+import PosQuickProductModal from './PosQuickProductModal';
 import PosTabs from './PosTabs';
 
 const PENDING_KEY = 'berkahteknik_pos_pending';
@@ -43,7 +45,7 @@ function writePending(items) {
     localStorage.setItem(PENDING_KEY, JSON.stringify(items));
 }
 
-export default function SalesForm({ spareParts = [], customers = [], warehouses = [], cashiers = [] }) {
+export default function SalesForm({ spareParts = [], productTypes = [], customers = [], warehouses = [], cashiers = [] }) {
     const { auth } = usePage().props;
     const user = auth?.user;
     const defaultWarehouse = warehouses.find((w) => w.is_default) || warehouses[0];
@@ -62,6 +64,8 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
 
     const [partSearch, setPartSearch] = useState('');
     const [showPartResults, setShowPartResults] = useState(false);
+    const [showQuickProduct, setShowQuickProduct] = useState(false);
+    const [catalog, setCatalog] = useState(spareParts);
     const [selectedRow, setSelectedRow] = useState(-1);
     const [detailTab, setDetailTab] = useState('rincian');
     const [cashierId, setCashierId] = useState(defaultCashier ? String(defaultCashier.id) : '');
@@ -90,14 +94,18 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
         const q = partSearch.trim().toLowerCase();
         if (!q) return [];
 
-        return spareParts.filter((part) => {
+        return catalog.filter((part) => {
             const code = (part.code || '').toLowerCase();
             const barcode = (part.barcode || '').toLowerCase();
             const name = (part.name || '').toLowerCase();
             const desc = (part.description || '').toLowerCase();
             return code.includes(q) || barcode.includes(q) || name.includes(q) || desc.includes(q);
         });
-    }, [partSearch, spareParts]);
+    }, [partSearch, catalog]);
+
+    useEffect(() => {
+        setCatalog(spareParts);
+    }, [spareParts]);
 
     useEffect(() => {
         const timer = setInterval(() => setNow(new Date()), 1000);
@@ -149,7 +157,7 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
         const q = partSearch.trim().toLowerCase();
         if (!q) return null;
 
-        const exact = spareParts.find((part) => {
+        const exact = catalog.find((part) => {
             const code = (part.code || '').toLowerCase();
             const barcode = (part.barcode || '').toLowerCase();
             return code === q || barcode === q;
@@ -193,7 +201,7 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
         if (Number.isNaN(nextQty) || nextQty < 0) return;
 
         const item = data.items[index];
-        const part = spareParts.find((p) => p.id === item.spare_part_id);
+        const part = catalog.find((p) => p.id === item.spare_part_id);
         if (part && nextQty > part.stock) {
             toast.error(`Stok ${item.name} tidak mencukupi. Sisa stok: ${part.stock}`);
             return;
@@ -205,6 +213,15 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
         const qty = parseInt(data.items[index]?.quantity, 10);
         if (!qty || qty < 1) {
             setData('items', data.items.map((row, i) => (i === index ? { ...row, quantity: 1 } : row)));
+        }
+    };
+
+    const handleQuickProductCreated = (part, qty) => {
+        setCatalog((prev) => (prev.some((item) => item.id === part.id) ? prev : [...prev, part]));
+        setShowQuickProduct(false);
+        const added = addPartToCart(part, qty);
+        if (added) {
+            toast.success(`${part.name} tersimpan di master data dan masuk keranjang.`);
         }
     };
 
@@ -459,6 +476,14 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
                                     <span className="pos-scan-kbd" aria-hidden>
                                         Enter
                                     </span>
+                                    <button
+                                        type="button"
+                                        className="btn btn-primary pos-quick-add-btn"
+                                        onMouseDown={(e) => e.preventDefault()}
+                                        onClick={() => setShowQuickProduct(true)}
+                                    >
+                                        <PackagePlus size={15} /> Tambah Cart
+                                    </button>
                                 </div>
                                 {showPartResults && partSearch.trim() && (
                                     <ul className="pos-part-search-results" role="listbox">
@@ -482,7 +507,17 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
                                                 </li>
                                             ))
                                         ) : (
-                                            <li className="pos-part-search-empty">Tidak ada spare part yang cocok.</li>
+                                            <li className="pos-part-search-empty">
+                                                Tidak ada spare part yang cocok.
+                                                <button
+                                                    type="button"
+                                                    className="pos-part-search-create"
+                                                    onMouseDown={(e) => e.preventDefault()}
+                                                    onClick={() => setShowQuickProduct(true)}
+                                                >
+                                                    Tambah Cart produk baru
+                                                </button>
+                                            </li>
                                         )}
                                     </ul>
                                 )}
@@ -861,6 +896,14 @@ export default function SalesForm({ spareParts = [], customers = [], warehouses 
                     </div>
                 </div>
             )}
+
+            <PosQuickProductModal
+                open={showQuickProduct}
+                onClose={() => setShowQuickProduct(false)}
+                onCreated={handleQuickProductCreated}
+                productTypes={productTypes}
+                initialQuery={partSearch}
+            />
         </AdminLayout>
     );
 }

@@ -29,4 +29,19 @@ class SparePart extends Model
     {
         return $this->stock <= $this->min_stock;
     }
+
+    public static function nextQuickCode(): string
+    {
+        $prefix = 'POS-'.now()->format('ymd').'-';
+        $last = static::where('code', 'like', $prefix.'%')
+            ->orderByDesc('code')
+            ->value('code');
+
+        $seq = 1;
+        if ($last) {
+            $seq = (int) substr($last, strlen($prefix)) + 1;
+        }
+
+        return $prefix.str_pad((string) $seq, 3, '0', STR_PAD_LEFT);
+    }
 }

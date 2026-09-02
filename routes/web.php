@@ -181,6 +181,7 @@ Route::prefix('admin')->middleware(['auth', 'admin.role'])->name('admin.')->grou
     });
 
     // Penjualan Langsung (POS)
+    Route::post('sales/quick-products', [SparePartController::class, 'quickStore'])->name('sales.quick-products');
     Route::patch('sales/{sale}/pay', [App\Http\Controllers\SaleController::class, 'pay'])->name('sales.pay');
     Route::get('/sales/{sale}/receipt', [App\Http\Controllers\SaleController::class, 'receipt'])->name('sales.receipt');
     Route::resource('sales', App\Http\Controllers\SaleController::class)->only(['index', 'create', 'store', 'show', 'destroy'])->names([

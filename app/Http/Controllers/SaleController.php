@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Models\ProductType;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\SparePart;
@@ -47,6 +48,7 @@ class SaleController extends Controller
 
         return Inertia::render('Admin/Sales/Form', [
             'spareParts' => SparePart::where('stock', '>', 0)->orderBy('name')->get(),
+            'productTypes' => ProductType::where('is_active', true)->orderBy('name')->get(['id', 'name']),
             'customers' => Customer::query()->orderBy('name')->get(['id', 'name', 'phone']),
             'warehouses' => $warehouses,
             'cashiers' => User::query()
