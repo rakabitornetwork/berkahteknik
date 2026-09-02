@@ -673,6 +673,8 @@ function InvoiceSheet({
                                 <th>Nama pengerjaan</th>
                                 <th className="col-qty">Qty</th>
                                 <th className="col-unit">Satuan</th>
+                                {!hidePrices && <th className="col-num">Harga</th>}
+                                {!hidePrices && <th className="col-num">Jumlah</th>}
                             </tr>
                         </thead>
                         <tbody>
@@ -682,9 +684,11 @@ function InvoiceSheet({
                                     <td style={{ fontWeight: 700 }}>{item.name}</td>
                                     <td className="col-qty">{item.quantity}</td>
                                     <td className="col-unit">{item.unit || 'JOB'}</td>
+                                    {!hidePrices && <td className="col-num">{fmt(item.unit_price)}</td>}
+                                    {!hidePrices && <td className="col-num" style={{ fontWeight: 700 }}>{fmt(item.quantity * item.unit_price)}</td>}
                                 </tr>
                             )) : (
-                                <tr><td colSpan={4} className="muted-row">Tidak ada item pengerjaan</td></tr>
+                                <tr><td colSpan={hidePrices ? 4 : 6} className="muted-row">Tidak ada item pengerjaan</td></tr>
                             )}
                         </tbody>
                     </table>
