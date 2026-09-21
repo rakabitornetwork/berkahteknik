@@ -132,8 +132,16 @@ export default function PosV2Kasir({ spareParts = [], productTypes = [], custome
         setCustomerList(customers);
     }, [customers]);
 
+    const hidePartResults = () => setShowPartResults(false);
+
+    const openPartResults = () => {
+        setShowPartResults(true);
+        codeInputRef.current?.focus();
+    };
+
     const clearScan = () => {
         setPartSearch('');
+        setShowPartResults(false);
         codeInputRef.current?.focus();
     };
 
@@ -326,15 +334,14 @@ export default function PosV2Kasir({ spareParts = [], productTypes = [], custome
         submitSale,
         showPay,
         showCustomer,
+        showPartResults,
         handleRemoveSelected,
+        hidePartResults,
         openCustomer: () => {
             setShowCustomer(true);
             setTimeout(() => customerSearchRef.current?.focus(), 50);
         },
-        focusSearch: () => {
-            setShowPartResults(true);
-            codeInputRef.current?.focus();
-        },
+        focusSearch: openPartResults,
         focusDiscount: () => discountRef.current?.focus(),
         focusTax: () => {
             setData('tax_enabled', true);
@@ -366,6 +373,12 @@ export default function PosV2Kasir({ spareParts = [], productTypes = [], custome
                 event.preventDefault();
                 if (actions.showPay) actions.submitSale();
                 else actions.openPay();
+            }
+            if (event.key === 'Escape' && actions.showPartResults) {
+                event.preventDefault();
+                event.stopPropagation();
+                actions.hidePartResults();
+                return;
             }
             if (event.key === 'Delete' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) {
                 event.preventDefault();
@@ -404,14 +417,10 @@ export default function PosV2Kasir({ spareParts = [], productTypes = [], custome
                                                 className="form-input pos-part-search-input pos-v2-search-input"
                                                 placeholder="Scan barcode, cari nama, atau pilih dari daftar"
                                                 value={partSearch}
-                                                onChange={(e) => {
-                                                    setPartSearch(e.target.value);
-                                                    setShowPartResults(true);
-                                                }}
-                                                onFocus={() => setShowPartResults(true)}
+                                                onChange={(e) => setPartSearch(e.target.value)}
+                                                onClick={openPartResults}
                                                 onBlur={() => setTimeout(() => setShowPartResults(false), 160)}
                                                 autoComplete="off"
-                                                autoFocus
                                             />
                                             <span className="pos-v2-search-kbd" aria-hidden>F5</span>
                                             <button
@@ -529,10 +538,7 @@ export default function PosV2Kasir({ spareParts = [], productTypes = [], custome
                                             <tr
                                                 key={`ghost-${index}`}
                                                 className="pos-v2-ghost-row"
-                                                onClick={() => {
-                                                    setShowPartResults(true);
-                                                    codeInputRef.current?.focus();
-                                                }}
+                                                onClick={() => codeInputRef.current?.focus()}
                                             >
                                                 <td className="is-idx">{data.items.length + index + 1}</td>
                                                 <td colSpan="7">
@@ -664,7 +670,7 @@ export default function PosV2Kasir({ spareParts = [], productTypes = [], custome
                         <kbd>F4</kbd>
                         <span>PPN</span>
                     </button>
-                    <button type="button" className="pos-v2-fkey" onClick={() => { setShowPartResults(true); codeInputRef.current?.focus(); }}>
+                    <button type="button" className="pos-v2-fkey" onClick={openPartResults}>
                         <kbd>F5</kbd>
                         <span>Cari Item</span>
                     </button>
