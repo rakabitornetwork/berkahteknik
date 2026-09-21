@@ -6,7 +6,6 @@ import {
     PackagePlus,
     ScanLine,
     Search,
-    Trash2,
     UserRoundSearch,
     Wallet,
 } from 'lucide-react';
@@ -74,6 +73,7 @@ export default function PosV2Kasir({ spareParts = [], productTypes = [], custome
     });
 
     const [partSearch, setPartSearch] = useState('');
+    const [showPartResults, setShowPartResults] = useState(false);
     const [catalog, setCatalog] = useState(spareParts);
     const [customerList, setCustomerList] = useState(customers);
     const [selectedRow, setSelectedRow] = useState(-1);
@@ -101,15 +101,19 @@ export default function PosV2Kasir({ spareParts = [], productTypes = [], custome
 
     const filteredSpareParts = useMemo(() => {
         const q = partSearch.trim().toLowerCase();
-        if (!q) return catalog;
-        return catalog.filter((part) => {
+        const matched = !q ? catalog : catalog.filter((part) => {
             const code = (part.code || '').toLowerCase();
             const barcode = (part.barcode || '').toLowerCase();
             const name = (part.name || '').toLowerCase();
             const desc = (part.description || '').toLowerCase();
             return code.includes(q) || barcode.includes(q) || name.includes(q) || desc.includes(q);
         });
+        return matched.slice(0, q ? 60 : 40);
     }, [partSearch, catalog]);
+
+    const soldDate = (data.sold_at || '').slice(0, 10);
+    const soldTime = (data.sold_at || '').slice(11, 16);
+    const ghostRows = Math.max(0, 10 - data.items.length);
 
     const filteredCustomers = useMemo(() => {
         const q = customerQuery.trim().toLowerCase();
@@ -327,7 +331,10 @@ export default function PosV2Kasir({ spareParts = [], productTypes = [], custome
             setShowCustomer(true);
             setTimeout(() => customerSearchRef.current?.focus(), 50);
         },
-        focusSearch: () => codeInputRef.current?.focus(),
+        focusSearch: () => {
+            setShowPartResults(true);
+            codeInputRef.current?.focus();
+        },
         focusDiscount: () => discountRef.current?.focus(),
         focusTax: () => {
             setData('tax_enabled', true);
@@ -385,8 +392,8 @@ export default function PosV2Kasir({ spareParts = [], productTypes = [], custome
                 <section className="pos-desk-card pos-v2-card">
                     <div className="pos-v2-body">
                         <div className="pos-v2-work">
-                            <form className="pos-scan pos-v2-scan" onSubmit={handleScanSubmit}>
-                                <label className="pos-field pos-field-code">
+                            <form className="pos-v2-scan" onSubmit={handleScanSubmit}>
+                                <label className="pos-field pos-v2-scan-code">
                                     <span>Kode / Nama Item</span>
                                     <div className="pos-part-search-wrap">
                                         <div className="pos-part-search-field">
@@ -394,225 +401,280 @@ export default function PosV2Kasir({ spareParts = [], productTypes = [], custome
                                             <input
                                                 ref={codeInputRef}
                                                 type="text"
-                                                className="form-input pos-part-search-input"
-                                                placeholder="Scan barcode, ketik nama, atau pilih dari daftar"
+                                                className="form-input pos-part-search-input pos-v2-search-input"
+                                                placeholder="Scan barcode, cari nama, atau pilih dari daftar"
                                                 value={partSearch}
-                                                onChange={(e) => setPartSearch(e.target.value)}
+                                                onChange={(e) => {
+                                                    setPartSearch(e.target.value);
+                                                    setShowPartResults(true);
+                                                }}
+                                                onFocus={() => setShowPartResults(true)}
+                                                onBlur={() => setTimeout(() => setShowPartResults(false), 160)}
                                                 autoComplete="off"
                                                 autoFocus
                                             />
-                                            <span className="pos-scan-kbd" aria-hidden>F5</span>
+                                            <span className="pos-v2-search-kbd" aria-hidden>F5</span>
                                             <button
                                                 type="button"
-                                                className="btn btn-primary pos-quick-add-btn"
+                                                className="btn btn-primary pos-v2-add-btn"
+                                                onMouseDown={(e) => e.preventDefault()}
                                                 onClick={() => setShowQuickProduct(true)}
                                             >
-                                                <PackagePlus size={15} /> Tambah Produk
+                                                <PackagePlus size={15} /> Tambah
                                             </button>
                                         </div>
+                                        {showPartResults && (
+                                            <ul className="pos-part-search-results pos-v2-search-results" role="listbox">
+                                                {filteredSpareParts.length > 0 ? (
+                                                    filteredSpareParts.map((part) => (
+                                                        <li key={part.id}>
+                                                            <button
+                                                                type="button"
+                                                                className={`pos-part-search-option${part.stock <= 0 ? ' is-disabled' : ''}`}
+                                                                disabled={part.stock <= 0}
+                                                                onMouseDown={(e) => e.preventDefault()}
+                                                                onClick={() => part.stock > 0 && addPartToCart(part)}
+                                                            >
+                                                                <span className="pos-part-search-option-main">
+                                                                    <strong>{part.code}</strong> — {part.name}
+                                                                </span>
+                                                                <span className="pos-part-search-option-meta">
+                                                                    Stok {part.stock} · {formatCurrency(part.sell_price)}
+                                                                    {part.unit ? ` · ${part.unit}` : ''}
+                                                                </span>
+                                                            </button>
+                                                        </li>
+                                                    ))
+                                                ) : (
+                                                    <li className="pos-part-search-empty">
+                                                        Tidak ada produk yang cocok.
+                                                        <button
+                                                            type="button"
+                                                            className="pos-part-search-create"
+                                                            onMouseDown={(e) => e.preventDefault()}
+                                                            onClick={() => setShowQuickProduct(true)}
+                                                        >
+                                                            Tambah produk baru
+                                                        </button>
+                                                    </li>
+                                                )}
+                                            </ul>
+                                        )}
                                     </div>
                                 </label>
                             </form>
 
-                            <div className="pos-v2-split">
-                                <aside className="pos-v2-catalog" aria-label="Daftar produk">
-                                    <div className="pos-v2-catalog-head">Daftar Produk</div>
-                                    <ul>
-                                        {filteredSpareParts.length === 0 ? (
-                                            <li className="pos-v2-catalog-empty">
-                                                Tidak ada produk.
-                                                <button type="button" onClick={() => setShowQuickProduct(true)}>
-                                                    Tambah produk baru
-                                                </button>
-                                            </li>
-                                        ) : filteredSpareParts.map((part) => (
-                                            <li key={part.id}>
-                                                <button
-                                                    type="button"
-                                                    className={`pos-v2-catalog-item${part.stock <= 0 ? ' is-disabled' : ''}`}
-                                                    onClick={() => part.stock > 0 && addPartToCart(part)}
-                                                    disabled={part.stock <= 0}
-                                                >
-                                                    <span>
-                                                        <strong>{part.code}</strong>
-                                                        <em>{part.name}</em>
-                                                    </span>
-                                                    <small>
-                                                        Stok {part.stock} · {formatCurrency(part.sell_price)}
-                                                    </small>
-                                                </button>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </aside>
-
-                                <div className="pos-grid-wrap">
-                                    <table className="pos-grid">
-                                        <thead>
-                                            <tr>
-                                                <th>No</th>
-                                                <th>Kode</th>
-                                                <th>Keterangan</th>
-                                                <th>Qty</th>
-                                                <th>Satuan</th>
-                                                <th>Harga</th>
-                                                <th>Pot %</th>
-                                                <th>Total</th>
+                            <div className="pos-grid-wrap pos-v2-grid-wrap">
+                                <table className="pos-grid pos-v2-grid">
+                                    <colgroup>
+                                        <col className="pos-col-no" />
+                                        <col className="pos-col-code" />
+                                        <col className="pos-col-name" />
+                                        <col className="pos-col-qty" />
+                                        <col className="pos-col-unit" />
+                                        <col className="pos-col-price" />
+                                        <col className="pos-col-disc" />
+                                        <col className="pos-col-total" />
+                                    </colgroup>
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>Kode</th>
+                                            <th>Nama Item</th>
+                                            <th>Qty</th>
+                                            <th>Satuan</th>
+                                            <th>Harga</th>
+                                            <th>Disc %</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {data.items.map((item, index) => (
+                                            <tr
+                                                key={`${item.spare_part_id}-${index}`}
+                                                className={selectedRow === index ? 'is-selected' : ''}
+                                                onClick={() => setSelectedRow(index)}
+                                            >
+                                                <td className="is-idx">{index + 1}</td>
+                                                <td className="is-code">{item.code || '-'}</td>
+                                                <td className="is-name">{item.name}</td>
+                                                <td>
+                                                    <input
+                                                        type="number"
+                                                        min="1"
+                                                        className="pos-qty-input"
+                                                        value={item.quantity ?? ''}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        onChange={(e) => handleQtyChange(index, e.target.value)}
+                                                    />
+                                                </td>
+                                                <td>{item.unit || 'pcs'}</td>
+                                                <td className="is-num">{formatCurrency(item.unit_price)}</td>
+                                                <td>
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        max="100"
+                                                        step="0.01"
+                                                        className="pos-qty-input"
+                                                        value={item.discount_percent ?? ''}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        onChange={(e) => handleLineDiscountChange(index, e.target.value)}
+                                                    />
+                                                </td>
+                                                <td className="is-num">{formatCurrency(lineTotal(item))}</td>
                                             </tr>
-                                        </thead>
-                                        <tbody>
-                                            {data.items.length === 0 ? (
-                                                <tr className="pos-grid-empty">
-                                                    <td colSpan="8">
-                                                        <div className="pos-empty">
-                                                            <ScanLine size={28} aria-hidden />
-                                                            <strong>Siap menerima barang</strong>
-                                                            <p>Scan barcode, cari nama, atau pilih dari daftar kiri.</p>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ) : data.items.map((item, index) => (
-                                                <tr
-                                                    key={`${item.spare_part_id}-${index}`}
-                                                    className={selectedRow === index ? 'is-selected' : ''}
-                                                    onClick={() => setSelectedRow(index)}
-                                                >
-                                                    <td className="is-idx">{index + 1}</td>
-                                                    <td className="is-code">{item.code || '-'}</td>
-                                                    <td className="is-name">{item.name}</td>
-                                                    <td>
-                                                        <input
-                                                            type="number"
-                                                            min="1"
-                                                            className="pos-qty-input"
-                                                            value={item.quantity ?? ''}
-                                                            onClick={(e) => e.stopPropagation()}
-                                                            onChange={(e) => handleQtyChange(index, e.target.value)}
-                                                        />
-                                                    </td>
-                                                    <td>{item.unit || 'pcs'}</td>
-                                                    <td className="is-num">{formatCurrency(item.unit_price)}</td>
-                                                    <td>
-                                                        <input
-                                                            type="number"
-                                                            min="0"
-                                                            max="100"
-                                                            step="0.01"
-                                                            className="pos-qty-input"
-                                                            value={item.discount_percent ?? ''}
-                                                            onClick={(e) => e.stopPropagation()}
-                                                            onChange={(e) => handleLineDiscountChange(index, e.target.value)}
-                                                        />
-                                                    </td>
-                                                    <td className="is-num">{formatCurrency(lineTotal(item))}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
+                                        ))}
+                                        {Array.from({ length: ghostRows }).map((_, index) => (
+                                            <tr
+                                                key={`ghost-${index}`}
+                                                className="pos-v2-ghost-row"
+                                                onClick={() => {
+                                                    setShowPartResults(true);
+                                                    codeInputRef.current?.focus();
+                                                }}
+                                            >
+                                                <td className="is-idx">{data.items.length + index + 1}</td>
+                                                <td colSpan="7">
+                                                    {data.items.length === 0 && index === 0 ? (
+                                                        <span className="pos-v2-ghost-hint">
+                                                            <ScanLine size={14} aria-hidden /> Scan, cari nama, atau pilih dari daftar (F5)
+                                                        </span>
+                                                    ) : null}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
 
                         <aside className="pos-v2-side">
-                            <div className="pos-v2-side-head">Faktur</div>
-                            <label className="pos-field">
-                                <span>Tanggal</span>
-                                <input
-                                    type="datetime-local"
-                                    className="form-input"
-                                    value={data.sold_at}
-                                    onChange={(e) => setData('sold_at', e.target.value)}
-                                />
-                            </label>
-                            <label className="pos-field">
-                                <span>Pelanggan <kbd>F1</kbd></span>
-                                <button type="button" className="pos-v2-customer-btn" onClick={() => setShowCustomer(true)}>
-                                    <UserRoundSearch size={16} />
-                                    <span>{selectedCustomer?.name || data.customer_name || 'UMUM'}</span>
-                                </button>
-                            </label>
-                            <label className="pos-field">
-                                <span>Diskon Faktur <kbd>F3</kbd></span>
-                                <input
-                                    ref={discountRef}
-                                    type="number"
-                                    min="0"
-                                    max="100"
-                                    step="0.01"
-                                    className="form-input"
-                                    value={data.discount_percent ?? ''}
-                                    onChange={(e) => setData('discount_percent', e.target.value)}
-                                    placeholder="0"
-                                />
-                            </label>
-                            <label className="pos-field">
-                                <span>Diskon (Rp)</span>
-                                <input
-                                    type="number"
-                                    min="0"
-                                    step="100"
-                                    className="form-input"
-                                    value={data.discount_amount ?? ''}
-                                    onChange={(e) => setData('discount_amount', e.target.value)}
-                                    placeholder="0"
-                                />
-                            </label>
-                            <label className="pos-field pos-tax-toggle">
-                                <span>PPN <kbd>F4</kbd></span>
-                                <label className="pos-check">
-                                    <input
-                                        type="checkbox"
-                                        checked={Boolean(data.tax_enabled)}
-                                        onChange={(e) => setData('tax_enabled', e.target.checked)}
-                                    />
-                                    Kenakan PPN
+                            <div className="pos-v2-hero-total" aria-live="polite">
+                                <span>Total</span>
+                                <strong>{formatCurrency(grandTotal)}</strong>
+                            </div>
+
+                            <div className="pos-v2-side-block">
+                                <label className="pos-v2-side-row">
+                                    <span>No. Transaksi</span>
+                                    <input className="form-input" value="Otomatis" readOnly />
                                 </label>
-                            </label>
-                            <label className="pos-field">
-                                <span>PPN (%)</span>
-                                <input
-                                    ref={taxRef}
-                                    type="number"
-                                    min="0"
-                                    max="100"
-                                    step="0.01"
-                                    className="form-input"
-                                    value={data.tax_percent ?? ''}
-                                    disabled={!data.tax_enabled}
-                                    onChange={(e) => setData('tax_percent', e.target.value)}
-                                />
-                            </label>
+                                <div className="pos-v2-side-row">
+                                    <span>Tanggal</span>
+                                    <div className="pos-v2-datetime">
+                                        <input
+                                            type="date"
+                                            className="form-input"
+                                            value={soldDate}
+                                            onChange={(e) => setData('sold_at', `${e.target.value}T${soldTime || '00:00'}`)}
+                                        />
+                                        <input
+                                            type="time"
+                                            className="form-input"
+                                            value={soldTime}
+                                            onChange={(e) => setData('sold_at', `${soldDate || toLocalInput(new Date()).slice(0, 10)}T${e.target.value}`)}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="pos-v2-side-row">
+                                    <span>Pelanggan</span>
+                                    <button type="button" className="pos-v2-customer-btn" onClick={() => setShowCustomer(true)}>
+                                        <UserRoundSearch size={15} />
+                                        <em>{selectedCustomer?.name || data.customer_name || 'UMUM'}</em>
+                                    </button>
+                                </div>
+                                <label className="pos-v2-side-row">
+                                    <span>Diskon Faktur</span>
+                                    <div className="pos-v2-affix">
+                                        <input
+                                            ref={discountRef}
+                                            type="number"
+                                            min="0"
+                                            max="100"
+                                            step="0.01"
+                                            className="form-input"
+                                            value={data.discount_percent ?? ''}
+                                            onChange={(e) => setData('discount_percent', e.target.value)}
+                                            placeholder="0"
+                                        />
+                                        <i>%</i>
+                                    </div>
+                                </label>
+                                <label className="pos-v2-side-row">
+                                    <span>Diskon Rp</span>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="100"
+                                        className="form-input"
+                                        value={data.discount_amount ?? ''}
+                                        onChange={(e) => setData('discount_amount', e.target.value)}
+                                        placeholder="0"
+                                    />
+                                </label>
+                                <div className="pos-v2-side-row">
+                                    <span>PPN</span>
+                                    <div className="pos-v2-tax-row">
+                                        <label className="pos-v2-tax-check">
+                                            <input
+                                                type="checkbox"
+                                                checked={Boolean(data.tax_enabled)}
+                                                onChange={(e) => setData('tax_enabled', e.target.checked)}
+                                            />
+                                        </label>
+                                        <div className="pos-v2-affix">
+                                            <input
+                                                ref={taxRef}
+                                                type="number"
+                                                min="0"
+                                                max="100"
+                                                step="0.01"
+                                                className="form-input"
+                                                value={data.tax_percent ?? ''}
+                                                disabled={!data.tax_enabled}
+                                                onChange={(e) => setData('tax_percent', e.target.value)}
+                                            />
+                                            <i>%</i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div className="pos-v2-totals">
                                 <div><span>Subtotal</span><strong>{formatMoney(subtotal)}</strong></div>
                                 <div><span>Diskon</span><strong>{formatMoney(discount)}</strong></div>
                                 <div><span>PPN{data.tax_enabled ? ` ${Number(data.tax_percent || 0)}%` : ''}</span><strong>{formatMoney(tax)}</strong></div>
-                                <div className="is-total"><span>Total</span><strong>{formatCurrency(grandTotal)}</strong></div>
+                                <div className="is-total"><span>Grand Total</span><strong>{formatMoney(grandTotal)}</strong></div>
                             </div>
-                            <button type="button" className="btn btn-outline" onClick={handleRemoveSelected} disabled={selectedRow < 0}>
-                                <Trash2 size={14} /> Hapus Baris
-                            </button>
                         </aside>
                     </div>
                 </section>
 
-                <footer className="pos-actions pos-v2-hotkeys">
-                    <button type="button" className="btn btn-outline" onClick={() => setShowCustomer(true)}>
-                        Pelanggan <kbd>F1</kbd>
+                <footer className="pos-v2-fbar" role="toolbar" aria-label="Shortcut kasir">
+                    <button type="button" className="pos-v2-fkey" onClick={() => setShowCustomer(true)}>
+                        <kbd>F1</kbd>
+                        <span>Pelanggan</span>
                     </button>
-                    <button type="button" className="btn btn-outline" onClick={() => discountRef.current?.focus()}>
-                        Diskon Faktur <kbd>F3</kbd>
+                    <button type="button" className="pos-v2-fkey" onClick={() => discountRef.current?.focus()}>
+                        <kbd>F3</kbd>
+                        <span>Diskon Faktur</span>
                     </button>
-                    <button type="button" className="btn btn-outline" onClick={() => { setData('tax_enabled', true); taxRef.current?.focus(); }}>
-                        PPN <kbd>F4</kbd>
+                    <button type="button" className="pos-v2-fkey" onClick={() => { setData('tax_enabled', true); taxRef.current?.focus(); }}>
+                        <kbd>F4</kbd>
+                        <span>PPN</span>
                     </button>
-                    <button type="button" className="btn btn-outline" onClick={() => codeInputRef.current?.focus()}>
-                        Cari Item <kbd>F5</kbd>
+                    <button type="button" className="pos-v2-fkey" onClick={() => { setShowPartResults(true); codeInputRef.current?.focus(); }}>
+                        <kbd>F5</kbd>
+                        <span>Cari Item</span>
                     </button>
-                    <button type="button" className="btn btn-outline" onClick={handleRemoveSelected}>
-                        Hapus <kbd>Del</kbd>
+                    <button type="button" className="pos-v2-fkey" onClick={handleRemoveSelected}>
+                        <kbd>Del</kbd>
+                        <span>Hapus</span>
                     </button>
-                    <button type="button" className="btn btn-primary pos-pay-btn" onClick={openPay} disabled={processing || !hasItems}>
-                        <Banknote size={18} /> Bayar <kbd>F6</kbd>
+                    <button type="button" className="pos-v2-fkey is-pay" onClick={openPay} disabled={processing || !hasItems}>
+                        <kbd>F6</kbd>
+                        <span><Banknote size={15} /> Bayar</span>
                     </button>
                 </footer>
 
