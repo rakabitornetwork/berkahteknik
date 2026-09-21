@@ -5,7 +5,7 @@ import { getPaperColumns } from '../lib/thermalPrinterStorage';
 import { thermalPrinterManager } from '../lib/thermalPrinterManager';
 import { getPaperWidth, setPaperWidth as persistPaperWidth } from '../lib/thermalPrinterStorage';
 
-const paymentLabels = { cash: 'Tunai', transfer: 'Transfer Bank', qris: 'QRIS' };
+const paymentLabels = { cash: 'Tunai', transfer: 'Transfer Bank', bank: 'Bank', qris: 'QRIS', emoney: 'E-Money', multi: 'Multi', credit: 'Hutang' };
 
 export function useThermalPrinter() {
     const [state, setState] = useState(() => thermalPrinterManager.getState());

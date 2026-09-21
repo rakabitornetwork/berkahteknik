@@ -23,7 +23,7 @@ import DataTable from '../../Components/DataTable';
 import StatusBadge from '../../Components/StatusBadge';
 
 const fmt = (n) => `Rp ${Number(n).toLocaleString('id-ID')}`;
-const paymentLabel = { cash: 'Tunai', transfer: 'Transfer' };
+const paymentLabel = { cash: 'Tunai', transfer: 'Transfer', bank: 'Bank', qris: 'QRIS', emoney: 'E-Money', multi: 'Multi', credit: 'Hutang' };
 
 const quickActionStyle = {
     fontSize: '0.88rem',

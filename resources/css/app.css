@@ -2701,3 +2701,318 @@ html.light .pos-scan {
 @keyframes deploy-term-blink {
     50% { opacity: 0; }
 }
+
+.pos-v2-card {
+    min-height: 0;
+}
+
+.pos-v2-body {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(17.5rem, 20rem);
+}
+
+.pos-v2-work {
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--color-border);
+}
+
+.pos-v2-scan {
+    border-bottom: 1px solid var(--color-border);
+}
+
+.pos-v2 .pos-scan-kbd {
+    right: 10.75rem;
+}
+
+.pos-v2-split {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(13rem, 18rem) minmax(0, 1fr);
+}
+
+.pos-v2-catalog {
+    min-height: 0;
+    overflow: auto;
+    border-right: 1px solid var(--color-border);
+    background: var(--color-table-head-bg);
+}
+
+.pos-v2-catalog-head,
+.pos-v2-side-head {
+    padding: 0.7rem 0.9rem 0.45rem;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+}
+
+.pos-v2-catalog ul,
+.pos-v2-customer-list {
+    list-style: none;
+    margin: 0;
+    padding: 0 0.55rem 0.7rem;
+}
+
+.pos-v2-catalog-item,
+.pos-v2-customer-list button,
+.pos-v2-customer-btn,
+.pos-v2-pay-methods button,
+.pos-v2-piutang-row {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.55rem;
+    text-align: left;
+    border: 1px solid transparent;
+    background: var(--color-surface);
+    color: inherit;
+    cursor: pointer;
+}
+
+.pos-v2-catalog-item {
+    flex-direction: column;
+    margin-bottom: 0.35rem;
+    padding: 0.55rem 0.65rem;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+}
+
+.pos-v2-catalog-item span {
+    display: flex;
+    flex-direction: column;
+    gap: 0.12rem;
+}
+
+.pos-v2-catalog-item strong {
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: 0.74rem;
+    color: var(--color-primary);
+}
+
+.pos-v2-catalog-item em {
+    font-style: normal;
+    font-weight: 600;
+    font-size: 0.84rem;
+}
+
+.pos-v2-catalog-item small,
+.pos-v2-customer-list small,
+.pos-v2-piutang-row small {
+    color: var(--color-text-muted);
+    font-size: 0.74rem;
+}
+
+.pos-v2-catalog-item:hover,
+.pos-v2-customer-list button:hover,
+.pos-v2-piutang-row:hover {
+    border-color: var(--color-primary);
+}
+
+.pos-v2-catalog-item.is-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pos-v2-catalog-empty {
+    padding: 1rem 0.4rem;
+    color: var(--color-text-muted);
+    font-size: 0.84rem;
+}
+
+.pos-v2-catalog-empty button {
+    display: block;
+    margin-top: 0.45rem;
+    border: 0;
+    background: none;
+    color: var(--color-primary);
+    cursor: pointer;
+}
+
+.pos-v2-side {
+    min-width: 0;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    padding: 0.75rem 0.95rem 1rem;
+    background: var(--color-table-head-bg);
+}
+
+.pos-v2-customer-btn {
+    min-height: 2.5rem;
+    align-items: center;
+    padding: 0 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-input-bg);
+}
+
+.pos-v2-customer-btn span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pos-v2-totals {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.75rem 0.8rem;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    background: var(--color-surface);
+}
+
+.pos-v2-totals > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    font-size: 0.88rem;
+}
+
+.pos-v2-totals .is-total {
+    margin-top: 0.3rem;
+    padding-top: 0.55rem;
+    border-top: 1px dashed var(--color-border);
+    font-weight: 700;
+}
+
+.pos-v2-totals .is-total strong {
+    font-family: var(--font-display);
+    color: var(--color-gold);
+}
+
+.pos-v2-hotkeys {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.pos-v2-hotkeys .pos-pay-btn {
+    margin-left: auto;
+}
+
+.pos-v2-customer-list {
+    max-height: 14rem;
+    overflow: auto;
+    padding: 0;
+}
+
+.pos-v2-customer-list button {
+    flex-direction: column;
+    padding: 0.6rem 0.7rem;
+    margin-bottom: 0.3rem;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+}
+
+.pos-v2-customer-new {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.pos-v2-customer-new-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr) auto;
+    gap: 0.45rem;
+}
+
+.pos-v2-pay-methods {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.4rem;
+}
+
+.pos-v2-pay-methods button {
+    justify-content: center;
+    min-height: 2.4rem;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    font-weight: 700;
+}
+
+.pos-v2-pay-methods button.is-active {
+    border-color: var(--color-primary);
+    background: var(--color-primary-alpha);
+    color: var(--color-primary);
+}
+
+.pos-v2-multi,
+.pos-v2-piutang-pay {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.pos-v2-multi-row,
+.pos-v2-piutang-pay {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: 0.45rem;
+}
+
+.pos-v2-piutang-pay {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr) auto;
+    margin-top: 1rem;
+    align-items: end;
+}
+
+.pos-v2-multi-sum {
+    font-size: 0.88rem;
+}
+
+.pos-v2-piutang-grid {
+    display: grid;
+    grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr);
+    gap: 1rem;
+}
+
+.pos-v2-piutang-row {
+    padding: 0.85rem 1rem;
+    margin-bottom: 0.45rem;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+}
+
+.pos-v2-piutang-row span {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.pos-v2-piutang-row.is-active {
+    border-color: var(--color-primary);
+    background: var(--color-primary-alpha);
+}
+
+@media (max-width: 1100px) {
+    .pos-v2-body,
+    .pos-v2-split,
+    .pos-v2-piutang-grid,
+    .pos-v2-pay-methods,
+    .pos-v2-customer-new-grid,
+    .pos-v2-multi-row,
+    .pos-v2-piutang-pay {
+        grid-template-columns: 1fr;
+    }
+
+    .pos-v2-work {
+        border-right: 0;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .pos-v2-hotkeys .pos-pay-btn {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+

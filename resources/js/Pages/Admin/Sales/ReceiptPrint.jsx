@@ -8,6 +8,7 @@ import SaleTotalsBreakdown, { saleItemLineTotal } from '../../../Components/Sale
 import ThermalPrintButton from '../../../Components/ThermalPrintButton';
 import { readHidePrintPrices, writeHidePrintPrices } from '../../../lib/printPriceVisibility';
 import { formatReceiptNumber } from '../../../lib/receiptNumber';
+import { salePaymentLabel } from '../../../lib/salePaymentLabels';
 
 const fmt = (n) => `Rp ${Number(n || 0).toLocaleString('id-ID')}`;
 
@@ -25,7 +26,7 @@ export default function ReceiptPrint({ sale, shop }) {
         }
     }, []);
 
-    const paymentLabel = { cash: 'Tunai', transfer: 'Transfer Bank', qris: 'QRIS' }[sale.payment_method] || sale.payment_method;
+    const paymentLabel = salePaymentLabel(sale.payment_method);
     const items = sale.items ?? [];
 
     const handleClose = () => {

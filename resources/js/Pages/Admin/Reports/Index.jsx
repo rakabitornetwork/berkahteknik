@@ -39,7 +39,7 @@ export default function ReportsIndex({ monthlyData, services, sales, summary, fi
     };
 
     const paymentMethodLabel = (method) => {
-        const labels = { cash: 'Tunai', transfer: 'Transfer', qris: 'QRIS' };
+        const labels = { cash: 'Tunai', transfer: 'Transfer', bank: 'Bank', qris: 'QRIS', emoney: 'E-Money', multi: 'Multi', credit: 'Hutang' };
         return labels[method] || method || '-';
     };
 

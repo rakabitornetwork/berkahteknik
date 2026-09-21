@@ -12,6 +12,7 @@ class Sale extends Model
     protected $fillable = [
         'receipt_number',
         'customer_name',
+        'customer_id',
         'subtotal',
         'discount_percent',
         'discount_amount',
@@ -25,6 +26,12 @@ class Sale extends Model
         'payment_status',
         'payment_method',
         'branch_id',
+        'sold_at',
+        'notes',
+        'cashier_id',
+        'warehouse_id',
+        'pos_version',
+        'cancel_reason',
     ];
 
     protected $casts = [
@@ -38,6 +45,8 @@ class Sale extends Model
         'total_amount' => 'float',
         'amount_paid' => 'float',
         'change_amount' => 'float',
+        'sold_at' => 'datetime',
+        'pos_version' => 'integer',
     ];
 
     protected static function booted(): void
@@ -100,5 +109,20 @@ class Sale extends Model
     public function items()
     {
         return $this->hasMany(SaleItem::class);
+    }
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    public function cashier()
+    {
+        return $this->belongsTo(User::class, 'cashier_id');
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(SalePayment::class);
     }
 }

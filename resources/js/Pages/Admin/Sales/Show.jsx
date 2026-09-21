@@ -7,6 +7,7 @@ import ReceiptWarrantyTerms from '../../../Components/ReceiptWarrantyTerms';
 import SaleTotalsBreakdown, { saleItemLineTotal } from '../../../Components/SaleTotalsBreakdown';
 import ThermalPrintButton from '../../../Components/ThermalPrintButton';
 import { formatReceiptNumber } from '../../../lib/receiptNumber';
+import { salePaymentLabel } from '../../../lib/salePaymentLabels';
 
 export default function SalesShow({ sale }) {
     const { shop } = usePage().props;
@@ -15,7 +16,7 @@ export default function SalesShow({ sale }) {
     });
 
     const formatCurrency = (amount) => `Rp ${Number(amount).toLocaleString('id-ID')}`;
-    const paymentLabel = { cash: 'Tunai', transfer: 'Transfer Bank', qris: 'QRIS' }[sale.payment_method] || sale.payment_method;
+    const paymentLabel = salePaymentLabel(sale.payment_method);
     const notaNumber = formatReceiptNumber(sale.receipt_number, sale.created_at);
 
     const handlePay = (e) => {

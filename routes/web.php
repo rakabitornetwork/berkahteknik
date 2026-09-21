@@ -182,6 +182,15 @@ Route::prefix('admin')->middleware(['auth', 'admin.role'])->name('admin.')->grou
 
     // Penjualan Langsung (POS)
     Route::post('sales/quick-products', [SparePartController::class, 'quickStore'])->name('sales.quick-products');
+    Route::prefix('sales/v2')->name('sales.v2.')->group(function () {
+        Route::get('/', [App\Http\Controllers\PosV2Controller::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\PosV2Controller::class, 'store'])->name('store');
+        Route::get('/piutang', [App\Http\Controllers\PosV2Controller::class, 'piutang'])->name('piutang');
+        Route::get('/riwayat', [App\Http\Controllers\PosV2Controller::class, 'riwayat'])->name('riwayat');
+        Route::post('/customers', [App\Http\Controllers\PosV2Controller::class, 'storeCustomer'])->name('customers');
+        Route::patch('/{sale}/pay', [App\Http\Controllers\PosV2Controller::class, 'pay'])->name('pay');
+        Route::delete('/{sale}', [App\Http\Controllers\PosV2Controller::class, 'destroy'])->name('destroy');
+    });
     Route::patch('sales/{sale}/pay', [App\Http\Controllers\SaleController::class, 'pay'])->name('sales.pay');
     Route::get('/sales/{sale}/receipt', [App\Http\Controllers\SaleController::class, 'receipt'])->name('sales.receipt');
     Route::resource('sales', App\Http\Controllers\SaleController::class)->only(['index', 'create', 'store', 'show', 'destroy'])->names([

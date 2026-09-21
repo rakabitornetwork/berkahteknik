@@ -1,0 +1,1 @@
+var e={cash:`Tunai`,transfer:`Transfer Bank`,bank:`Bank`,qris:`QRIS`,emoney:`E-Money`,multi:`Multi`,credit:`Hutang`};function t(t){return t?e[t]||t:`-`}export{t};
