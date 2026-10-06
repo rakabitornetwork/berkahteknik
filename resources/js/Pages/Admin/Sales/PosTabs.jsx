@@ -4,7 +4,6 @@ import { Link } from '@inertiajs/react';
 const TABS = [
     { id: 'daftar', href: '/admin/sales', label: 'Daftar Kasir' },
     { id: 'kasir', href: '/admin/sales/create', label: 'Kasir' },
-    { id: 'kasir-v2', href: '/admin/sales/v2', label: 'Kasir v2' },
     { id: 'piutang', href: '/admin/sales/v2/piutang', label: 'Piutang' },
     { id: 'riwayat', href: '/admin/sales/v2/riwayat', label: 'Riwayat' },
 ];

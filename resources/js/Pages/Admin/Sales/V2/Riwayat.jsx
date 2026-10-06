@@ -119,7 +119,7 @@ export default function PosV2Riwayat({ sales, filters }) {
                         />
                     </div>
                     <button type="submit" className="btn btn-outline">Filter</button>
-                    <Link href="/admin/sales/v2" className="btn btn-primary">Kasir v2</Link>
+                    <Link href="/admin/sales/create" className="btn btn-primary">Kasir</Link>
                 </form>
             </div>
 

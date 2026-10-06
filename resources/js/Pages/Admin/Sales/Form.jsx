@@ -6,7 +6,7 @@ import {
     Clock3,
     FolderOpen,
     ListOrdered,
-    PackagePlus,
+    Package,
     ScanLine,
     Search,
     Trash2,
@@ -16,6 +16,7 @@ import AdminLayout from '../../../Layouts/AdminLayout';
 import { toast } from '../../../Components/Toast';
 import { computeSaleTotals, lineTotal } from '../../../lib/saleTotals';
 import PosQuickProductModal from './PosQuickProductModal';
+import PosStockListModal from './PosStockListModal';
 import PosTabs from './PosTabs';
 
 const PENDING_KEY = 'berkahteknik_pos_pending';
@@ -65,6 +66,8 @@ export default function SalesForm({ spareParts = [], productTypes = [], customer
     const [partSearch, setPartSearch] = useState('');
     const [showPartResults, setShowPartResults] = useState(false);
     const [showQuickProduct, setShowQuickProduct] = useState(false);
+    const [showStockList, setShowStockList] = useState(false);
+    const [stockQuery, setStockQuery] = useState('');
     const [catalog, setCatalog] = useState(spareParts);
     const [selectedRow, setSelectedRow] = useState(-1);
     const [detailTab, setDetailTab] = useState('rincian');
@@ -216,9 +219,16 @@ export default function SalesForm({ spareParts = [], productTypes = [], customer
         }
     };
 
+    const openStockList = (query = '') => {
+        setStockQuery(query);
+        setShowPartResults(false);
+        setShowStockList(true);
+    };
+
     const handleQuickProductCreated = (part, qty) => {
         setCatalog((prev) => (prev.some((item) => item.id === part.id) ? prev : [...prev, part]));
         setShowQuickProduct(false);
+        setShowStockList(false);
         const added = addPartToCart(part, qty);
         if (added) {
             toast.success(`${part.name} tersimpan di master data dan masuk keranjang.`);
@@ -480,9 +490,9 @@ export default function SalesForm({ spareParts = [], productTypes = [], customer
                                         type="button"
                                         className="btn btn-primary pos-quick-add-btn"
                                         onMouseDown={(e) => e.preventDefault()}
-                                        onClick={() => setShowQuickProduct(true)}
+                                        onClick={() => openStockList(partSearch)}
                                     >
-                                        <PackagePlus size={15} /> Tambah Cart
+                                        <Package size={15} /> Daftar Stok
                                     </button>
                                 </div>
                                 {showPartResults && partSearch.trim() && (
@@ -513,9 +523,9 @@ export default function SalesForm({ spareParts = [], productTypes = [], customer
                                                     type="button"
                                                     className="pos-part-search-create"
                                                     onMouseDown={(e) => e.preventDefault()}
-                                                    onClick={() => setShowQuickProduct(true)}
+                                                    onClick={() => openStockList(partSearch)}
                                                 >
-                                                    Tambah Cart produk baru
+                                                    Buka daftar stok
                                                 </button>
                                             </li>
                                         )}
@@ -896,6 +906,19 @@ export default function SalesForm({ spareParts = [], productTypes = [], customer
                     </div>
                 </div>
             )}
+
+            <PosStockListModal
+                open={showStockList}
+                onClose={() => setShowStockList(false)}
+                catalog={catalog}
+                initialQuery={stockQuery}
+                onAdd={addPartToCart}
+                onCreateNew={(query) => {
+                    setPartSearch(query || '');
+                    setShowStockList(false);
+                    setShowQuickProduct(true);
+                }}
+            />
 
             <PosQuickProductModal
                 open={showQuickProduct}
